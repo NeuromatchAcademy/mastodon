@@ -32,7 +32,9 @@ const messages = defineMessages({
   followed:   { id: 'lists.replies_policy.followed', defaultMessage: 'Any followed user' },
   none:    { id: 'lists.replies_policy.none', defaultMessage: 'No one' },
   list:  { id: 'lists.replies_policy.list', defaultMessage: 'Members of the list' },
-  exclusive: { id: 'lists.exclusive', defaultMessage: 'Hide these posts from home' }
+  exclusive: { id: 'lists.exclusive', defaultMessage: 'Hide these posts from home' },
+  accounts: { id: 'lists.list_mode.accounts', defaultMessage: 'Show statuses from accounts in list' },
+  statuses: { id: 'lists.list_mode.statuses', defaultMessage: 'Show statuses that have been manually added to the list via the API'},
 });
 
 const mapStateToProps = (state, props) => ({
@@ -142,6 +144,13 @@ class ListTimeline extends PureComponent {
     dispatch(updateList(id, undefined, false, target.checked, undefined));
   };
 
+  handleListModeChange = ({ target }) => {
+    console.log('IMPLEMENT ME', target);
+    // const { dispatch, list } = this.props;
+    // const { id } = this.props.params;
+    // this.props.dispatch(updateList(id, undefined, false, target.value));
+  }
+
   render () {
     const { hasUnread, columnId, multiColumn, list, intl } = this.props;
     const { id } = this.props.params;
@@ -149,6 +158,7 @@ class ListTimeline extends PureComponent {
     const title  = list ? list.get('title') : id;
     const replies_policy = list ? list.get('replies_policy') : undefined;
     const isExclusive = list ? list.get('exclusive') : undefined;
+    const list_mode = list ? list.get('list_mode') : undefined;
 
     if (typeof list === 'undefined') {
       return (
@@ -208,6 +218,20 @@ class ListTimeline extends PureComponent {
                 </div>
               </section>
             )}
+            {
+              list_mode !== undefined && (
+                <div role='group' aria-labelledby={`list-${id}-list-mode`}>
+                  <span id={`list-${id}-list-mode`} className='column-settings__section'>
+                    <FormattedMessage id='lists.list_mode.title' defaultMessage='List Mode:' />
+                  </span>
+                  <div className='column-settings__row'>
+                    { ['accounts', 'statuses'].map(policy => (
+                      <RadioButton name='order' key={policy} value={policy} label={intl.formatMessage(messages[policy])} checked={list_mode === policy} onChange={this.handleListModeChange} />
+                    ))}
+                  </div>
+                </div>
+              )
+            }
           </div>
         </ColumnHeader>
 

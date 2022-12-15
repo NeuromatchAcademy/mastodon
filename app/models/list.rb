@@ -9,9 +9,9 @@
 #  title          :string           default(""), not null
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
-#  autopopulate   :boolean          default(False)
 #  replies_policy :integer          default("list"), not null
 #  exclusive      :boolean          default(FALSE), not null
+#  list_mode      :integer          default("accounts"), not null
 #
 
 class List < ApplicationRecord
@@ -20,6 +20,7 @@ class List < ApplicationRecord
   PER_ACCOUNT_LIMIT = 50
 
   enum :replies_policy, { list: 0, followed: 1, none: 2 }, prefix: :show
+  enum :list_mode, { accounts: 0, statuses: 1 }, _prefix: :mode
 
   belongs_to :account
 
