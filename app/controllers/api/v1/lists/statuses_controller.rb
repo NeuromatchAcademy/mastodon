@@ -9,6 +9,11 @@ class Api::V1::Lists::StatusesController < Api::BaseController
 
   after_action :insert_pagination_headers, only: :show
 
+  def show
+    @statuses = load_statuses
+    render json: @statuses, each_serializer: REST::StatusSerializer
+  end
+
   def create
     ApplicationRecord.transaction do
       list_statuses.each do |status|
@@ -35,11 +40,11 @@ class Api::V1::Lists::StatusesController < Api::BaseController
   end
 
 
-  def load_accounts
+  def load_statuses
     if unlimited?
-      @list.accounts.without_suspended.includes(:account_stat).all
+      @list.statuses.all
     else
-      @list.accounts.without_suspended.includes(:account_stat).paginate_by_max_id(limit_param(DEFAULT_ACCOUNTS_LIMIT), params[:max_id], params[:since_id])
+      @list.statuses.paginate_by_max_id(limit_param(DEFAULT_ACCOUNTS_LIMIT), params[:max_id], params[:since_id])
     end
   end
 
@@ -51,5 +56,7 @@ class Api::V1::Lists::StatusesController < Api::BaseController
     params.permit(status_ids: [])
   end
 
-
+  def unlimited?
+    true
+  end
 end
