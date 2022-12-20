@@ -7,7 +7,7 @@ class Api::V1::Lists::StatusesController < Api::BaseController
   before_action :require_user!
   before_action :set_list
 
-  after_action :insert_pagination_headers, only: :show
+  # after_action :insert_pagination_headers, only: :show
 
   def show
     @statuses = load_statuses
@@ -18,6 +18,8 @@ class Api::V1::Lists::StatusesController < Api::BaseController
     ApplicationRecord.transaction do
       list_statuses.each do |status|
         @list.statuses << status
+        FeedManager.instance.push_to_list(@list, Status.find_by(id: status), update: true)
+        # PushUpdateWorker.perform_async(@list.account_id, status, "timeline:list:#{:list_id}", { 'update' => false })
       end
     end
 
@@ -25,7 +27,7 @@ class Api::V1::Lists::StatusesController < Api::BaseController
   end
 
   def destroy
-    ListStatus.where(list: @list, account_id: status_ids).destroy_all
+    ListStatus.where(list: @list, status_id: status_ids).destroy_all
     render_empty
   end
 
@@ -53,7 +55,7 @@ class Api::V1::Lists::StatusesController < Api::BaseController
   end
 
   def resource_params
-    params.permit(status_ids: [])
+    params.permit(:list_id, status_ids: [])
   end
 
   def unlimited?
