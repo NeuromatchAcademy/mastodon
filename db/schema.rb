@@ -573,6 +573,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
     t.index ["list_id", "account_id"], name: "index_list_accounts_on_list_id_and_account_id"
   end
 
+  create_table "list_statuses", force: :cascade do |t|
+    t.bigint "list_id", null: false
+    t.bigint "status_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["list_id", "status_id"], name: "index_list_statuses_on_list_id_and_status_id"
+    t.index ["list_id"], name: "index_list_statuses_on_list_id"
+    t.index ["status_id", "list_id"], name: "index_list_statuses_on_status_id_and_list_id", unique: true
+    t.index ["status_id"], name: "index_list_statuses_on_status_id"
+  end
+
   create_table "lists", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.string "title", default: "", null: false
@@ -580,6 +591,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
     t.datetime "updated_at", precision: nil, null: false
     t.integer "replies_policy", default: 0, null: false
     t.boolean "exclusive", default: false, null: false
+    t.integer "list_mode", default: 0, null: false
     t.index ["account_id"], name: "index_lists_on_account_id"
   end
 
@@ -1286,6 +1298,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
   add_foreign_key "list_accounts", "follow_requests", on_delete: :cascade
   add_foreign_key "list_accounts", "follows", on_delete: :cascade
   add_foreign_key "list_accounts", "lists", on_delete: :cascade
+  add_foreign_key "list_statuses", "lists", on_delete: :cascade
+  add_foreign_key "list_statuses", "statuses", on_delete: :cascade
   add_foreign_key "lists", "accounts", on_delete: :cascade
   add_foreign_key "login_activities", "users", on_delete: :cascade
   add_foreign_key "markers", "users", on_delete: :cascade
