@@ -6,6 +6,7 @@ import { CONTEXT_FETCH_SUCCESS } from 'flavours/glitch/actions/statuses';
 import { TIMELINE_DELETE, TIMELINE_UPDATE } from 'flavours/glitch/actions/timelines';
 import { Map as ImmutableMap, List as ImmutableList } from 'immutable';
 import compareId from '../compare_id';
+import { SEARCH_FETCH_SUCCESS } from '../actions/search';
 
 const initialState = ImmutableMap({
   inReplyTos: ImmutableMap(),
@@ -88,6 +89,13 @@ const updateContext = (state, status) => {
   return state;
 };
 
+const updateContexts = (state, statuses) => {
+  statuses.forEach((status) => {
+    state = updateContext(state, status);
+  });
+  return state;
+};
+
 export default function replies(state = initialState, action) {
   switch(action.type) {
   case ACCOUNT_BLOCK_SUCCESS:
@@ -99,6 +107,8 @@ export default function replies(state = initialState, action) {
     return deleteFromContexts(state, [action.id]);
   case TIMELINE_UPDATE:
     return updateContext(state, action.status);
+  case SEARCH_FETCH_SUCCESS: //STATUSES_IMPORT: // eg. from external context expansion
+    return updateContexts(state, action.results.statuses);
   default:
     return state;
   }

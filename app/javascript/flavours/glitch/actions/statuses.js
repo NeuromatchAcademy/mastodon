@@ -4,6 +4,7 @@ import { deleteFromTimelines } from './timelines';
 import { importFetchedStatus, importFetchedStatuses } from './importer';
 import { ensureComposeIsVisible, setComposeToStatus } from './compose';
 import { submitSearch } from './search';
+import { showAlert } from './alerts';
 
 export const STATUS_FETCH_REQUEST = 'STATUS_FETCH_REQUEST';
 export const STATUS_FETCH_SUCCESS = 'STATUS_FETCH_SUCCESS';
@@ -238,6 +239,7 @@ export function fetchExternalContext(status_url, id){
     dispatch(fetchExternalContextRequest(id));
 
     api(getState).get(`${origin}/api/v1/statuses/${external_id}/context`).then(response => {
+      dispatch(showAlert('Getting Replies...', `Getting ${response.data.descendants.length} Replies.`));
       response.data.descendants.forEach((status) => {
         dispatch(submitSearch(status.url));
       });
