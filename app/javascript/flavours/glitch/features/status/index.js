@@ -34,6 +34,8 @@ import {
   editStatus,
   hideStatus,
   revealStatus,
+  nestStatus,
+  unnestStatus,
   translateStatus,
   undoStatusTranslation,
 } from 'flavours/glitch/actions/statuses';
@@ -68,6 +70,8 @@ const messages = defineMessages({
   replyConfirm: { id: 'confirmations.reply.confirm', defaultMessage: 'Reply' },
   replyMessage: { id: 'confirmations.reply.message', defaultMessage: 'Replying now will overwrite the message you are currently composing. Are you sure you want to proceed?' },
   tootHeading: { id: 'account.posts_with_replies', defaultMessage: 'Posts and replies' },
+  nest: { id: 'status.nest', defaultMessage: 'Nest thread' },
+  unnest: { id: 'status.unnest', defaultMessage: 'Unnest thread' },
 });
 
 const makeMapStateToProps = () => {
@@ -96,11 +100,13 @@ const makeMapStateToProps = () => {
     state => state.get('statuses'),
   ], (statusId, contextReplies, statuses) => {
     let descendantsIds = [];
+    let descendantsGrouped = {};
     const ids = [statusId];
 
     while (ids.length > 0) {
       let id        = ids.pop();
       const replies = contextReplies.get(id);
+      descendantsGrouped[id] = replies;
 
       if (statusId !== id) {
         descendantsIds.push(id);
@@ -113,6 +119,7 @@ const makeMapStateToProps = () => {
       }
     }
 
+    // TODO: Need to sort descendents to mimic this :)
     let insertAt = descendantsIds.findIndex((id) => statuses.get(id).get('in_reply_to_account_id') !== statuses.get(id).get('account'));
     if (insertAt !== -1) {
       descendantsIds.forEach((id, idx) => {
@@ -124,17 +131,18 @@ const makeMapStateToProps = () => {
       });
     }
 
-    return Immutable.List(descendantsIds);
+    return { 'descendantsIds':Immutable.List(descendantsIds), 'descendantsGrouped': Immutable.Map(descendantsGrouped) };
   });
 
   const mapStateToProps = (state, props) => {
     const status = getStatus(state, { id: props.params.statusId });
     let ancestorsIds = Immutable.List();
     let descendantsIds = Immutable.List();
+    let descendantsGrouped = Immutable.Map();
 
     if (status) {
       ancestorsIds = getAncestorsIds(state, { id: status.get('in_reply_to_id') });
-      descendantsIds = getDescendantsIds(state, { id: status.get('id') });
+      ({ descendantsIds, descendantsGrouped } = getDescendantsIds(state, { id: status.get('id') }));
     }
 
     return {
@@ -142,6 +150,7 @@ const makeMapStateToProps = () => {
       status,
       ancestorsIds,
       descendantsIds,
+      descendantsGrouped,
       settings: state.get('local_settings'),
       askReplyConfirmation: state.getIn(['local_settings', 'confirm_before_clearing_draft']) && state.getIn(['compose', 'text']).trim().length !== 0,
       domain: state.getIn(['meta', 'domain']),
@@ -186,6 +195,7 @@ class Status extends ImmutablePureComponent {
     settings: ImmutablePropTypes.map.isRequired,
     ancestorsIds: ImmutablePropTypes.list,
     descendantsIds: ImmutablePropTypes.list,
+    descendantsGrouped: ImmutablePropTypes.map,
     intl: PropTypes.object.isRequired,
     askReplyConfirmation: PropTypes.bool,
     multiColumn: PropTypes.bool,
@@ -201,6 +211,8 @@ class Status extends ImmutablePureComponent {
     loadedStatusId: undefined,
     showMedia: undefined,
     revealBehindCW: undefined,
+    isNested: true,
+    threadNested: true,
   };
 
   componentDidMount () {
@@ -439,6 +451,23 @@ class Status extends ImmutablePureComponent {
     this.setState({ isExpanded: !isExpanded, threadExpanded: !isExpanded });
   }
 
+  handleToggleNest = () => {
+    const { status, ancestorsIds, descendantsIds } = this.props;
+    const statusIds = [status.get('id')].concat(ancestorsIds.toJS(), descendantsIds.toJS());
+    let { isNested } = this.state;
+
+    // if (settings.getIn(['content_warnings', 'shared_state']))
+    //   isExpanded = !status.get('hidden');
+
+    if (!isNested) {
+      this.props.dispatch(nestStatus(statusIds));
+    } else {
+      this.props.dispatch(unnestStatus(statusIds));
+    }
+
+    this.setState({ isNested: !isNested, threadExpanded: !isNested });
+  }
+
   handleTranslate = status => {
     const { dispatch } = this.props;
 
@@ -555,21 +584,48 @@ class Status extends ImmutablePureComponent {
     this.column.scrollTop();
   }
 
-  renderChildren (list) {
-    return list.map(id => (
-      <StatusContainer
-        key={id}
-        id={id}
-        expanded={this.state.threadExpanded}
-        onMoveUp={this.handleMoveUp}
-        onMoveDown={this.handleMoveDown}
-        contextType='thread'
-      />
-    ));
+  renderChildren (list, groups, isNested) {
+    if (isNested === true){
+      const statusId = this.state.statusId;
+
+      let children = groups.get(statusId);
+      console.log('groups',groups, statusId);
+      if (children) {
+        return children.map(id => (
+          <StatusContainer
+            key={id}
+            id={id}
+            expanded={this.state.threadExpanded}
+            nested={isNested}
+            descendantsGrouped={groups}
+            onMoveUp={this.handleMoveUp}
+            onMoveDown={this.handleMoveDown}
+            contextType='thread'
+          />
+        ));
+      }
+    } else {
+      return list.map(id => (
+        <StatusContainer
+          key={id}
+          id={id}
+          expanded={this.state.threadExpanded}
+          nested={isNested}
+          descendantsGrouped={groups}
+          onMoveUp={this.handleMoveUp}
+          onMoveDown={this.handleMoveDown}
+          contextType='thread'
+        />
+      ));
+    }
   }
 
   setExpansion = value => {
     this.setState({ isExpanded: value });
+  }
+
+  setNested = value => {
+    this.setState({ isNested: value });
   }
 
   setRef = c => {
@@ -604,8 +660,8 @@ class Status extends ImmutablePureComponent {
 
   render () {
     let ancestors, descendants;
-    const { isLoading, status, settings, ancestorsIds, descendantsIds, intl, domain, multiColumn, usingPiP } = this.props;
-    const { fullscreen } = this.state;
+    const { isLoading, status, settings, ancestorsIds, descendantsIds, descendantsGrouped, intl, domain, multiColumn, usingPiP } = this.props;
+    const { fullscreen, isNested } = this.state;
 
     if (isLoading) {
       return (
@@ -613,6 +669,12 @@ class Status extends ImmutablePureComponent {
           <LoadingIndicator />
         </Column>
       );
+    }
+
+    if (status) {
+      console.log('main rendering', status.get('id'));
+    } else {
+      console.log('dont have status yet');
     }
 
     if (status === null) {
@@ -627,11 +689,19 @@ class Status extends ImmutablePureComponent {
     const isExpanded = settings.getIn(['content_warnings', 'shared_state']) ? !status.get('hidden') : this.state.isExpanded;
 
     if (ancestorsIds && ancestorsIds.size > 0) {
-      ancestors = <div>{this.renderChildren(ancestorsIds)}</div>;
+      // ancestors are never nested - each post has at most one post it is in reply to!
+      // they do get the grouped descendents since all statuscontainers do
+      ancestors = <div>{this.renderChildren(ancestorsIds, descendantsGrouped, false)}</div>;
     }
 
     if (descendantsIds && descendantsIds.size > 0) {
-      descendants = <div>{this.renderChildren(descendantsIds)}</div>;
+      console.log('rendering top level!');
+      descendants = <div>{this.renderChildren(descendantsIds, descendantsGrouped, isNested)}</div>;
+    } else if (isNested && descendantsGrouped) {
+      console.log('rendering child!');
+      descendants = <div>{this.renderChildren(descendantsIds, descendantsGrouped, isNested)}</div>;
+    } else {
+      console.log('rendering no descendents!');
     }
 
     const isLocal = status.getIn(['account', 'acct'], '').indexOf('@') === -1;
@@ -660,7 +730,24 @@ class Status extends ImmutablePureComponent {
           showBackButton
           multiColumn={multiColumn}
           extraButton={(
-            <button className='column-header__button' title={intl.formatMessage(!isExpanded ? messages.revealAll : messages.hideAll)} aria-label={intl.formatMessage(!isExpanded ? messages.revealAll : messages.hideAll)} onClick={this.handleToggleAll}><Icon id={!isExpanded ? 'eye-slash' : 'eye'} /></button>
+            <>
+            <button
+              className='column-header__button'
+              title={intl.formatMessage(!isExpanded ? messages.revealAll : messages.hideAll)}
+              aria-label={intl.formatMessage(!isExpanded ? messages.revealAll : messages.hideAll)}
+              onClick={this.handleToggleAll}
+            >
+              <Icon id={!isExpanded ? 'eye-slash' : 'eye'} />
+            </button>
+            <button
+              className='column-header__button'
+              title={intl.formatMessage(!isNested ? messages.nest : messages.unnest)}
+              aria-label={intl.formatMessage(!isNested ? messages.nest : messages.unnest)}
+              onClick={this.handleToggleNest}
+              >
+              <Icon id={!isNested ? 'align-justify' : 'indent'} />
+            </button>
+            </>
           )}
         />
 

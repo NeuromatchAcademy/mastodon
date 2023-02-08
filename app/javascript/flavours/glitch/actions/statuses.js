@@ -28,6 +28,9 @@ export const STATUS_REVEAL   = 'STATUS_REVEAL';
 export const STATUS_HIDE     = 'STATUS_HIDE';
 export const STATUS_COLLAPSE = 'STATUS_COLLAPSE';
 
+export const STATUS_NEST = 'STATUS_NEST';
+export const STATUS_UNNEST = 'STATUS_UNNEST';
+
 export const REDRAFT = 'REDRAFT';
 
 export const STATUS_FETCH_SOURCE_REQUEST = 'STATUS_FETCH_SOURCE_REQUEST';
@@ -308,6 +311,28 @@ export function revealStatus(ids) {
     ids,
   };
 };
+
+export function nestStatus(ids) {
+  if (!Array.isArray(ids)) {
+    ids = [ids];
+  }
+
+  return {
+    type: STATUS_NEST,
+    ids,
+  };
+}
+
+export function unnestStatus(ids) {
+  if (!Array.isArray(ids)) {
+    ids = [ids];
+  }
+
+  return {
+    type: STATUS_UNNEST,
+    ids,
+  };
+}
 
 export function toggleStatusCollapse(id, isCollapsed) {
   return {

@@ -64,6 +64,7 @@ const makeMapStateToProps = () => {
   const mapStateToProps = (state, props) => {
 
     let status = getStatus(state, props);
+    console.log('container', state, props, status);
     let reblogStatus = status ? status.get('reblog', null) : null;
     let account = undefined;
     let prepend = undefined;
@@ -83,6 +84,7 @@ const makeMapStateToProps = () => {
       account: account || props.account,
       settings: state.get('local_settings'),
       prepend: prepend || props.prepend,
+      decendantsGrouped: props.decendantsGrouped,
 
       pictureInPicture: {
         inUse: state.getIn(['meta', 'layout']) !== 'mobile' && state.get('picture_in_picture').statusId === props.id,
