@@ -63,7 +63,7 @@ jobs:
               owner,
               repo,
               head: 'unmerged-upstream',
-              base: 'main',
+              base: 'dev',
               body: 'This PR was *auto-generated* by the `Upstream Changes PR` action and contains unmerged changes from the upstream [glitch-soc](https://github.com/glitch-soc/mastodon) repository.'
             });
             github.rest.issues.addLabels({
