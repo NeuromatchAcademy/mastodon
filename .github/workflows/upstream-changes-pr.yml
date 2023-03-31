@@ -27,10 +27,11 @@ jobs:
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "Github Actions"
-          git remote add upstream https://github.com/spectral-discord/DisMAL.js
+          git merge origin/main
+          git remote add upstream https://github.com/glitch-soc/mastodon
           git fetch upstream
           git merge upstream/main
-          changes=$(git push origin)
+          changes=$(git push origin 2>&1)
           if [ "$changes" = "Everything up-to-date" ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
