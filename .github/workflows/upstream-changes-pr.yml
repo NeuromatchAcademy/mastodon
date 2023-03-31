@@ -22,12 +22,18 @@ jobs:
         with:
           ref: unmerged-upstream
           fetch-depth: 0 
-      - name: Rebase to Upstream
-        uses: zhangnew/sync-upstream@v1
-        with:
-          upstream: glitch-soc/mastodon
-          upstream-branch: main
-          branch: unmerged-upstream
+      - name: Merge Upstream
+        id: merge
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "Github Actions"
+          git remote add upstream https://github.com/spectral-discord/DisMAL.js
+          git fetch upstream
+          git merge upstream/main
+          changes=$(git push origin)
+          if [ "$changes" = "Everything up-to-date" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Check if PR exists
         env: 
           GH_TOKEN: ${{ github.token }}
@@ -44,7 +50,9 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Create Pull Request
-        if: '!steps.check.outputs.skip'
+        if: |
+          !steps.check.outputs.skip &&
+          !steps.merge.outputs.skip
         uses: actions/github-script@v6
         with:
           script: |
