@@ -145,6 +145,7 @@ export const statusPageUrl = getMeta('status_page_url');
 
 // Glitch-soc-specific settings
 export const maxChars = (initialState && initialState.max_toot_chars) || 500;
+export const maxAltTextChars = (initialState && initialState.max_alt_text_chars) || 1_500;
 export const favouriteModal = getMeta('favourite_modal');
 export const pollLimits = (initialState && initialState.poll_limits);
 export const defaultContentType = getMeta('default_content_type');

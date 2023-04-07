@@ -4,7 +4,7 @@ class REST::V1::InstanceSerializer < ActiveModel::Serializer
   include RoutingHelper
 
   attributes :uri, :title, :short_description, :description, :email,
-             :version, :urls, :stats, :thumbnail, :max_toot_chars, :poll_limits,
+             :version, :urls, :stats, :thumbnail, :max_toot_chars, :max_alt_text_chars, :poll_limits,
              :languages, :registrations, :approval_required, :invites_enabled,
              :configuration
 
@@ -38,6 +38,10 @@ class REST::V1::InstanceSerializer < ActiveModel::Serializer
 
   def max_toot_chars
     StatusLengthValidator::MAX_CHARS
+  end
+
+  def max_alt_text_chars
+    MediaAttachment::MAX_DESCRIPTION_LENGTH
   end
 
   def poll_limits
@@ -89,6 +93,7 @@ class REST::V1::InstanceSerializer < ActiveModel::Serializer
         video_size_limit: MediaAttachment::VIDEO_LIMIT,
         video_frame_rate_limit: MediaAttachment::MAX_VIDEO_FRAME_RATE,
         video_matrix_limit: MediaAttachment::MAX_VIDEO_MATRIX_LIMIT,
+        max_alt_text_characters: MediaAttachment::MAX_DESCRIPTION_LENGTH
       },
 
       polls: {

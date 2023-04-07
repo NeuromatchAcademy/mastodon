@@ -23,6 +23,7 @@ import tesseractCorePath from 'tesseract.js-core/tesseract-core.wasm.js';
 // eslint-disable-next-line import/extensions
 import tesseractWorkerPath from 'tesseract.js/dist/worker.min.js';
 import { assetHost } from 'mastodon/utils/config';
+import { maxAltTextChars } from '../../../initial_state';
 
 const messages = defineMessages({
   close: { id: 'lightbox.close', defaultMessage: 'Close' },
@@ -369,7 +370,7 @@ class FocalPointModal extends ImmutablePureComponent {
               >
                 <FormattedMessage id='upload_modal.detect_text' defaultMessage='Detect text from picture' />
               </button>
-              <CharacterCounter max={1500} text={detecting ? '' : description} />
+              <CharacterCounter max={maxAltTextChars} text={detecting ? '' : description} />
             </div>
 
             <Button
