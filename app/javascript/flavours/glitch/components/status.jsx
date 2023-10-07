@@ -22,6 +22,7 @@ import { MediaGallery, Video, Audio } from '../features/ui/util/async-components
 import AttachmentList from './attachment_list';
 import StatusActionBar from './status_action_bar';
 import StatusContent from './status_content';
+import StatusExpandButton from './status_expand_button';
 import StatusHeader from './status_header';
 import StatusIcons from './status_icons';
 import StatusPrepend from './status_prepend';
@@ -832,6 +833,14 @@ class Status extends ImmutablePureComponent {
             tagLinks={settings.get('tag_misleading_links')}
             rewriteMentions={settings.get('rewrite_mentions')}
           />
+          {/* Only show expand button if collapsed and no spoiler tag is present */}
+          {isCollapsed && status.get('spoiler_text').length===0 ? (
+            <StatusExpandButton
+              hidden={isCollapsed}
+              handleSpoilerClick={parseClick}
+              mediaIcons={contentMediaIcons}
+            />
+          ) : null}
 
           {!isCollapsed || !(muted || !settings.getIn(['collapsed', 'show_action_bar'])) ? (
             <StatusActionBar
