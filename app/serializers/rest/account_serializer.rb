@@ -4,8 +4,10 @@ class REST::AccountSerializer < ActiveModel::Serializer
   include RoutingHelper
   include FormattingHelper
 
+  # Please update `app/javascript/mastodon/api_types/accounts.ts` when making changes to the attributes
+
   attributes :id, :username, :acct, :display_name, :locked, :bot, :discoverable, :group, :created_at,
-             :note, :url, :avatar, :avatar_static, :header, :header_static,
+             :note, :url, :uri, :avatar, :avatar_static, :header, :header_static,
              :followers_count, :following_count, :statuses_count, :last_status_at
 
   has_one :moved_to_account, key: :moved, serializer: REST::AccountSerializer, if: :moved_and_not_nested?
@@ -15,6 +17,28 @@ class REST::AccountSerializer < ActiveModel::Serializer
   attribute :suspended, if: :suspended?
   attribute :silenced, key: :limited, if: :silenced?
   attribute :noindex, if: :local?
+
+  attribute :memorial, if: :memorial?
+
+  class AccountDecorator < SimpleDelegator
+    def self.model_name
+      Account.model_name
+    end
+
+    def moved?
+      false
+    end
+  end
+
+  class RoleSerializer < ActiveModel::Serializer
+    attributes :id, :name, :color
+
+    def id
+      object.id.to_s
+    end
+  end
+
+  has_many :roles, serializer: RoleSerializer, if: :local?
 
   class FieldSerializer < ActiveModel::Serializer
     include FormattingHelper
@@ -44,6 +68,10 @@ class REST::AccountSerializer < ActiveModel::Serializer
     ActivityPub::TagManager.instance.url_for(object)
   end
 
+  def uri
+    ActivityPub::TagManager.instance.uri_for(object)
+  end
+
   def avatar
     full_asset_url(object.suspended? ? object.avatar.default_url : object.avatar_original_url)
   end
@@ -69,7 +97,7 @@ class REST::AccountSerializer < ActiveModel::Serializer
   end
 
   def followers_count
-    (Setting.hide_followers_count || object.user&.setting_hide_followers_count) ? -1 : object.followers_count
+    Setting.hide_followers_count || object.user&.setting_hide_followers_count ? -1 : object.followers_count
   end
 
   def display_name
@@ -89,7 +117,7 @@ class REST::AccountSerializer < ActiveModel::Serializer
   end
 
   def moved_to_account
-    object.suspended? ? nil : object.moved_to_account
+    object.suspended? ? nil : AccountDecorator.new(object.moved_to_account)
   end
 
   def emojis
@@ -108,13 +136,25 @@ class REST::AccountSerializer < ActiveModel::Serializer
     object.silenced?
   end
 
+  def memorial
+    object.memorial?
+  end
+
+  def roles
+    if object.suspended? || object.user.nil?
+      []
+    else
+      [object.user.role].compact.filter(&:highlighted?)
+    end
+  end
+
   def noindex
     object.user_prefers_noindex?
   end
 
-  delegate :suspended?, :silenced?, :local?, to: :object
+  delegate :suspended?, :silenced?, :local?, :memorial?, to: :object
 
   def moved_and_not_nested?
-    object.moved? && object.moved_to_account.moved_to_account_id.nil?
+    object.moved?
   end
 end

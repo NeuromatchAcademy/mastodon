@@ -1,8 +1,8 @@
-import escapeTextContentForBrowser from 'escape-html';
+import { List as ImmutableList, Map as ImmutableMap } from 'immutable';
 import { createSelector } from 'reselect';
-import { List as ImmutableList } from 'immutable';
-import { toServerSideType } from 'flavours/glitch/utils/filters';
+
 import { me } from 'flavours/glitch/initial_state';
+import { toServerSideType } from 'flavours/glitch/utils/filters';
 
 const getAccountBase         = (state, id) => state.getIn(['accounts', id], null);
 const getAccountCounters     = (state, id) => state.getIn(['accounts_counters', id], null);
@@ -74,6 +74,16 @@ export const makeGetStatus = () => {
   );
 };
 
+export const makeGetPictureInPicture = () => {
+  return createSelector([
+    (state, { id }) => state.get('picture_in_picture').statusId === id,
+    (state) => state.getIn(['meta', 'layout']) !== 'mobile',
+  ], (inUse, available) => ImmutableMap({
+    inUse: inUse && available,
+    available,
+  }));
+};
+
 const getAlertsBase = state => state.get('alerts');
 
 export const getAlerts = createSelector([getAlertsBase], (base) => {
@@ -127,3 +137,7 @@ export const getAccountHidden = createSelector([
 ], (hidden, followingOrRequested, isSelf) => {
   return hidden && !(isSelf || followingOrRequested);
 });
+
+export const getStatusList = createSelector([
+  (state, type) => state.getIn(['status_lists', type, 'items']),
+], (items) => items.toList());
