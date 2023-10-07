@@ -17,6 +17,7 @@ import Button from '../../../components/button';
 import { maxChars } from '../../../initial_state';
 import EmojiPickerDropdown from '../containers/emoji_picker_dropdown_container';
 import LanguageDropdown from '../containers/language_dropdown_container';
+import LaTeXDropdown from '../containers/latex_dropdown_container';
 import PollButtonContainer from '../containers/poll_button_container';
 import PollFormContainer from '../containers/poll_form_container';
 import PrivacyDropdownContainer from '../containers/privacy_dropdown_container';
@@ -67,6 +68,7 @@ class ComposeForm extends ImmutablePureComponent {
     onChangeSpoilerText: PropTypes.func.isRequired,
     onPaste: PropTypes.func.isRequired,
     onPickEmoji: PropTypes.func.isRequired,
+    onLaTeXStart: PropTypes.func.isRequired,
     autoFocus: PropTypes.bool,
     anyMedia: PropTypes.bool,
     isInReply: PropTypes.bool,
@@ -223,6 +225,12 @@ class ComposeForm extends ImmutablePureComponent {
     this.props.onPickEmoji(position, data, needsSpace);
   };
 
+  handleLaTeXStart = (data) => {
+      const position = this.autosuggestTextarea.textarea.selectionStart;
+
+      this.props.onLaTeXStart(position, data);
+  }
+
   render () {
     const { intl, onPaste, autoFocus } = this.props;
     const { highlighted } = this.state;
@@ -287,6 +295,7 @@ class ComposeForm extends ImmutablePureComponent {
             </div>
           </AutosuggestTextarea>
           <EmojiPickerDropdown onPickEmoji={this.handleEmojiPick} />
+          <LaTeXDropdown onPickLaTeX={this.handleLaTeXStart} />
 
           <div className='compose-form__buttons-wrapper'>
             <div className='compose-form__buttons'>

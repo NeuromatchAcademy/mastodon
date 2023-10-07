@@ -164,12 +164,31 @@ class StatusContent extends PureComponent {
     }
   };
 
+  _renderMathJax() {
+    const {status} = this.props;
+    const contentHtml = status.get('contentHtml');
+    if(this.last_contentHtml === contentHtml) {
+      return;
+    }
+    this.last_contentHtml = contentHtml;
+    try {
+      // Loaded in script tag on page. not great but we couldn't figure out
+      // How to use MathJax as a module
+      // eslint-disable-next-line no-undef
+      MathJax.typeset([this.node]);
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
   componentDidMount () {
     this._updateStatusLinks();
+    this._renderMathJax();
   }
 
   componentDidUpdate () {
     this._updateStatusLinks();
+    this._renderMathJax();
   }
 
   onMentionClick = (mention, e) => {

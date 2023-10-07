@@ -11,6 +11,20 @@
     - if storage_host?
       %link{ rel: 'dns-prefetch', href: storage_host }/
 
+    :javascript
+      var nonce = document.querySelector('meta[name="style-nonce"]').getAttribute('content');
+      window.MathJax = {
+        chtml: {nonce: nonce},
+        tex: {
+          processEnvironments: false,
+          processRefs: false,
+          inlineMath: [['\\(', '\\)']],
+          displayMath: [['\\[', '\\]']]
+          }
+        };
+    %script{ src: '/MathJax/es5/tex-chtml.js' }
+
+
     = render_initial_state
     = javascript_pack_tag 'common', crossorigin: 'anonymous'
     - if @theme

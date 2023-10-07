@@ -9,12 +9,34 @@ import AutosuggestAccountContainer from '../features/compose/containers/autosugg
 
 import AutosuggestEmoji from './autosuggest_emoji';
 import { AutosuggestHashtag } from './autosuggest_hashtag';
+import AutosuggestLatex from './autosuggest_latex';
 
 const textAtCursorMatchesToken = (str, caretPosition, searchTokens) => {
   let word;
+  let left;
+  let right;
 
-  let left  = str.slice(0, caretPosition).search(/\S+$/);
-  let right = str.slice(caretPosition).search(/\s/);
+  left = str.slice(0, caretPosition).search(/\\\((?:(?!\\\)).)*$/);
+  if (left >= 0) {
+    right = str.slice(caretPosition).search(/\\\)/);
+    if (right < 0) {
+      word = str.slice(left);
+    } else {
+      word = str.slice(left, right + caretPosition);
+    }
+    if (word.trim().length >= 3) {
+      return [left + 1, word];
+    }
+  }
+
+  left  = str.slice(0, caretPosition).search(/\S+$/);
+  right = str.slice(caretPosition).search(/\s/);
+
+  if (right < 0) {
+    word = str.slice(left);
+  } else {
+    word = str.slice(left, right + caretPosition);
+  }
 
   if (right < 0) {
     word = str.slice(left);
@@ -180,6 +202,9 @@ export default class AutosuggestInput extends ImmutablePureComponent {
     } else if (suggestion.type === 'account') {
       inner = <AutosuggestAccountContainer id={suggestion.id} />;
       key   = suggestion.id;
+    } else if (suggestion.type === 'latex') {
+      inner = <AutosuggestLatex latex={suggestion} />;
+      key   = 'latex'+suggestion.expression;
     }
 
     return (

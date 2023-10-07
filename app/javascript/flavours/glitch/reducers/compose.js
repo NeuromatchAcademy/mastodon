@@ -36,6 +36,7 @@ import {
   COMPOSE_LANGUAGE_CHANGE,
   COMPOSE_CONTENT_TYPE_CHANGE,
   COMPOSE_EMOJI_INSERT,
+  COMPOSE_START_LATEX,
   COMPOSE_UPLOAD_CHANGE_REQUEST,
   COMPOSE_UPLOAD_CHANGE_SUCCESS,
   COMPOSE_UPLOAD_CHANGE_FAIL,
@@ -305,6 +306,23 @@ const insertEmoji = (state, position, emojiData) => {
   });
 };
 
+const startLaTeX = (state, position, latex_style) => {
+  const oldText = state.get('text');
+
+  const latex_styles = {
+    'inline':  {open: '\\(', close: '\\)'},
+    'display': {open: '\\[', close: '\\]'}
+  }
+  const { open, close } = latex_styles[latex_style];
+
+  return state.merge({
+    text: `${oldText.slice(0, position)}${open}  ${close} ${oldText.slice(position)}`,
+    focusDate: new Date(),
+    caretPosition: position + open.length + 1,
+    idempotencyKey: uuid(),
+  });
+};
+
 const hydrate = (state, hydratedState) => {
   state = clearAll(state.merge(hydratedState));
 
@@ -343,11 +361,13 @@ const mergeLocalHashtagResults = (suggestions, prefix, tagHistory) => {
   }
 };
 
-const normalizeSuggestions = (state, { accounts, emojis, tags, token }) => {
+const normalizeSuggestions = (state, { accounts, emojis, tags, latex, token }) => {
   if (accounts) {
     return accounts.map(item => ({ id: item.id, type: 'account' }));
   } else if (emojis) {
     return emojis.map(item => ({ ...item, type: 'emoji' }));
+  }  else if (latex) {
+    return latex.map(item => ({...item, type: 'latex'}));
   } else {
     return mergeLocalHashtagResults(sortHashtagsByUse(state, tags.map(item => ({ ...item, type: 'hashtag' }))), token.slice(1), state.get('tagHistory'));
   }
@@ -554,6 +574,8 @@ export default function compose(state = initialState, action) {
     }
   case COMPOSE_EMOJI_INSERT:
     return insertEmoji(state, action.position, action.emoji);
+  case COMPOSE_START_LATEX:
+    return startLaTeX(state, action.position, action.latex_style);
   case COMPOSE_UPLOAD_CHANGE_SUCCESS:
     return state
       .set('is_changing_upload', false)

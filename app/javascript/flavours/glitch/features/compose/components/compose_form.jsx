@@ -13,6 +13,7 @@ import { isMobile } from 'flavours/glitch/is_mobile';
 import AutosuggestInput from '../../../components/autosuggest_input';
 import AutosuggestTextarea from '../../../components/autosuggest_textarea';
 import EmojiPickerDropdown from '../containers/emoji_picker_dropdown_container';
+import LaTeXDropdown from '../containers/latex_dropdown_container';
 import OptionsContainer from '../containers/options_container';
 import PollFormContainer from '../containers/poll_form_container';
 import ReplyIndicatorContainer from '../containers/reply_indicator_container';
@@ -65,6 +66,7 @@ class ComposeForm extends ImmutablePureComponent {
     onChangeSpoilerText: PropTypes.func,
     onPaste: PropTypes.func,
     onPickEmoji: PropTypes.func,
+    onLaTeXStart: PropTypes.func.isRequired,
     showSearch: PropTypes.bool,
     anyMedia: PropTypes.bool,
     isInReply: PropTypes.bool,
@@ -158,6 +160,12 @@ class ComposeForm extends ImmutablePureComponent {
       onPickEmoji(selectionStart, data);
     }
   };
+
+  handleLaTeXStart = (data) => {
+    const position = this.textarea.selectionStart;
+
+    this.props.onLaTeXStart(position, data);
+  }
 
   //  Handles the secondary submit button.
   handleSecondarySubmit = () => {
@@ -353,6 +361,7 @@ class ComposeForm extends ImmutablePureComponent {
           lang={this.props.lang}
         >
           <EmojiPickerDropdown onPickEmoji={handleEmojiPick} />
+          <LaTeXDropdown onPickLaTeX={this.handleLaTeXStart} />
           <TextareaIcons advancedOptions={advancedOptions} />
           <div className='compose-form__modifiers'>
             <UploadFormContainer />
