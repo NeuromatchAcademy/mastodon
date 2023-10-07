@@ -1,14 +1,18 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
+
 import { injectIntl, defineMessages } from 'react-intl';
-import IconButton from '../../../components/icon_button';
-import Overlay from 'react-overlays/lib/Overlay';
-import Motion from '../../ui/util/optional_motion';
-import spring from 'react-motion/lib/spring';
-import { supportsPassiveEvents } from 'detect-passive-events';
+
 import classNames from 'classnames';
-import Icon from 'mastodon/components/icon';
-import { assetHost } from 'mastodon/utils/config';
+
+import { supportsPassiveEvents } from 'detect-passive-events';
+import spring from 'react-motion/lib/spring';
+import Overlay from 'react-overlays/Overlay';
+
+import Icon from 'flavours/glitch/components/icon';
+import { assetHost } from 'flavours/glitch/utils/config';
+
+import Motion from '../../ui/util/optional_motion';
 
 const messages = defineMessages({
   inline_short:  { id: 'latex.inline.short', defaultMessage: 'Inline' },
@@ -28,6 +32,7 @@ class LaTeXDropdownMenu extends React.PureComponent {
     placement: PropTypes.string.isRequired,
     onClose: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired,
+    value: PropTypes.any
   };
 
   state = {
@@ -49,31 +54,31 @@ class LaTeXDropdownMenu extends React.PureComponent {
     let element = null;
 
     switch(e.key) {
-    case 'Escape':
-      this.props.onClose();
-      break;
-    case 'Enter':
-      this.handleClick(e);
-      break;
-    case 'ArrowDown':
-      element = this.node.childNodes[index + 1] || this.node.firstChild;
-      break;
-    case 'ArrowUp':
-      element = this.node.childNodes[index - 1] || this.node.lastChild;
-      break;
-    case 'Tab':
-      if (e.shiftKey) {
-        element = this.node.childNodes[index - 1] || this.node.lastChild;
-      } else {
+      case 'Escape':
+        this.props.onClose();
+        break;
+      case 'Enter':
+        this.handleClick(e);
+        break;
+      case 'ArrowDown':
         element = this.node.childNodes[index + 1] || this.node.firstChild;
-      }
-      break;
-    case 'Home':
-      element = this.node.firstChild;
-      break;
-    case 'End':
-      element = this.node.lastChild;
-      break;
+        break;
+      case 'ArrowUp':
+        element = this.node.childNodes[index - 1] || this.node.lastChild;
+        break;
+      case 'Tab':
+        if (e.shiftKey) {
+          element = this.node.childNodes[index - 1] || this.node.lastChild;
+        } else {
+          element = this.node.childNodes[index + 1] || this.node.firstChild;
+        }
+        break;
+      case 'Home':
+        element = this.node.firstChild;
+        break;
+      case 'End':
+        element = this.node.lastChild;
+        break;
     }
 
     if (element) {
@@ -161,6 +166,7 @@ class LaTeXDropdown extends React.PureComponent {
     disabled: PropTypes.bool,
     intl: PropTypes.object.isRequired,
     button: PropTypes.node,
+    value: PropTypes.any
   };
 
   state = {
@@ -199,9 +205,9 @@ class LaTeXDropdown extends React.PureComponent {
 
   handleKeyDown = e => {
     switch(e.key) {
-    case 'Escape':
-      this.handleClose();
-      break;
+      case 'Escape':
+        this.handleClose();
+        break;
     }
   }
 
@@ -213,10 +219,10 @@ class LaTeXDropdown extends React.PureComponent {
 
   handleButtonKeyDown = (e) => {
     switch(e.key) {
-    case ' ':
-    case 'Enter':
-      this.handleMouseDown();
-      break;
+      case ' ':
+      case 'Enter':
+        this.handleMouseDown();
+        break;
     }
   }
 
@@ -240,8 +246,16 @@ class LaTeXDropdown extends React.PureComponent {
     ];
   }
 
+  setTargetRef = c => {
+    this.target = c;
+  };
+
+  findTarget = () => {
+    return this.target;
+  };
+
   render () {
-    const { value, container, disabled, intl, button } = this.props;
+    const { container, intl, button } = this.props;
     const { open, placement } = this.state;
 
     const title = intl.formatMessage(messages.start_latex);
@@ -256,13 +270,19 @@ class LaTeXDropdown extends React.PureComponent {
           />}
         </div>
 
-        <Overlay show={open} placement={placement} target={this} container={container}>
-          <LaTeXDropdownMenu
-            items={this.options}
-            onClose={this.handleClose}
-            onChange={this.handleChange}
-            placement={placement}
-          />
+        <Overlay show={open} placement={placement} target={this.findTarget} container={container}>
+          {({ props, placement })=> (
+            <div {...props} style={{ ...props.style, width:299}}>
+              <div className={`dropdown-animation ${placement}`}>
+                <LaTeXDropdownMenu
+                  items={this.options}
+                  onClose={this.handleClose}
+                  onChange={this.handleChange}
+                  placement={placement}
+                />
+              </div>
+            </div>
+          )}
         </Overlay>
       </div>
     );
