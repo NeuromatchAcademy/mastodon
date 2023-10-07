@@ -9,7 +9,7 @@ import { supportsPassiveEvents } from 'detect-passive-events';
 import spring from 'react-motion/lib/spring';
 import Overlay from 'react-overlays/Overlay';
 
-import Icon from 'flavours/glitch/components/icon';
+import { Icon } from 'flavours/glitch/components/icon';
 import { assetHost } from 'flavours/glitch/utils/config';
 
 import Motion from '../../ui/util/optional_motion';
