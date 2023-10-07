@@ -18,9 +18,9 @@ const textAtCursorMatchesToken = (str, caretPosition) => {
   let left;
   let right;
 
-  left = str.slice(0, caretPosition).search(/\\[\(\[](?:(?!\\[\)\]]).)*(?:\\[\)\]])?$/);
+  left = str.slice(0, caretPosition).search(/\\[([](?:(?!\\[)]]).)*(?:\\[)\]])?$/);
   if (left >= 0) {
-    right = str.slice(caretPosition).search(/\\[\)\]]/);
+    right = str.slice(caretPosition).search(/\\[)\]]/);
     if (right < 0) {
       word = str.slice(left);
     } else {
@@ -205,7 +205,7 @@ export default class AutosuggestTextarea extends ImmutablePureComponent {
       inner = <AutosuggestAccountContainer id={suggestion.id} />;
       key   = suggestion.id;
     } else if (suggestion.type === 'latex') {
-      inner = <AutosuggestLatex latex={suggestion}/>;
+      inner = <AutosuggestLatex latex={suggestion} />;
       key = suggestion.expression;
     }
 

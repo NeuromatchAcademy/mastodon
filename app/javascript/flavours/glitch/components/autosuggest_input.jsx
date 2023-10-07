@@ -1,5 +1,5 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 
 import classNames from 'classnames';
 
@@ -200,7 +200,7 @@ export default class AutosuggestInput extends ImmutablePureComponent {
       inner = <AutosuggestAccountContainer id={suggestion.id} />;
       key   = suggestion.id;
     } else if (suggestion.type === 'latex') {
-      inner = <AutosuggestLatex latex={suggestion}/>;
+      inner = <AutosuggestLatex latex={suggestion} />;
       key = 'latex' + suggestion.expression;
     }
 

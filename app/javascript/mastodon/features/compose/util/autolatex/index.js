@@ -1,4 +1,4 @@
-import {tex_to_unicode, macros} from './autolatex.js';
+import {tex_to_unicode, macros} from './autolatex';
 
 window.macros = macros;
 window.tex_to_unicode = tex_to_unicode;

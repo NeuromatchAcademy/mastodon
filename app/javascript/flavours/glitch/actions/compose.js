@@ -9,12 +9,14 @@ import { tagHistory } from 'flavours/glitch/settings';
 import { recoverHashtags } from 'flavours/glitch/utils/hashtag';
 import resizeImage from 'flavours/glitch/utils/resize_image';
 
+import { tex_to_unicode } from '../features/compose/util/autolatex/autolatex';
+
 import { showAlert, showAlertForError } from './alerts';
 import { useEmoji } from './emojis';
 import { importFetchedAccounts, importFetchedStatus } from './importer';
 import { openModal } from './modal';
 import { updateTimeline } from './timelines';
-import { tex_to_unicode } from '../features/compose/util/autolatex/autolatex.js';
+
 
 /** @type {AbortController | undefined} */
 let fetchComposeSuggestionsAccountsController;
@@ -570,7 +572,7 @@ const fetchComposeSuggestionsAccounts = throttle((dispatch, getState, token) => 
 const fetchComposeSuggestionsLatex = (dispatch, getState, token) => {
   const start_delimiter = token.slice(0,2);
   const end_delimiter = {'\\(': '\\)', '\\[': '\\]'}[start_delimiter];
-  let expression = token.slice(2).replace(/\\[\)\]]?$/,'');
+  let expression = token.slice(2).replace(/\\[)\]]?$/,'');
   let brace = 0;
   for(let i=0;i<expression.length;i++) {
     switch(expression[i]) {

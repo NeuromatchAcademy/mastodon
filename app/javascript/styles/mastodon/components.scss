@@ -419,6 +419,7 @@ body > [data-popper-placement] {
     top: 0;
     inset-inline-end: 0;
   }
+
   .latex-dropdown {
     position: absolute;
     top: 24px;
@@ -545,8 +546,9 @@ body > [data-popper-placement] {
     line-height: 18px;
     font-size: 14px;
   }
+
   .autosuggest-latex .hint {
-      font-style: italic;
+    font-style: italic;
   }
 
   .autosuggest-hashtag {
@@ -5020,8 +5022,8 @@ a.status-card {
   margin-right: 10px;
 
   img {
-      width: 24px;
-      height: 24px;
+    width: 24px;
+    height: 24px;
   }
 }
 

@@ -1,7 +1,5 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-
-const assetHost = process.env.CDN_HOST || '';
+import React from 'react';
 
 export default class AutosuggestLatex extends React.PureComponent {
 
@@ -15,6 +13,9 @@ export default class AutosuggestLatex extends React.PureComponent {
 
   componentDidMount() {
     try {
+      // Loaded in script tag on page. not great but we couldn't figure out
+      // How to use MathJax as a module
+      // eslint-disable-next-line no-undef
       MathJax.typeset([this.node]);
     } catch(e) {
       console.error(e);
@@ -28,7 +29,7 @@ export default class AutosuggestLatex extends React.PureComponent {
     return (
       <div className='autosuggest-latex' ref={this.setRef}>
         \({latex.expression}\)
-        <br/>
+        <br />
         <small>Convert to unicode</small>
       </div>
     );

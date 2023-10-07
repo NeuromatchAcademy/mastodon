@@ -18,7 +18,7 @@ class BootstrapTimelineService < BaseService
   end
 
   def autofollow!
-    return unless ENV['AUTOFOLLOW'].present?
+    return if ENV['AUTOFOLLOW'].blank?
 
     ENV['AUTOFOLLOW'].to_s.split(',').each do |account|
       begin

@@ -8,12 +8,11 @@ import classnames from 'classnames';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
-import { Icon } from 'flavours/glitch/components/icon';
 import { autoPlayGif, languages as preloadedLanguages } from 'flavours/glitch/initial_state';
 import { decode as decodeIDNA } from 'flavours/glitch/utils/idna';
-import StatusExpandButton from './status_expand_button';
 
 import Permalink from './permalink';
+import StatusExpandButton from './status_expand_button';
 
 const textMatchesTarget = (text, origin, host) => {
   return (text === origin || text === host
@@ -239,11 +238,14 @@ class StatusContent extends PureComponent {
   _renderMathJax() {
     const {status} = this.props;
     const contentHtml = status.get('contentHtml');
-    if(this.last_contentHtml == contentHtml) {
+    if(this.last_contentHtml === contentHtml) {
       return;
     }
     this.last_contentHtml = contentHtml;
     try {
+      // Loaded in script tag on page. not great but we couldn't figure out
+      // How to use MathJax as a module
+      // eslint-disable-next-line no-undef
       MathJax.typeset([this.contentsNode]);
     } catch(e) {
       console.error(e);
