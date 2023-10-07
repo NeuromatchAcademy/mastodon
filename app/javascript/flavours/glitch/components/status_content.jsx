@@ -11,6 +11,7 @@ import { connect } from 'react-redux';
 import { Icon } from 'flavours/glitch/components/icon';
 import { autoPlayGif, languages as preloadedLanguages } from 'flavours/glitch/initial_state';
 import { decode as decodeIDNA } from 'flavours/glitch/utils/idna';
+import StatusExpandButton from './status_expand_button';
 
 import Permalink from './permalink';
 
@@ -355,38 +356,6 @@ class StatusContent extends PureComponent {
         </Permalink>
       )).reduce((aggregate, item) => [...aggregate, item, ' '], []);
 
-      let toggleText = null;
-      if (hidden) {
-        toggleText = [
-          <FormattedMessage
-            id='status.show_more'
-            defaultMessage='Show more'
-            key='0'
-          />,
-        ];
-        if (mediaIcons) {
-          mediaIcons.forEach((mediaIcon, idx) => {
-            toggleText.push(
-              <Icon
-                fixedWidth
-                className='status__content__spoiler-icon'
-                id={mediaIcon}
-                aria-hidden='true'
-                key={`icon-${idx}`}
-              />,
-            );
-          });
-        }
-      } else {
-        toggleText = (
-          <FormattedMessage
-            id='status.show_less'
-            defaultMessage='Show less'
-            key='0'
-          />
-        );
-      }
-
       if (hidden) {
         mentionsPlaceholder = <div>{mentionLinks}</div>;
       }
@@ -398,9 +367,11 @@ class StatusContent extends PureComponent {
           >
             <span dangerouslySetInnerHTML={spoilerContent} className='translate' lang={language} />
             {' '}
-            <button type='button' className='status__content__spoiler-link' onClick={this.handleSpoilerClick} aria-expanded={!hidden}>
-              {toggleText}
-            </button>
+            <StatusExpandButton
+              hidden={hidden}
+              handleSpoilerClick={this.handleSpoilerClick}
+              mediaIcons={mediaIcons}
+            />
           </p>
 
           {mentionsPlaceholder}

@@ -329,15 +329,15 @@
     }
 
     .status__content {
-      height: 20px;
+      max-height: 6em;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-top: 0;
+      //padding-top: 0;
 
       &::after {
         content: '';
         position: absolute;
-        top: 0;
+        height: 40%;
         bottom: 0;
         inset-inline-start: 0;
         inset-inline-end: 0;
