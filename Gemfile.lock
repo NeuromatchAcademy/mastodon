@@ -375,7 +375,7 @@ GEM
       reline (>= 0.3.8)
     jmespath (1.6.2)
     json (2.6.3)
-    json-canonicalization (0.3.2)
+    json-canonicalization (0.4.0)
     json-jwt (1.15.3)
       activesupport (>= 4.2)
       aes_key_wrap
