@@ -672,7 +672,7 @@ export default function compose(state = initialState, action) {
         map.set('title_text', action.title);
       } else {
         map.set('title', false);
-        map.set('title_text', false);
+        map.set('title_text', '');
       }
 
       if (action.status.get('poll')) {

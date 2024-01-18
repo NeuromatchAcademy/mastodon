@@ -96,7 +96,8 @@ class Api::V1::StatusesController < Api::BaseController
       language: status_params[:language],
       spoiler_text: status_params[:spoiler_text],
       poll: status_params[:poll],
-      content_type: status_params[:content_type]
+      content_type: status_params[:content_type],
+      title: status_params[:title]
     )
 
     render json: @status, serializer: REST::StatusSerializer

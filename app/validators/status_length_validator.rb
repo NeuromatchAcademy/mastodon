@@ -20,6 +20,8 @@ class StatusLengthValidator < ActiveModel::Validator
   end
 
   def title_too_long?(status)
+    return false unless status.title?
+
     countable_length(status.title) > MAX_TITLE_CHARS
   end
 
