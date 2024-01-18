@@ -37,6 +37,7 @@ const messages = defineMessages({
     defaultMessage: 'Send anyway',
   },
   spoiler_placeholder: { id: 'compose_form.spoiler_placeholder', defaultMessage: 'Write your warning here' },
+  title_placeholder: { id: 'compose_form.title_placeholder', defaultMessage: 'Write your title here' }
 });
 
 class ComposeForm extends ImmutablePureComponent {
@@ -45,8 +46,10 @@ class ComposeForm extends ImmutablePureComponent {
     text: PropTypes.string,
     suggestions: ImmutablePropTypes.list,
     spoiler: PropTypes.bool,
+    title: PropTypes.string,
     privacy: PropTypes.string,
     spoilerText: PropTypes.string,
+    titleText: PropTypes.string,
     focusDate: PropTypes.instanceOf(Date),
     caretPosition: PropTypes.number,
     preselectDate: PropTypes.instanceOf(Date),
@@ -60,6 +63,7 @@ class ComposeForm extends ImmutablePureComponent {
     onFetchSuggestions: PropTypes.func,
     onSuggestionSelected: PropTypes.func,
     onChangeSpoilerText: PropTypes.func,
+    onChangeTitleText: PropTypes.func,
     onPaste: PropTypes.func,
     onPickEmoji: PropTypes.func,
     onLaTeXStart: PropTypes.func.isRequired,
@@ -77,6 +81,7 @@ class ComposeForm extends ImmutablePureComponent {
     mediaDescriptionConfirmation: PropTypes.bool,
     preselectOnReply: PropTypes.bool,
     onChangeSpoilerness: PropTypes.func,
+    onChangeTitleness: PropTypes.func,
     onChangeVisibility: PropTypes.func,
     onMediaDescriptionConfirm: PropTypes.func,
     ...WithOptionalRouterPropTypes
@@ -133,6 +138,14 @@ class ComposeForm extends ImmutablePureComponent {
         onChangeVisibility(overriddenVisibility);
       }
       onSubmit(this.props.history || null);
+    }
+  };
+
+  // Changes the text value of the title
+  handleChangeTitle = ({ target: { value } }) => {
+    const { onChangeTitleText } = this.props;
+    if (onChangeTitleText) {
+      onChangeTitleText(value);
     }
   };
 
@@ -201,6 +214,12 @@ class ComposeForm extends ImmutablePureComponent {
   handleRefSpoilerText = (spoilerComponent) => {
     if (spoilerComponent) {
       this.spoilerText = spoilerComponent.input;
+    }
+  };
+
+  handleRefTitleText = (titleComponent) => {
+    if (titleComponent) {
+      this.titleText = titleComponent.input;
     }
   };
 
@@ -294,9 +313,11 @@ class ComposeForm extends ImmutablePureComponent {
     const {
       advancedOptions,
       intl,
+      isInReply,
       isSubmitting,
       layout,
       onChangeSpoilerness,
+      onChangeTitleness,
       onClearSuggestions,
       onFetchSuggestions,
       onPaste,
@@ -308,6 +329,8 @@ class ComposeForm extends ImmutablePureComponent {
       spoilerText,
       suggestions,
       spoilersAlwaysOn,
+      title,
+      titleText,
       isEditing,
     } = this.props;
 
@@ -318,6 +341,27 @@ class ComposeForm extends ImmutablePureComponent {
         <WarningContainer />
 
         <ReplyIndicatorContainer />
+
+        <div className={`spoiler-input ${title ? 'spoiler-input--visible' : ''}`} ref={this.setRef} aria-hidden={!this.props.title}>
+          <AutosuggestInput
+            placeholder={intl.formatMessage(messages.title_placeholder)}
+            value={titleText}
+            onChange={this.handleChangeTitle}
+            onKeyDown={this.handleKeyDown}
+            disabled={!title}
+            ref={this.handleRefTitleText}
+            suggestions={suggestions}
+            onSuggestionsFetchRequested={onFetchSuggestions}
+            onSuggestionsClearRequested={onClearSuggestions}
+            onSuggestionSelected={this.handleSpoilerSuggestionSelected}
+            searchTokens={[':']}
+            id='glitch.composer.title.input'
+            className='spoiler-input__input'
+            lang={this.props.lang}
+            autoFocus={false}
+            spellCheck
+          />
+        </div>
 
         <div className={`spoiler-input ${spoiler ? 'spoiler-input--visible' : ''}`} ref={this.setRef} aria-hidden={!this.props.spoiler}>
           <AutosuggestInput
@@ -370,10 +414,14 @@ class ComposeForm extends ImmutablePureComponent {
             advancedOptions={advancedOptions}
             disabled={isSubmitting}
             onToggleSpoiler={spoilersAlwaysOn ? null : onChangeSpoilerness}
+            onToggleTitle={onChangeTitleness}
             onUpload={onPaste}
             isEditing={isEditing}
+            isInReply={isInReply}
             sensitive={sensitive || (spoilersAlwaysOn && spoilerText && spoilerText.length > 0)}
             spoiler={spoilersAlwaysOn ? (spoilerText && spoilerText.length > 0) : spoiler}
+            title={title}
+
           />
           <div className='character-counter__wrapper'>
             <CharacterCounter text={countText} max={maxChars} />

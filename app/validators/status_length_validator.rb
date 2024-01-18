@@ -2,6 +2,7 @@
 
 class StatusLengthValidator < ActiveModel::Validator
   MAX_CHARS = (ENV['MAX_TOOT_CHARS'] || 500).to_i
+  MAX_TITLE_CHARS = (ENV['MAX_TITLE_CHARS'] || 200).to_i
   URL_PLACEHOLDER_CHARS = 23
   URL_PLACEHOLDER = 'x' * 23
 
@@ -9,12 +10,17 @@ class StatusLengthValidator < ActiveModel::Validator
     return unless status.local? && !status.reblog?
 
     status.errors.add(:text, I18n.t('statuses.over_character_limit', max: MAX_CHARS)) if too_long?(status)
+    status.errors.add(:text, I18n.t('statuses.over_character_limit_title', max: MAX_CHARS)) if title_too_long?(status)
   end
 
   private
 
   def too_long?(status)
     countable_length(combined_text(status)) > MAX_CHARS
+  end
+
+  def title_too_long?(status)
+    countable_length(status.title) > MAX_TITLE_CHARS
   end
 
   def countable_length(str)

@@ -32,6 +32,8 @@ import {
   COMPOSE_SENSITIVITY_CHANGE,
   COMPOSE_SPOILERNESS_CHANGE,
   COMPOSE_SPOILER_TEXT_CHANGE,
+  COMPOSE_TITLENESS_CHANGE,
+  COMPOSE_TITLE_TEXT_CHANGE,
   COMPOSE_VISIBILITY_CHANGE,
   COMPOSE_LANGUAGE_CHANGE,
   COMPOSE_CONTENT_TYPE_CHANGE,
@@ -80,6 +82,8 @@ const initialState = ImmutableMap({
   elefriend: Math.random() < glitchProbability ? Math.floor(Math.random() * totalElefriends) : totalElefriends,
   spoiler: false,
   spoiler_text: '',
+  title: false,
+  title_text: '',
   privacy: null,
   id: null,
   content_type: defaultContentType || 'text/plain',
@@ -173,6 +177,8 @@ function clearAll(state) {
     if (defaultContentType) map.set('content_type', defaultContentType);
     map.set('spoiler', false);
     map.set('spoiler_text', '');
+    map.set('title', false);
+    map.set('title_text', '');
     map.set('is_submitting', false);
     map.set('is_changing_upload', false);
     map.set('in_reply_to', null);
@@ -416,6 +422,15 @@ export default function compose(state = initialState, action) {
     return state
       .set('spoiler_text', action.text)
       .set('idempotencyKey', uuid());
+  case COMPOSE_TITLENESS_CHANGE:
+    return state.withMutations(map => {
+      map.set('title', !state.get('title'));
+      map.set('idempotencyKey', uuid());
+    });
+  case COMPOSE_TITLE_TEXT_CHANGE:
+    return state
+      .set('title_text', action.text)
+      .set('idempotencyKey', uuid());
   case COMPOSE_VISIBILITY_CHANGE:
     return state
       .set('privacy', action.value)
@@ -650,6 +665,14 @@ export default function compose(state = initialState, action) {
       } else {
         map.set('spoiler', false);
         map.set('spoiler_text', '');
+      }
+
+      if (action.title.length > 0){
+        map.set('title', true);
+        map.set('title_text', action.title);
+      } else {
+        map.set('title', false);
+        map.set('title_text', false);
       }
 
       if (action.status.get('poll')) {

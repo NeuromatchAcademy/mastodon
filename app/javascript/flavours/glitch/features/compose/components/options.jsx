@@ -74,6 +74,10 @@ const messages = defineMessages({
     defaultMessage: 'Threaded mode',
     id: 'advanced_options.threaded_mode.short',
   },
+  title: {
+    defaultMessage: 'Add a title to your post',
+    id: 'compose_form.title',
+  },
   upload: {
     defaultMessage: 'Upload a file',
     id: 'compose.attach.upload',
@@ -133,16 +137,19 @@ class ComposerOptions extends ImmutablePureComponent {
     allowPoll: PropTypes.bool,
     hasPoll: PropTypes.bool,
     intl: PropTypes.object.isRequired,
+    isInReply: PropTypes.bool,
     onChangeAdvancedOption: PropTypes.func,
     onChangeContentType: PropTypes.func,
     onTogglePoll: PropTypes.func,
     onDoodleOpen: PropTypes.func,
     onToggleSpoiler: PropTypes.func,
+    onToggleTitle: PropTypes.func,
     onUpload: PropTypes.func,
     contentType: PropTypes.string,
     resetFileKey: PropTypes.number,
     spoiler: PropTypes.bool,
     showContentTypeChoice: PropTypes.bool,
+    title: PropTypes.bool,
     isEditing: PropTypes.bool,
   };
 
@@ -196,13 +203,16 @@ class ComposerOptions extends ImmutablePureComponent {
       allowMedia,
       allowPoll,
       hasPoll,
+      isInReply,
       onChangeAdvancedOption,
       onChangeContentType,
       onTogglePoll,
       onToggleSpoiler,
+      onToggleTitle,
       resetFileKey,
       spoiler,
       showContentTypeChoice,
+      title,
       isEditing,
       intl: { formatMessage },
     } = this.props;
@@ -285,6 +295,16 @@ class ComposerOptions extends ImmutablePureComponent {
             onChange={onChangeContentType}
             title={formatMessage(messages.content_type)}
             value={contentType}
+          />
+        )}
+        {onToggleTitle && (
+          <TextIconButton
+            active={title}
+            ariaControls='glitch.composer.title.input'
+            label='Ti'
+            onClick={onToggleTitle}
+            disabled={isInReply}
+            title={formatMessage(messages.title)}
           />
         )}
         {onToggleSpoiler && (

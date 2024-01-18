@@ -6,6 +6,8 @@ import {
   changeCompose,
   changeComposeSpoilerText,
   changeComposeSpoilerness,
+  changeComposeTitleness,
+  changeComposeTitleText,
   changeComposeVisibility,
   clearComposeSuggestions,
   fetchComposeSuggestions,
@@ -74,6 +76,8 @@ function mapStateToProps (state) {
     spoilerText: state.getIn(['compose', 'spoiler_text']),
     suggestions: state.getIn(['compose', 'suggestions']),
     text: state.getIn(['compose', 'text']),
+    title: state.getIn(['compose', 'title']),
+    titleText: state.getIn(['compose', 'title_text']),
     anyMedia: state.getIn(['compose', 'media_attachments']).size > 0,
     spoilersAlwaysOn: spoilersAlwaysOn,
     mediaDescriptionConfirmation: state.getIn(['local_settings', 'confirm_missing_media_description']),
@@ -124,6 +128,14 @@ const mapDispatchToProps = (dispatch, { intl }) => ({
 
   onChangeSpoilerness() {
     dispatch(changeComposeSpoilerness());
+  },
+
+  onChangeTitleness(){
+    dispatch(changeComposeTitleness());
+  },
+
+  onChangeTitleText(text){
+    dispatch(changeComposeTitleText(text));
   },
 
   onChangeVisibility(value) {

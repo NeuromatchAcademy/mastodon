@@ -29,6 +29,7 @@
 #  edited_at                    :datetime
 #  trendable                    :boolean
 #  ordered_media_attachment_ids :bigint(8)        is an Array
+#  title                        :string
 #
 
 class Status < ApplicationRecord

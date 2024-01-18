@@ -61,6 +61,7 @@ class Api::V1::StatusesController < Api::BaseController
       media_ids: status_params[:media_ids],
       sensitive: status_params[:sensitive],
       spoiler_text: status_params[:spoiler_text],
+      title: status_params[:title],
       visibility: status_params[:visibility],
       language: status_params[:language],
       scheduled_at: status_params[:scheduled_at],
@@ -141,6 +142,7 @@ class Api::V1::StatusesController < Api::BaseController
       :language,
       :scheduled_at,
       :content_type,
+      :title,
       allowed_mentions: [],
       media_ids: [],
       media_attributes: [
