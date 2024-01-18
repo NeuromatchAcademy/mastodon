@@ -61,7 +61,11 @@ class StatusesController < ApplicationController
   end
 
   def set_status
-    @status = @account.statuses.find(params[:id])
+    begin
+      @status = @account.statuses.find(params[:id])
+    rescue ActiveRecord::RecordNotFound
+      @status = @account.statuses.find_by!(slug: params[:slug])
+    end
     authorize @status, :show?
   rescue Mastodon::NotPermittedError
     not_found

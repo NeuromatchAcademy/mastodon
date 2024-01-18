@@ -33,6 +33,7 @@ namespace :api, format: false do
 
       member do
         get :context
+        # FIXME: Need to modify this endpoint (and the others here) to give both the account and the id to the SQL query in the controller
       end
     end
 
