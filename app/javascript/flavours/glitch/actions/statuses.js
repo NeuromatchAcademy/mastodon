@@ -39,29 +39,49 @@ export const STATUS_TRANSLATE_SUCCESS = 'STATUS_TRANSLATE_SUCCESS';
 export const STATUS_TRANSLATE_FAIL    = 'STATUS_TRANSLATE_FAIL';
 export const STATUS_TRANSLATE_UNDO    = 'STATUS_TRANSLATE_UNDO';
 
-export function fetchStatusRequest(id, skipLoading) {
+export function fetchStatusRequest(id, acct, skipLoading) {
   return {
     type: STATUS_FETCH_REQUEST,
     id,
+    acct,
     skipLoading,
   };
 }
 
-export function fetchStatus(id, forceFetch = false) {
-  return (dispatch, getState) => {
-    const skipLoading = !forceFetch && getState().getIn(['statuses', id], null) !== null;
+export function fetchStatus(id, forceFetch = false, acct ) {
 
-    dispatch(fetchContext(id));
+  return (dispatch, getState) => {
+    const stateStatus = getState().getIn(['statuses', id], null);
+    const skipLoading = !forceFetch && stateStatus !== null;
+    const getSlug = !/^\d+$/.test(id) && acct !== undefined;
+
+    // If this is a slug page, we can't know the status ID until we get it later,
+    // so there are three possible states:
+    // - normal /@account/id url: all good, proceed as normal
+    // - slug url before fetching: don't try and get
+    // - slug url after fetching: get ID from stateStatus
+    // Also we can't just assume that the id that fetched the status === stateStatus.id
+    // because when we import a status with a slug we store it twice in state, with the slug as the id
+    // so that after we load we can do all operations that get the id from the URL as normal
+    const contextId = /^\d+$/.test(id) ? id : stateStatus !== null ? stateStatus.id : undefined;
+    if (contextId) {
+      dispatch(fetchContext(contextId));
+    }
 
     if (skipLoading) {
       return;
     }
 
-    dispatch(fetchStatusRequest(id, skipLoading));
+    dispatch(fetchStatusRequest(id, acct, skipLoading));
 
-    api(getState).get(`/api/v1/statuses/${id}`).then(response => {
+    let get_url = getSlug ? `/api/v1/accounts/${acct}/slugs/${id}` : `/api/v1/statuses/${id}`;
+    api(getState).get(get_url).then(response => {
       dispatch(importFetchedStatus(response.data));
       dispatch(fetchStatusSuccess(skipLoading));
+      if (getSlug){
+        // We call getContext here since we couldn't do it before
+        dispatch(fetchContext(response.data.id));
+      }
     }).catch(error => {
       dispatch(fetchStatusFail(id, error, skipLoading));
     });
@@ -106,7 +126,7 @@ export const editStatus = (id, routerHistory) => (dispatch, getState) => {
   api(getState).get(`/api/v1/statuses/${id}/source`).then(response => {
     dispatch(fetchStatusSourceSuccess());
     ensureComposeIsVisible(getState, routerHistory);
-    dispatch(setComposeToStatus(status, response.data.text, response.data.spoiler_text, response.data.content_type));
+    dispatch(setComposeToStatus(status, response.data.text, response.data.spoiler_text, response.data.content_type, response.data.title));
   }).catch(error => {
     dispatch(fetchStatusSourceFail(error));
   });

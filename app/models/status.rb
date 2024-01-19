@@ -29,6 +29,8 @@
 #  edited_at                    :datetime
 #  trendable                    :boolean
 #  ordered_media_attachment_ids :bigint(8)        is an Array
+#  title                        :string
+#  slug                         :string
 #
 
 class Status < ApplicationRecord
@@ -95,6 +97,7 @@ class Status < ApplicationRecord
   validates :reblog, uniqueness: { scope: :account }, if: :reblog?
   validates :visibility, exclusion: { in: %w(direct limited) }, if: :reblog?
   validates :content_type, inclusion: { in: %w(text/plain text/markdown text/html) }, allow_nil: true
+  validates :slug, uniqueness: { scope: :account }, if: :title?
 
   accepts_nested_attributes_for :poll
 
@@ -139,12 +142,15 @@ class Status < ApplicationRecord
   before_validation :set_visibility
   before_validation :set_conversation
   before_validation :set_local
+  before_validation :assign_slug
 
   before_create :set_local_only
 
   around_create Mastodon::Snowflake::Callbacks
 
   after_create :set_poll_id
+
+  before_update :update_slug, if: :title?
 
   # The `prepend: true` option below ensures this runs before
   # the `dependent: destroy` callbacks remove relevant records
@@ -458,12 +464,46 @@ class Status < ApplicationRecord
     end
   end
 
+  def update_slug
+    update slug: assign_slug
+    update url: ActivityPub::TagManager.instance.uri_for(self)
+  end
+
+  def default_url_options
+    { path_params: { slug: slug } }
+  end
+
   private
 
   def update_status_stat!(attrs)
     return if marked_for_destruction? || destroyed?
 
     status_stat.update(attrs)
+  end
+
+  def create_slug
+    return unless title?
+
+    slug = title.parameterize
+    existing = account.statuses.find_by(slug: slug)
+    if existing.present?
+      n = 1
+      slug_dedupe = slug + "-#{n}"
+      loop do
+        existing = account.statuses.find_by(slug: slug_dedupe)
+        break if existing.blank?
+        break if n > 50 # idk this should probably be done better
+
+        n += 1
+        slug_dedupe = slug + "-#{n}"
+      end
+      slug = slug_dedupe
+    end
+    slug
+  end
+
+  def assign_slug
+    self.slug = create_slug
   end
 
   def store_uri

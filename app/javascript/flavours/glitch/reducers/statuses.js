@@ -32,7 +32,13 @@ import {
 import { STATUS_IMPORT, STATUSES_IMPORT } from '../actions/importer';
 import { normalizeStatusTranslation } from '../actions/importer/normalizer';
 
-const importStatus = (state, status) => state.set(status.id, fromJS(status));
+const importStatus = (state, status) => {
+  let jsStatus = fromJS(status);
+  state.set(status.id, jsStatus);
+  if (status.slug){
+    state.set(status.slug, jsStatus);
+  }
+};
 
 const importStatuses = (state, statuses) =>
   state.withMutations(mutable => statuses.forEach(status => importStatus(mutable, status)));

@@ -1667,6 +1667,7 @@ en:
       in_reply_not_found: The post you are trying to reply to does not appear to exist.
     open_in_web: Open in web
     over_character_limit: character limit of %{max} exceeded
+    over_character_limit_title: title character limit of %{max} exceeded
     pin_errors:
       direct: Posts that are only visible to mentioned users cannot be pinned
       limit: You have already pinned the maximum number of posts

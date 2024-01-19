@@ -43,6 +43,8 @@ class TextFormatter
       end
     end
 
+    html = prepend_title(html)
+
     html = simple_format(html, {}, sanitize: false).delete("\n") if multiline?
 
     html.html_safe # rubocop:disable Rails/OutputSafety
@@ -69,6 +71,15 @@ class TextFormatter
   end
 
   private
+
+  def prepend_title(html)
+    if @options[:title].present?
+      html = <<~HTML.squish
+        <h2>#{@options[:title]}</h2>\n#{html}
+      HTML
+    end
+    html
+  end
 
   def rewrite
     entities.sort_by! do |entity|

@@ -60,6 +60,8 @@ export const COMPOSE_ADVANCED_OPTIONS_CHANGE = 'COMPOSE_ADVANCED_OPTIONS_CHANGE'
 export const COMPOSE_SENSITIVITY_CHANGE  = 'COMPOSE_SENSITIVITY_CHANGE';
 export const COMPOSE_SPOILERNESS_CHANGE  = 'COMPOSE_SPOILERNESS_CHANGE';
 export const COMPOSE_SPOILER_TEXT_CHANGE = 'COMPOSE_SPOILER_TEXT_CHANGE';
+export const COMPOSE_TITLENESS_CHANGE    = 'COMPOSE_TITLENESS_CHANGE';
+export const COMPOSE_TITLE_TEXT_CHANGE   = 'COMPOSE_TITLE_TEXT_CHANGE';
 export const COMPOSE_VISIBILITY_CHANGE   = 'COMPOSE_VISIBILITY_CHANGE';
 export const COMPOSE_LISTABILITY_CHANGE  = 'COMPOSE_LISTABILITY_CHANGE';
 export const COMPOSE_CONTENT_TYPE_CHANGE = 'COMPOSE_CONTENT_TYPE_CHANGE';
@@ -99,13 +101,14 @@ export const ensureComposeIsVisible = (getState, routerHistory) => {
   }
 };
 
-export function setComposeToStatus(status, text, spoiler_text, content_type) {
+export function setComposeToStatus(status, text, spoiler_text, content_type, title) {
   return{
     type: COMPOSE_SET_STATUS,
     status,
     text,
     spoiler_text,
     content_type,
+    title
   };
 }
 
@@ -176,6 +179,8 @@ export function submitCompose(routerHistory) {
     const statusId = getState().getIn(['compose', 'id'], null);
     const spoilers = getState().getIn(['compose', 'spoiler']) || getState().getIn(['local_settings', 'always_show_spoilers_field']);
     let spoilerText = spoilers ? getState().getIn(['compose', 'spoiler_text'], '') : '';
+    const title    = getState().getIn(['compose', 'title']);
+    let titleText = title ? getState().getIn(['compose', 'title_text'], ''): '';
 
     if ((!status || !status.length) && media.size === 0) {
       return;
@@ -218,6 +223,7 @@ export function submitCompose(routerHistory) {
         media_attributes,
         sensitive: getState().getIn(['compose', 'sensitive']) || (spoilerText.length > 0 && media.size !== 0),
         spoiler_text: spoilerText,
+        title: titleText,
         visibility: getState().getIn(['compose', 'privacy']),
         poll: getState().getIn(['compose', 'poll'], null),
         language: getState().getIn(['compose', 'language']),
@@ -801,6 +807,19 @@ export function changeComposeSpoilerness() {
 export function changeComposeSpoilerText(text) {
   return {
     type: COMPOSE_SPOILER_TEXT_CHANGE,
+    text,
+  };
+}
+
+export function changeComposeTitleness(){
+  return {
+    type: COMPOSE_TITLENESS_CHANGE,
+  };
+}
+
+export function changeComposeTitleText(text) {
+  return {
+    type: COMPOSE_TITLE_TEXT_CHANGE,
     text,
   };
 }

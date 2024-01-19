@@ -50,6 +50,8 @@ class AdvancedTextFormatter < TextFormatter
       end
     end
 
+    html = prepend_title(html)
+
     html.html_safe # rubocop:disable Rails/OutputSafety
   end
 

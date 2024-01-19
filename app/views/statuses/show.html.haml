@@ -1,17 +1,27 @@
-- content_for :page_title do
-  = t('statuses.title', name: display_name(@account), quote: truncate(@status.spoiler_text.presence || @status.text, length: 50, omission: '…', escape: false))
+- if @status.title?
+  - content_for :page_title do
+    = t('statuses.title', name: @status.title, quote: display_name(@account))
+
+- else
+  - content_for :page_title do
+    = t('statuses.title', name: display_name(@account), quote: truncate(@status.spoiler_text.presence || @status.text, length: 50, omission: '…', escape: false))
 
 - content_for :header_tags do
   - if @account.user_prefers_noindex?
     %meta{ name: 'robots', content: 'noindex, noarchive' }/
 
-  %link{ rel: 'alternate', type: 'application/json+oembed', href: api_oembed_url(url: short_account_status_url(@account, @status), format: 'json') }/
+  - if @status.slug?
+    - status_url = slug_account_status_url(account_username: @account.username, slug: @status.slug)
+  - else
+    - status_url = short_account_status_url(@account, @status)
+
+  %link{ rel: 'alternate', type: 'application/json+oembed', href: api_oembed_url(url: status_url, format: 'json') }/
   %link{ rel: 'alternate', type: 'application/activity+json', href: ActivityPub::TagManager.instance.uri_for(@status) }/
 
   = opengraph 'og:site_name', site_title
   = opengraph 'og:type', 'article'
   = opengraph 'og:title', "#{display_name(@account)} (#{acct(@account)})"
-  = opengraph 'og:url', short_account_status_url(@account, @status)
+  = opengraph 'og:url', status_url
   = opengraph 'og:published_time', @status.created_at.iso8601
   = opengraph 'profile:username', acct(@account)[1..]
 

@@ -131,7 +131,8 @@ Rails.application.routes.draw do
   constraints(account_username: %r{[^@/.]+}) do
     get '/@:account_username/following', to: 'following_accounts#index'
     get '/@:account_username/followers', to: 'follower_accounts#index'
-    get '/@:account_username/:id', to: 'statuses#show', as: :short_account_status
+    get '/@:account_username/:id', to: 'statuses#show', as: :short_account_status, constraints: { id: /\d.+/ }
+    get '/@:account_username/:slug', to: 'statuses#show', as: :slug_account_status
     get '/@:account_username/:id/embed', to: 'statuses#embed', as: :embed_short_account_status
   end
 

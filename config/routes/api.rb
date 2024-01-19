@@ -172,6 +172,7 @@ namespace :api, format: false do
       resources :lists, only: :index, controller: 'accounts/lists'
       resources :identity_proofs, only: :index, controller: 'accounts/identity_proofs'
       resources :featured_tags, only: :index, controller: 'accounts/featured_tags'
+      resources :slugs, only: :show, controller: 'accounts/slugs'
 
       member do
         post :follow
