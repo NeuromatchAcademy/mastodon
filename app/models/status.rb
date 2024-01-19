@@ -469,8 +469,8 @@ class Status < ApplicationRecord
     update url: ActivityPub::TagManager.instance.uri_for(self)
   end
 
-  def to_param
-    id.to_s
+  def default_url_options
+    { path_params: { slug: slug } }
   end
 
   private

@@ -27,7 +27,7 @@ class ActivityPub::TagManager
     when :note, :comment, :activity
       return activity_account_status_url(target.account, target) if target.reblog?
 
-      return slug_account_status_url(target.account, target) if target.slug?
+      return slug_account_status_url(account_username: target.account.username, slug: target.slug) if target.slug?
 
       short_account_status_url(target.account, target)
     when :flag
@@ -44,7 +44,7 @@ class ActivityPub::TagManager
     when :note, :comment, :activity
       return activity_account_status_url(target.account, target) if target.reblog?
 
-      return slug_account_status_url(target.account, target) if target.slug?
+      return slug_account_status_url(account_username: target.account.username, slug: target.slug) if target.slug?
 
       account_status_url(target.account, target)
     when :emoji

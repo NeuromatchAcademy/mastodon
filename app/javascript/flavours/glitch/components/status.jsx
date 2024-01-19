@@ -369,7 +369,11 @@ class Status extends ImmutablePureComponent {
         return;
       } else {
         if (destination === undefined) {
-          destination = `/@${
+          destination = status.get('slug') ? `/@${
+            status.getIn(['reblog', 'account', 'acct'], status.getIn(['account', 'acct']))
+          }/${
+            status.getIn(['reblog', 'id'], status.get('slug'))
+          }` : `/@${
             status.getIn(['reblog', 'account', 'acct'], status.getIn(['account', 'acct']))
           }/${
             status.getIn(['reblog', 'id'], status.get('id'))
