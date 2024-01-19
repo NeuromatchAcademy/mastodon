@@ -33,7 +33,6 @@ namespace :api, format: false do
 
       member do
         get :context
-        # FIXME: Need to modify this endpoint (and the others here) to give both the account and the id to the SQL query in the controller
       end
     end
 
@@ -173,6 +172,7 @@ namespace :api, format: false do
       resources :lists, only: :index, controller: 'accounts/lists'
       resources :identity_proofs, only: :index, controller: 'accounts/identity_proofs'
       resources :featured_tags, only: :index, controller: 'accounts/featured_tags'
+      resources :slugs, only: :show, controller: 'accounts/slugs'
 
       member do
         post :follow

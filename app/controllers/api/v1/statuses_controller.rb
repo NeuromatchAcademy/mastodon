@@ -120,14 +120,7 @@ class Api::V1::StatusesController < Api::BaseController
   private
 
   def set_status
-    begin
-      @status = Status.find(params[:id])
-    rescue
-      # FIXME: This is not great, beause slugs are only guaranteed unique per user.
-      # so we need to modify whatever is calling this with the slug rather than the ID
-      # somewhere in the react
-      @status = Status.find_by!(slug: params[:id])
-    end
+    @status = Status.find(params[:id])
     authorize @status, :show?
   rescue Mastodon::NotPermittedError
     not_found
