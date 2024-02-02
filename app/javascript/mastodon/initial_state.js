@@ -112,5 +112,7 @@ export const sso_redirect = getMeta('sso_redirect');
 
 // Glitch-soc-specific settings
 export const maxChars = (initialState && initialState.max_toot_chars) || 500;
+export const maxAltTextChars = (initialState && initialState.max_alt_text_chars) || 1_500;
+
 
 export default initialState;
