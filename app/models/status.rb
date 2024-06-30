@@ -67,7 +67,7 @@ class Status < ApplicationRecord
   with_options class_name: 'Status', optional: true do
     belongs_to :thread, foreign_key: 'in_reply_to_id', inverse_of: :replies
     belongs_to :reblog, foreign_key: 'reblog_of_id', inverse_of: :reblogs
-    belongs_to :quote, inverse_of: :quote
+    belongs_to :quote, inverse_of: :quoted
   end
 
   has_many :favourites, inverse_of: :status, dependent: :destroy
@@ -191,6 +191,7 @@ class Status < ApplicationRecord
                      :conversation,
                      :status_stat,
                      :preloadable_poll,
+                     preview_cards_status: [:preview_card],
                      account: [:account_stat, :user],
                      active_mentions: { account: :account_stat },
                    ]
