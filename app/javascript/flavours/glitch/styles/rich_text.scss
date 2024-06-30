@@ -1,6 +1,8 @@
+.status__quote,
 .status__content__text,
 .e-content,
 .edit-indicator__content,
+.quote-indicator__content,
 .reply-indicator__content {
   pre,
   blockquote {
@@ -64,6 +66,11 @@
     font-style: italic;
   }
 
+  i[role='img'] {
+    font-style: normal;
+    padding-right: 0.25em;
+  }
+
   sub {
     font-size: smaller;
     vertical-align: sub;
@@ -89,5 +96,26 @@
 
   ol {
     list-style-type: decimal;
+  }
+}
+
+.status__quote {
+  padding-bottom: 0.5em;
+  pointer-events: none;
+
+  // HACK: adjust quote icon alignment & color icon for emph
+  .quote-display-name > .icon {
+    margin-left: -4px;
+
+    // hopefully this doesn't break user css
+    margin-bottom: -6px;
+
+    // needs to match below: &:is(blockquote)
+    color: $highlight-text-color;
+  }
+
+  // see below: .status_quote|&:is(blockquote)
+  &:is(blockquote) {
+    border-left-color: $highlight-text-color;
   }
 }
