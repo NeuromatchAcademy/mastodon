@@ -166,13 +166,13 @@ export function quoteCompose(status, router) {
       router.push('/publish');
     }
   };
-};
+}
 
 export function cancelQuoteCompose() {
   return {
     type: COMPOSE_QUOTE_CANCEL,
   };
-};
+}
 
 export function resetCompose() {
   return {
