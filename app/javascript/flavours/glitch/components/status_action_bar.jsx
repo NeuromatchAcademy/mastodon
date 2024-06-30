@@ -144,7 +144,7 @@ class StatusActionBar extends ImmutablePureComponent {
   };
 
   handleQuoteClick = () => {
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
 
     if (signedIn) {
       this.props.onQuote(this.props.status, this.context.router.history);

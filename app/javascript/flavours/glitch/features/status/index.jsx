@@ -311,11 +311,11 @@ class Status extends ImmutablePureComponent {
   };
 
   handleQuoteClick = (status) => {
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
     const { dispatch } = this.props;
 
     if (signedIn) {
-      dispatch(quoteCompose(status, this.context.router.history));
+      dispatch(quoteCompose(status, this.props.history));
     } else {
       dispatch(openModal('INTERACTION', {
         type: 'reply',
