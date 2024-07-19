@@ -116,6 +116,8 @@ class Status extends ImmutablePureComponent {
     cacheMediaWidth: PropTypes.func,
     cachedMediaWidth: PropTypes.number,
     scrollKey: PropTypes.string,
+    skipPrepend: PropTypes.bool,
+    avatarSize: PropTypes.number,
     deployPictureInPicture: PropTypes.func,
     settings: ImmutablePropTypes.map.isRequired,
     pictureInPicture: ImmutablePropTypes.contains({
@@ -519,12 +521,14 @@ class Status extends ImmutablePureComponent {
   }
 
   render () {
+    const { intl, hidden, featured, unread, pictureInPicture, previousId, nextInReplyToId, rootId, skipPrepend, avatarSize = 46 } = this.props;
+
     const {
       parseClick,
       setCollapsed,
     } = this;
+
     const {
-      intl,
       status,
       account,
       settings,
@@ -534,13 +538,6 @@ class Status extends ImmutablePureComponent {
       onOpenVideo,
       onOpenMedia,
       notification,
-      hidden,
-      unread,
-      featured,
-      pictureInPicture,
-      previousId,
-      nextInReplyToId,
-      rootId,
       history,
       ...other
     } = this.props;
@@ -800,7 +797,7 @@ class Status extends ImmutablePureComponent {
           ref={this.handleRef}
           data-nosnippet={status.getIn(['account', 'noindex'], true) || undefined}
         >
-          {prepend}
+          {!skipPrepend && prepend}
 
           <div
             className={classNames('status', `status-${status.get('visibility')}`, { 'status-reply': !!status.get('in_reply_to_id'), 'status--in-thread': !!rootId, 'status--first-in-thread': previousId && (!connectUp || connectToRoot), muted: this.props.muted, 'has-background': isCollapsed && background })}
@@ -816,6 +813,7 @@ class Status extends ImmutablePureComponent {
                   friend={account}
                   collapsed={isCollapsed}
                   parseClick={parseClick}
+                  avatarSize={avatarSize}
                 />
                 <StatusIcons
                   status={status}

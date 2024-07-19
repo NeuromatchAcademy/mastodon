@@ -174,6 +174,19 @@ class LaTeXDropdown extends React.PureComponent {
     placement: 'bottom',
   };
 
+  constructor(props) {
+    super();
+
+    this.props = props;
+
+    const { intl: { formatMessage } } = this.props;
+
+    this.options = [
+      { icon: 'inline-mode', value: 'inline', text: formatMessage(messages.inline_short), meta: formatMessage(messages.inline_long) },
+      { icon: 'display-mode', value: 'display', text: formatMessage(messages.display_short), meta: formatMessage(messages.display_long) },
+    ];
+  }
+
   handleToggle = ({ target }) => {
     if (this.props.isUserTouching && this.props.isUserTouching()) {
       if (this.state.open) {
@@ -236,15 +249,6 @@ class LaTeXDropdown extends React.PureComponent {
   handleChange = value => {
     this.props.onChange(value);
   };
-
-  componentWillMount () {
-    const { intl: { formatMessage } } = this.props;
-
-    this.options = [
-      { icon: 'inline-mode', value: 'inline', text: formatMessage(messages.inline_short), meta: formatMessage(messages.inline_long) },
-      { icon: 'display-mode', value: 'display', text: formatMessage(messages.display_short), meta: formatMessage(messages.display_long) },
-    ];
-  }
 
   setTargetRef = c => {
     this.target = c;
