@@ -1,28 +1,33 @@
-.status {
+$status-collapsed-height: 10em;
+$notification-collapsed-height: 6em;
+
+.status__wrapper {
   &.collapsed {
-    .status__content {
-      height: unset;
-      max-height: 6em;
-      padding-top: unset;
+    .status {
+      &__content {
+        height: unset;
+        max-height: $status-collapsed-height;
+        padding-top: unset;
+        mask-image: linear-gradient(#000 80%, transparent);
 
-      &::after {
-        top: unset;
-        height: 40%;
+        &::after {
+          top: unset;
+          height: 40%;
+        }
+
+        // "See more" button
+        &__spoiler-link {
+          background: $action-button-color;
+        }
       }
-    }
-  }
 
-  &--in-thread {
-    &.collapsed {
-      & > button {
+      &--in-thread > button {
         margin-inline-start: 46px + 10px;
       }
     }
   }
 }
 
-// Fix background color after upstream moved how the
-// normal button is placed in the DOM
-.status.collapsed .status__content__spoiler-link {
-  background: $action-button-color;
+.notification-ungrouped .status__wrapper.collapsed .status__content {
+  max-height: $notification-collapsed-height;
 }
