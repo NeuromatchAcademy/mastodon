@@ -1,8 +1,9 @@
 import PropTypes from 'prop-types';
 import { PureComponent } from 'react';
 
-import unicodeMapping from 'flavours/glitch/features/emoji/emoji_unicode_mapping_light';
 import { assetHost } from 'flavours/glitch/utils/config';
+
+import { unicodeMapping } from '../features/emoji/emoji_unicode_mapping_light';
 
 export default class AutosuggestEmoji extends PureComponent {
 
@@ -27,14 +28,14 @@ export default class AutosuggestEmoji extends PureComponent {
     }
 
     return (
-      <div className='emoji'>
+      <div className='autosuggest-emoji'>
         <img
           className='emojione'
           src={url}
           alt={emoji.native || emoji.colons}
         />
 
-        {emoji.colons}
+        <div className='autosuggest-emoji__name'>{emoji.colons}</div>
       </div>
     );
   }

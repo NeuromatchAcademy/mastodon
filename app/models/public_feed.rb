@@ -31,7 +31,9 @@ class PublicFeed
     scope.merge!(media_only_scope) if media_only?
     scope.merge!(language_scope) if account&.chosen_languages.present?
 
-    scope.cache_ids.to_a_paginated_by_id(limit, max_id: max_id, since_id: since_id, min_id: min_id)
+    scope.merge!(without_duplicate_reblogs) if with_reblogs?
+
+    scope.to_a_paginated_by_id(limit, max_id: max_id, since_id: since_id, min_id: min_id)
   end
 
   private
@@ -71,7 +73,7 @@ class PublicFeed
   end
 
   def public_scope
-    Status.with_public_visibility.joins(:account).merge(Account.without_suspended.without_silenced)
+    Status.public_visibility.joins(:account).merge(Account.without_suspended.without_silenced)
   end
 
   def local_only_scope
@@ -88,6 +90,23 @@ class PublicFeed
 
   def without_reblogs_scope
     Status.without_reblogs
+  end
+
+  def max_boost_id_scope
+    Status.where(<<~SQL.squish)
+      "statuses"."id" = (
+        SELECT MAX(id)
+        FROM "statuses" "s2"
+        WHERE "s2"."reblog_of_id" = "statuses"."reblog_of_id"
+          #{'AND ("s2"."local" = true OR "s2"."uri" IS NULL)' if local_only?}
+          #{'AND "s2"."local" = false AND "s2"."uri" IS NOT NULL' if remote_only?}
+        )
+    SQL
+  end
+
+  def without_duplicate_reblogs
+    Status.where(statuses: { reblog_of_id: nil })
+          .or(max_boost_id_scope)
   end
 
   def media_only_scope

@@ -6,6 +6,7 @@ class BootstrapTimelineService < BaseService
 
     autofollow_inviter!
     notify_staff!
+    autofollow!
   end
 
   private
@@ -14,6 +15,19 @@ class BootstrapTimelineService < BaseService
     return unless @source_account&.user&.invite&.autofollow?
 
     FollowService.new.call(@source_account, @source_account.user.invite.user.account)
+  end
+
+  def autofollow!
+    return if ENV['AUTOFOLLOW'].blank?
+
+    ENV['AUTOFOLLOW'].to_s.split(',').each do |account|
+      begin
+        to_follow = Account.find_local!(account.strip)
+        FollowService.new.call(@source_account, to_follow)
+      rescue ActiveRecord::RecordNotFound
+        Rails.logger.warn("Could not find account #{account} to autofollow")
+      end
+    end
   end
 
   def notify_staff!

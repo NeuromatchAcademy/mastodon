@@ -10,32 +10,15 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 
 import { debounce } from 'lodash';
 
+import VisibilityOffIcon from '@/material-icons/400-24px/visibility_off.svg?react';
 import { Blurhash } from 'flavours/glitch/components/blurhash';
-import { autoPlayGif, displayMedia, useBlurhash } from 'flavours/glitch/initial_state';
+
+import { autoPlayGif, displayMedia, useBlurhash } from '../initial_state';
 
 import { IconButton } from './icon_button';
 
 const messages = defineMessages({
-  hidden: {
-    defaultMessage: 'Media hidden',
-    id: 'status.media_hidden',
-  },
-  sensitive: {
-    defaultMessage: 'Sensitive',
-    id: 'media_gallery.sensitive',
-  },
-  toggle: {
-    defaultMessage: 'Click to view',
-    id: 'status.sensitive_toggle',
-  },
-  toggle_visible: {
-    defaultMessage: '{number, plural, one {Hide image} other {Hide images}}',
-    id: 'media_gallery.toggle_visible',
-  },
-  warning: {
-    defaultMessage: 'Sensitive content',
-    id: 'status.sensitive_warning',
-  },
+  toggle_visible: { id: 'media_gallery.toggle_visible', defaultMessage: '{number, plural, one {Hide image} other {Hide images}}' },
 });
 
 class Item extends PureComponent {
@@ -121,7 +104,7 @@ class Item extends PureComponent {
     }
 
     if (attachment.get('description')?.length > 0) {
-      badges.push(<span key='alt' className='media-gallery__gifv__label'>ALT</span>);
+      badges.push(<span key='alt' className='media-gallery__alt__label'>ALT</span>);
     }
 
     const description = attachment.getIn(['translation', 'description']) || attachment.get('description');
@@ -297,8 +280,8 @@ class MediaGallery extends PureComponent {
     this.props.onOpenMedia(this.props.media, index, this.props.lang);
   };
 
-  handleRef = (node) => {
-    this.node = node;
+  handleRef = c => {
+    this.node = c;
 
     if (this.node) {
       this._setDimensions();
@@ -328,7 +311,7 @@ class MediaGallery extends PureComponent {
   render () {
     const { media, lang, intl, sensitive, letterbox, fullwidth, defaultWidth, autoplay } = this.props;
     const { visible } = this.state;
-    const size     = media.take(4).size;
+    const size     = media.size;
     const uncached = media.every(attachment => attachment.get('type') === 'unknown');
 
     const width = this.state.width || defaultWidth;
@@ -348,7 +331,7 @@ class MediaGallery extends PureComponent {
     if (this.isStandaloneEligible()) {
       children = <Item standalone autoplay={autoplay} onClick={this.handleClick} attachment={media.get(0)} lang={lang} displayWidth={width} visible={visible} />;
     } else {
-      children = media.take(4).map((attachment, i) => <Item key={attachment.get('id')} autoplay={autoplay} onClick={this.handleClick} attachment={attachment} index={i} lang={lang} size={size} letterbox={letterbox} displayWidth={width} visible={visible || uncached} />);
+      children = media.map((attachment, i) => <Item key={attachment.get('id')} autoplay={autoplay} onClick={this.handleClick} attachment={attachment} index={i} lang={lang} size={size} letterbox={letterbox} displayWidth={width} visible={visible || uncached} />);
     }
 
     if (uncached) {
@@ -361,7 +344,7 @@ class MediaGallery extends PureComponent {
         </button>
       );
     } else if (visible) {
-      spoilerButton = <IconButton title={intl.formatMessage(messages.toggle_visible, { number: size })} icon='eye-slash' overlay onClick={this.handleOpen} ariaHidden />;
+      spoilerButton = <IconButton title={intl.formatMessage(messages.toggle_visible, { number: size })} icon='eye-slash' iconComponent={VisibilityOffIcon} overlay onClick={this.handleOpen} ariaHidden />;
     } else {
       spoilerButton = (
         <button type='button' onClick={this.handleOpen} className='spoiler-button__overlay'>
@@ -377,11 +360,6 @@ class MediaGallery extends PureComponent {
       <div className={computedClass} style={style} ref={this.handleRef}>
         <div className={classNames('spoiler-button', { 'spoiler-button--minified': visible && !uncached, 'spoiler-button--click-thru': uncached })}>
           {spoilerButton}
-          {visible && sensitive && (
-            <span className='sensitive-marker'>
-              <FormattedMessage {...messages.sensitive} />
-            </span>
-          )}
         </div>
 
         {children}

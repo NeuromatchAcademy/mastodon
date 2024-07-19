@@ -2,24 +2,23 @@ import { defineMessages, injectIntl } from 'react-intl';
 
 import { connect } from 'react-redux';
 
-import {
-  changeCompose,
-  changeComposeSpoilerText,
-  changeComposeSpoilerness,
-  changeComposeVisibility,
-  clearComposeSuggestions,
-  fetchComposeSuggestions,
-  insertEmojiCompose,
-  selectComposeSuggestion,
-  submitCompose,
-  uploadCompose,
-} from 'flavours/glitch/actions/compose';
-import { changeLocalSetting } from 'flavours/glitch/actions/local_settings';
-import {
-  openModal,
-} from 'flavours/glitch/actions/modal';
 import { privacyPreference } from 'flavours/glitch/utils/privacy_preference';
 
+import {
+  changeCompose,
+  submitCompose,
+  clearComposeSuggestions,
+  fetchComposeSuggestions,
+  selectComposeSuggestion,
+  changeComposeSpoilerText,
+  insertEmojiCompose,
+  uploadCompose,
+  startLaTeXCompose,
+} from '../../../actions/compose';
+import { changeLocalSetting } from '../../../actions/local_settings';
+import {
+  openModal,
+} from '../../../actions/modal';
 import ComposeForm from '../components/compose_form';
 
 const messages = defineMessages({
@@ -37,9 +36,7 @@ const messages = defineMessages({
   },
 });
 
-//  State mapping.
-function mapStateToProps (state) {
-  const spoilersAlwaysOn = state.getIn(['local_settings', 'always_show_spoilers_field']);
+const sideArmPrivacy = state => {
   const inReplyTo = state.getIn(['compose', 'in_reply_to']);
   const replyPrivacy = inReplyTo ? state.getIn(['statuses', inReplyTo, 'visibility']) : null;
   const sideArmBasePrivacy = state.getIn(['local_settings', 'side_arm']);
@@ -53,89 +50,79 @@ function mapStateToProps (state) {
     sideArmPrivacy = sideArmRestrictedPrivacy;
     break;
   }
-  sideArmPrivacy = sideArmPrivacy || sideArmBasePrivacy;
-  return {
-    advancedOptions: state.getIn(['compose', 'advanced_options']),
-    focusDate: state.getIn(['compose', 'focusDate']),
-    caretPosition: state.getIn(['compose', 'caretPosition']),
-    isSubmitting: state.getIn(['compose', 'is_submitting']),
-    isEditing: state.getIn(['compose', 'id']) !== null,
-    isChangingUpload: state.getIn(['compose', 'is_changing_upload']),
-    isUploading: state.getIn(['compose', 'is_uploading']),
-    layout: state.getIn(['local_settings', 'layout']),
-    media: state.getIn(['compose', 'media_attachments']),
-    preselectDate: state.getIn(['compose', 'preselectDate']),
-    privacy: state.getIn(['compose', 'privacy']),
-    sideArm: sideArmPrivacy,
-    sensitive: state.getIn(['compose', 'sensitive']),
-    showSearch: state.getIn(['search', 'submitted']) && !state.getIn(['search', 'hidden']),
-    spoiler: spoilersAlwaysOn || state.getIn(['compose', 'spoiler']),
-    spoilerText: state.getIn(['compose', 'spoiler_text']),
-    suggestions: state.getIn(['compose', 'suggestions']),
-    text: state.getIn(['compose', 'text']),
-    anyMedia: state.getIn(['compose', 'media_attachments']).size > 0,
-    spoilersAlwaysOn: spoilersAlwaysOn,
-    mediaDescriptionConfirmation: state.getIn(['local_settings', 'confirm_missing_media_description']),
-    preselectOnReply: state.getIn(['local_settings', 'preselect_on_reply']),
-    isInReply: state.getIn(['compose', 'in_reply_to']) !== null,
-    lang: state.getIn(['compose', 'language']),
-  };
-}
+  return sideArmPrivacy || sideArmBasePrivacy;
+};
 
-//  Dispatch mapping.
+const mapStateToProps = state => ({
+  text: state.getIn(['compose', 'text']),
+  suggestions: state.getIn(['compose', 'suggestions']),
+  spoiler: state.getIn(['local_settings', 'always_show_spoilers_field']) || state.getIn(['compose', 'spoiler']),
+  spoilerAlwaysOn: state.getIn(['local_settings', 'always_show_spoilers_field']),
+  spoilerText: state.getIn(['compose', 'spoiler_text']),
+  privacy: state.getIn(['compose', 'privacy']),
+  focusDate: state.getIn(['compose', 'focusDate']),
+  caretPosition: state.getIn(['compose', 'caretPosition']),
+  preselectDate: state.getIn(['compose', 'preselectDate']),
+  preselectOnReply: state.getIn(['local_settings', 'preselect_on_reply']),
+  isSubmitting: state.getIn(['compose', 'is_submitting']),
+  isEditing: state.getIn(['compose', 'id']) !== null,
+  isChangingUpload: state.getIn(['compose', 'is_changing_upload']),
+  isUploading: state.getIn(['compose', 'is_uploading']),
+  anyMedia: state.getIn(['compose', 'media_attachments']).size > 0,
+  isInReply: state.getIn(['compose', 'in_reply_to']) !== null,
+  lang: state.getIn(['compose', 'language']),
+  sideArm: sideArmPrivacy(state),
+  media: state.getIn(['compose', 'media_attachments']),
+  mediaDescriptionConfirmation: state.getIn(['local_settings', 'confirm_missing_media_description']),
+  maxChars: state.getIn(['server', 'server', 'configuration', 'statuses', 'max_characters'], 500),
+});
+
 const mapDispatchToProps = (dispatch, { intl }) => ({
 
-  onChange(text) {
+  onChange (text) {
     dispatch(changeCompose(text));
   },
 
-  onSubmit(routerHistory) {
-    dispatch(submitCompose(routerHistory));
+  onSubmit (router, overridePrivacy = null) {
+    dispatch(submitCompose(router, overridePrivacy));
   },
 
-  onClearSuggestions() {
+  onClearSuggestions () {
     dispatch(clearComposeSuggestions());
   },
 
-  onFetchSuggestions(token) {
+  onFetchSuggestions (token) {
     dispatch(fetchComposeSuggestions(token));
   },
 
-  onSuggestionSelected(position, token, suggestion, path) {
+  onSuggestionSelected (position, token, suggestion, path) {
     dispatch(selectComposeSuggestion(position, token, suggestion, path));
   },
 
-  onChangeSpoilerText(text) {
-    dispatch(changeComposeSpoilerText(text));
+  onChangeSpoilerText (checked) {
+    dispatch(changeComposeSpoilerText(checked));
   },
 
-  onPaste(files) {
+  onPaste (files) {
     dispatch(uploadCompose(files));
   },
 
-  onPickEmoji(position, emoji) {
-    dispatch(insertEmojiCompose(position, emoji));
+  onPickEmoji (position, data, needsSpace) {
+    dispatch(insertEmojiCompose(position, data, needsSpace));
   },
 
-  onChangeSpoilerness() {
-    dispatch(changeComposeSpoilerness());
+  onLaTeXStart (position, data) {
+    dispatch(startLaTeXCompose(position, data));
   },
 
-  onChangeVisibility(value) {
-    dispatch(changeComposeVisibility(value));
-  },
-
-  onMediaDescriptionConfirm(routerHistory, mediaId, overriddenVisibility = null) {
+  onMediaDescriptionConfirm (routerHistory, mediaId, overridePrivacy = null) {
     dispatch(openModal({
       modalType: 'CONFIRM',
       modalProps: {
         message: intl.formatMessage(messages.missingDescriptionMessage),
         confirm: intl.formatMessage(messages.missingDescriptionConfirm),
         onConfirm: () => {
-          if (overriddenVisibility) {
-            dispatch(changeComposeVisibility(overriddenVisibility));
-          }
-          dispatch(submitCompose(routerHistory));
+          dispatch(submitCompose(routerHistory, overridePrivacy));
         },
         secondary: intl.formatMessage(messages.missingDescriptionEdit),
         onSecondary: () => dispatch(openModal({

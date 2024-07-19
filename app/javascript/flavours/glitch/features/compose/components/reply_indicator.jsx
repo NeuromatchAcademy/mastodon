@@ -1,83 +1,51 @@
-//  Package imports.
-import PropTypes from 'prop-types';
+import { FormattedMessage } from 'react-intl';
 
-import { defineMessages, injectIntl } from 'react-intl';
+import { useSelector } from 'react-redux';
 
-import ImmutablePropTypes from 'react-immutable-proptypes';
-import ImmutablePureComponent from 'react-immutable-pure-component';
+import BarChart4BarsIcon from '@/material-icons/400-24px/bar_chart_4_bars.svg?react';
+import PhotoLibraryIcon from '@/material-icons/400-24px/photo_library.svg?react';
+import { Avatar } from 'flavours/glitch/components/avatar';
+import { DisplayName } from 'flavours/glitch/components/display_name';
+import { Icon } from 'flavours/glitch/components/icon';
+import { Permalink } from 'flavours/glitch/components/permalink';
+import { EmbeddedStatusContent } from 'flavours/glitch/features/notifications_v2/components/embedded_status_content';
 
-//  Components.
-import AttachmentList from 'flavours/glitch/components/attachment_list';
-import { IconButton } from 'flavours/glitch/components/icon_button';
-import AccountContainer from 'flavours/glitch/containers/account_container';
-//  Messages.
-const messages = defineMessages({
-  cancel: {
-    defaultMessage: 'Cancel',
-    id: 'reply_indicator.cancel',
-  },
-});
+export const ReplyIndicator = () => {
+  const inReplyToId = useSelector(state => state.getIn(['compose', 'in_reply_to']));
+  const status = useSelector(state => state.getIn(['statuses', inReplyToId]));
+  const account = useSelector(state => state.getIn(['accounts', status?.get('account')]));
 
-
-class ReplyIndicator extends ImmutablePureComponent {
-
-  static propTypes = {
-    status: ImmutablePropTypes.map,
-    intl: PropTypes.object.isRequired,
-    onCancel: PropTypes.func,
-  };
-
-  handleClick = () => {
-    const { onCancel } = this.props;
-    if (onCancel) {
-      onCancel();
-    }
-  };
-
-  //  Rendering.
-  render () {
-    const { status, intl } = this.props;
-
-    if (!status) {
-      return null;
-    }
-
-    const account     = status.get('account');
-    const content     = status.get('content');
-    const attachments = status.get('media_attachments');
-
-    //  The result.
-    return (
-      <article className='reply-indicator'>
-        <header className='reply-indicator__header'>
-          <IconButton
-            className='reply-indicator__cancel'
-            icon='times'
-            onClick={this.handleClick}
-            title={intl.formatMessage(messages.cancel)}
-            inverted
-          />
-          {account && (
-            <AccountContainer
-              id={account}
-              small
-            />
-          )}
-        </header>
-        <div
-          className='reply-indicator__content translate'
-          dangerouslySetInnerHTML={{ __html: content || '' }}
-        />
-        {attachments.size > 0 && (
-          <AttachmentList
-            compact
-            media={attachments}
-          />
-        )}
-      </article>
-    );
+  if (!status) {
+    return null;
   }
 
-}
+  return (
+    <div className='reply-indicator'>
+      <div className='reply-indicator__line' />
 
-export default injectIntl(ReplyIndicator);
+      <Permalink href={account.get('url')} to={`/@${account.get('acct')}`} className='detailed-status__display-avatar'>
+        <Avatar account={account} size={46} />
+      </Permalink>
+
+      <div className='reply-indicator__main'>
+        <Permalink href={account.get('url')} to={`/@${account.get('acct')}`} className='detailed-status__display-name'>
+          <DisplayName account={account} />
+        </Permalink>
+
+        <EmbeddedStatusContent
+          className='reply-indicator__content translate'
+          content={status.get('contentHtml')}
+          language={status.get('language')}
+          mentions={status.get('mentions')}
+        />
+
+        {(status.get('poll') || status.get('media_attachments').size > 0) && (
+          <div className='reply-indicator__attachments'>
+            {status.get('poll') && <><Icon icon={BarChart4BarsIcon} /><FormattedMessage id='reply_indicator.poll' defaultMessage='Poll' /></>}
+            {status.get('media_attachments').size > 0 && <><Icon icon={PhotoLibraryIcon} /><FormattedMessage id='reply_indicator.attachments' defaultMessage='{count, plural, one {# attachment} other {# attachments}}' values={{ count: status.get('media_attachments').size }} /></>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

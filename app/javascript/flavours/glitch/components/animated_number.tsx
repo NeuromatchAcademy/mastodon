@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import * as React from 'react';
 
 import { TransitionMotion, spring } from 'react-motion';
 
@@ -64,8 +63,9 @@ export const AnimatedNumber: React.FC<Props> = ({ value, obfuscate }) => {
             <span
               key={key}
               style={{
-                position: direction * style.y > 0 ? 'absolute' : 'static',
-                transform: `translateY(${style.y * 100}%)`,
+                position:
+                  direction * (style.y ?? 0) > 0 ? 'absolute' : 'static',
+                transform: `translateY(${(style.y ?? 0) * 100}%)`,
               }}
             >
               {obfuscate ? (

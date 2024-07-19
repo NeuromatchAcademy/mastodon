@@ -3,7 +3,12 @@ import React, { useState, useEffect } from 'react';
 
 import { FormattedMessage } from 'react-intl';
 
-import { Icon } from './icon';
+import ImageIcon from '@/material-icons/400-24px/image.svg?react';
+import InsertChartIcon from '@/material-icons/400-24px/insert_chart.svg?react';
+import LinkIcon from '@/material-icons/400-24px/link.svg?react';
+import MovieIcon from '@/material-icons/400-24px/movie.svg?react';
+import MusicNoteIcon from '@/material-icons/400-24px/music_note.svg?react';
+import { Icon } from 'flavours/glitch/components/icon';
 
 const makeToggleText = (hidden, mediaIcons) => {
   let newText;
@@ -16,12 +21,21 @@ const makeToggleText = (hidden, mediaIcons) => {
       />,
     ];
     if (mediaIcons) {
+      const mediaComponents = {
+        'link': LinkIcon,
+        'picture-o': ImageIcon,
+        'tasks': InsertChartIcon,
+        'video-camera': MovieIcon,
+        'music': MusicNoteIcon,
+      };
+
       mediaIcons.forEach((mediaIcon, idx) => {
         newText.push(
           <Icon
             fixedWidth
             className='status__content__spoiler-icon'
             id={mediaIcon}
+            icon={mediaComponents[mediaIcon]}
             aria-hidden='true'
             key={`icon-${idx}`}
           />,
@@ -46,13 +60,13 @@ const StatusExpandButton=(
     handleSpoilerClick,
     mediaIcons,
   },
-) => {
-  const [toggleText, setToggleText] = useState(makeToggleText(hidden, mediaIcons));
+)=>{
+
+  const [toggleText, setToggleText] = useState(makeToggleText());
 
   // Change the text when the hidden state changes
   useEffect(() => {
-    let text = makeToggleText(hidden, mediaIcons);
-    setToggleText(text);
+    setToggleText(makeToggleText(hidden, mediaIcons));
   }, [hidden, mediaIcons]);
 
   return(

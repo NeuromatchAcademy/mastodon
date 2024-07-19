@@ -9,7 +9,7 @@ defaults: &defaults
   site_terms: ''
   site_contact_username: ''
   site_contact_email: ''
-  registrations_mode: 'open'
+  registrations_mode: 'none'
   profile_directory: true
   closed_registrations_message: ''
   timeline_preview: false
@@ -17,11 +17,12 @@ defaults: &defaults
   preview_sensitive_media: false
   noindex: false
   flavour: 'glitch'
-  skin: 'default'
+  skin: 'system'
   trends: true
   trends_as_landing_page: true
   trendable_by_default: false
   trending_status_cw: true
+
   hide_followers_count: false
   reserved_usernames:
     - admin
@@ -32,6 +33,9 @@ defaults: &defaults
     - administrator
     - mod
     - moderator
+    - math
+    - mathematics
+    - maths
   disallowed_hashtags: # space separated string or list of hashtags without the hash
   bootstrap_timeline_accounts: ''
   activity_api_enabled: true

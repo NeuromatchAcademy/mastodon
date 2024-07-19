@@ -9,7 +9,7 @@ class AdvancedTextFormatter < TextFormatter
 
     def block_code(code, _language)
       <<~HTML
-        <pre><code>#{ERB::Util.h(code).gsub("\n", '<br/>')}</code></pre>
+        <pre><code>#{ERB::Util.h(code.rstrip).gsub("\n", '</code></br><code>')}</code></pre>
       HTML
     end
 
@@ -31,7 +31,7 @@ class AdvancedTextFormatter < TextFormatter
   # @option options [String] :content_type
   def initialize(text, options = {})
     @content_type = options.delete(:content_type)
-    super(text, options)
+    super
 
     @text = format_markdown(text) if content_type == 'text/markdown'
   end

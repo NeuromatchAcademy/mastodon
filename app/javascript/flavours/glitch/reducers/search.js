@@ -4,7 +4,7 @@ import {
   COMPOSE_MENTION,
   COMPOSE_REPLY,
   COMPOSE_DIRECT,
-} from 'flavours/glitch/actions/compose';
+} from '../actions/compose';
 import {
   SEARCH_CHANGE,
   SEARCH_CLEAR,
@@ -16,7 +16,7 @@ import {
   SEARCH_EXPAND_SUCCESS,
   SEARCH_EXPAND_FAIL,
   SEARCH_HISTORY_UPDATE,
-} from 'flavours/glitch/actions/search';
+} from '../actions/search';
 
 const initialState = ImmutableMap({
   value: '',
@@ -50,6 +50,7 @@ export default function search(state = initialState, action) {
     return state.set('hidden', true);
   case SEARCH_FETCH_REQUEST:
     return state.withMutations(map => {
+      map.set('results', ImmutableMap());
       map.set('isLoading', true);
       map.set('submitted', true);
       map.set('type', action.searchType);

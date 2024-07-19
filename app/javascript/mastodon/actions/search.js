@@ -46,7 +46,7 @@ export function submitSearch(type) {
 
     dispatch(fetchSearchRequest(type));
 
-    api(getState).get('/api/v2/search', {
+    api().get('/api/v2/search', {
       params: {
         q: value,
         resolve: signedIn,
@@ -99,7 +99,7 @@ export const expandSearch = type => (dispatch, getState) => {
 
   dispatch(expandSearchRequest(type));
 
-  api(getState).get('/api/v2/search', {
+  api().get('/api/v2/search', {
     params: {
       q: value,
       type,
@@ -147,12 +147,16 @@ export const openURL = (value, history, onFailure) => (dispatch, getState) => {
   const signedIn = !!getState().getIn(['meta', 'me']);
 
   if (!signedIn) {
+    if (onFailure) {
+      onFailure();
+    }
+
     return;
   }
 
   dispatch(fetchSearchRequest());
 
-  api(getState).get('/api/v2/search', { params: { q: value, resolve: true } }).then(response => {
+  api().get('/api/v2/search', { params: { q: value, resolve: true } }).then(response => {
     if (response.data.accounts?.length > 0) {
       dispatch(importFetchedAccounts(response.data.accounts));
       history.push(`/@${response.data.accounts[0].acct}`);
@@ -175,6 +179,11 @@ export const openURL = (value, history, onFailure) => (dispatch, getState) => {
 
 export const clickSearchResult = (q, type) => (dispatch, getState) => {
   const previous = getState().getIn(['search', 'recent']);
+
+  if (previous.some(x => x.get('q') === q && x.get('type') === type)) {
+    return;
+  }
+
   const me = getState().getIn(['meta', 'me']);
   const current = previous.add(fromJS({ type, q })).takeLast(4);
 

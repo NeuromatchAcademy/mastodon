@@ -1,5 +1,7 @@
 import { Map as ImmutableMap, List as ImmutableList, OrderedSet as ImmutableOrderedSet, fromJS } from 'immutable';
 
+import { timelineDelete } from 'mastodon/actions/timelines_typed';
+
 import {
   COMPOSE_MOUNT,
   COMPOSE_UNMOUNT,
@@ -34,25 +36,24 @@ import {
   COMPOSE_LANGUAGE_CHANGE,
   COMPOSE_COMPOSING_CHANGE,
   COMPOSE_EMOJI_INSERT,
+  COMPOSE_START_LATEX,
   COMPOSE_UPLOAD_CHANGE_REQUEST,
   COMPOSE_UPLOAD_CHANGE_SUCCESS,
   COMPOSE_UPLOAD_CHANGE_FAIL,
   COMPOSE_RESET,
   COMPOSE_POLL_ADD,
   COMPOSE_POLL_REMOVE,
-  COMPOSE_POLL_OPTION_ADD,
   COMPOSE_POLL_OPTION_CHANGE,
-  COMPOSE_POLL_OPTION_REMOVE,
   COMPOSE_POLL_SETTINGS_CHANGE,
   INIT_MEDIA_EDIT_MODAL,
   COMPOSE_CHANGE_MEDIA_DESCRIPTION,
   COMPOSE_CHANGE_MEDIA_FOCUS,
+  COMPOSE_CHANGE_MEDIA_ORDER,
   COMPOSE_SET_STATUS,
   COMPOSE_FOCUS,
 } from '../actions/compose';
 import { REDRAFT } from '../actions/statuses';
 import { STORE_HYDRATE } from '../actions/store';
-import { TIMELINE_DELETE } from '../actions/timelines';
 import { me } from '../initial_state';
 import { unescapeHTML } from '../utils/html';
 import { uuid } from '../uuid';
@@ -219,6 +220,23 @@ const insertEmoji = (state, position, emojiData, needsSpace) => {
   });
 };
 
+const startLaTeX = (state, position, latex_style) => {
+  const oldText = state.get('text');
+
+  const latex_styles = {
+    'inline':  {open: '\\(', close: '\\)'},
+    'display': {open: '\\[', close: '\\]'}
+  };
+  const { open, close } = latex_styles[latex_style];
+
+  return state.merge({
+    text: `${oldText.slice(0, position)}${open}  ${close} ${oldText.slice(position)}`,
+    focusDate: new Date(),
+    caretPosition: position + open.length + 1,
+    idempotencyKey: uuid(),
+  });
+};
+
 const privacyPreference = (a, b) => {
   const order = ['public', 'unlisted', 'private', 'direct'];
   return order[Math.max(order.indexOf(a), order.indexOf(b), 0)];
@@ -262,11 +280,13 @@ const mergeLocalHashtagResults = (suggestions, prefix, tagHistory) => {
   }
 };
 
-const normalizeSuggestions = (state, { accounts, emojis, tags, token }) => {
+const normalizeSuggestions = (state, { accounts, emojis, tags, latex, token }) => {
   if (accounts) {
     return accounts.map(item => ({ id: item.id, type: 'account' }));
   } else if (emojis) {
     return emojis.map(item => ({ ...item, type: 'emoji' }));
+  } else if (latex) {
+    return latex.map(item => ({ ...item, type: 'latex' }));
   } else {
     return mergeLocalHashtagResults(sortHashtagsByUse(state, tags.map(item => ({ ...item, type: 'hashtag' }))), token.slice(1), state.get('tagHistory'));
   }
@@ -281,6 +301,18 @@ const updateSuggestionTags = (state, token) => {
     suggestion_token: token,
   });
 };
+
+const updatePoll = (state, index, value, maxOptions) => state.updateIn(['poll', 'options'], options => {
+  const tmp = options.set(index, value).filterNot(x => x.trim().length === 0);
+
+  if (tmp.size === 0) {
+    return tmp.push('').push('');
+  } else if (tmp.size < maxOptions) {
+    return tmp.push('');
+  }
+
+  return tmp;
+});
 
 export default function compose(state = initialState, action) {
   switch(action.type) {
@@ -305,8 +337,8 @@ export default function compose(state = initialState, action) {
       map.set('spoiler', !state.get('spoiler'));
       map.set('idempotencyKey', uuid());
 
-      if (!state.get('sensitive') && state.get('media_attachments').size >= 1) {
-        map.set('sensitive', true);
+      if (state.get('media_attachments').size >= 1 && !state.get('default_sensitive')) {
+        map.set('sensitive', !state.get('spoiler'));
       }
     });
   case COMPOSE_SPOILER_TEXT_CHANGE:
@@ -435,16 +467,18 @@ export default function compose(state = initialState, action) {
     return updateSuggestionTags(state, action.token);
   case COMPOSE_TAG_HISTORY_UPDATE:
     return state.set('tagHistory', fromJS(action.tags));
-  case TIMELINE_DELETE:
-    if (action.id === state.get('in_reply_to')) {
+  case timelineDelete.type:
+    if (action.payload.statusId === state.get('in_reply_to')) {
       return state.set('in_reply_to', null);
-    } else if (action.id === state.get('id')) {
+    } else if (action.payload.statusId === state.get('id')) {
       return state.set('id', null);
     } else {
       return state;
     }
   case COMPOSE_EMOJI_INSERT:
     return insertEmoji(state, action.position, action.emoji, action.needsSpace);
+  case COMPOSE_START_LATEX:
+    return startLaTeX(state, action.position, action.latex_style);
   case COMPOSE_UPLOAD_CHANGE_SUCCESS:
     return state
       .set('is_changing_upload', false)
@@ -518,18 +552,22 @@ export default function compose(state = initialState, action) {
     return state.set('poll', initialPoll);
   case COMPOSE_POLL_REMOVE:
     return state.set('poll', null);
-  case COMPOSE_POLL_OPTION_ADD:
-    return state.updateIn(['poll', 'options'], options => options.push(action.title));
   case COMPOSE_POLL_OPTION_CHANGE:
-    return state.setIn(['poll', 'options', action.index], action.title);
-  case COMPOSE_POLL_OPTION_REMOVE:
-    return state.updateIn(['poll', 'options'], options => options.delete(action.index));
+    return updatePoll(state, action.index, action.title, action.maxOptions);
   case COMPOSE_POLL_SETTINGS_CHANGE:
     return state.update('poll', poll => poll.set('expires_in', action.expiresIn).set('multiple', action.isMultiple));
   case COMPOSE_LANGUAGE_CHANGE:
     return state.set('language', action.language);
   case COMPOSE_FOCUS:
     return state.set('focusDate', new Date()).update('text', text => text.length > 0 ? text : action.defaultText);
+  case COMPOSE_CHANGE_MEDIA_ORDER:
+    return state.update('media_attachments', list => {
+      const indexA = list.findIndex(x => x.get('id') === action.a);
+      const moveItem = list.get(indexA);
+      const indexB = list.findIndex(x => x.get('id') === action.b);
+
+      return list.splice(indexA, 1).splice(indexB, 0, moveItem);
+    });
   default:
     return state;
   }

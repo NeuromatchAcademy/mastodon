@@ -1,43 +1,5 @@
 // @ts-check
 
-/**
- * @typedef Emoji
- * @property {string} shortcode
- * @property {string} static_url
- * @property {string} url
- */
-
-/**
- * @typedef AccountField
- * @property {string} name
- * @property {string} value
- * @property {string} verified_at
- */
-
-/**
- * @typedef Account
- * @property {string} acct
- * @property {string} avatar
- * @property {string} avatar_static
- * @property {boolean} bot
- * @property {string} created_at
- * @property {boolean=} discoverable
- * @property {string} display_name
- * @property {Emoji[]} emojis
- * @property {AccountField[]} fields
- * @property {number} followers_count
- * @property {number} following_count
- * @property {boolean} group
- * @property {string} header
- * @property {string} header_static
- * @property {string} id
- * @property {string=} last_status_at
- * @property {boolean} locked
- * @property {string} note
- * @property {number} statuses_count
- * @property {string} url
- * @property {string} username
- */
 
 /**
  * @typedef {[code: string, name: string, localName: string]} InitialStateLanguage
@@ -55,6 +17,7 @@
  * @property {boolean} crop_images
  * @property {boolean=} delete_modal
  * @property {boolean=} disable_swiping
+ * @property {boolean=} disable_hover_cards
  * @property {string=} disabled_account_id
  * @property {string} display_media
  * @property {string} domain
@@ -83,33 +46,43 @@
  * @property {boolean=} use_pending_items
  * @property {string} version
  * @property {string} sso_redirect
- * @property {boolean} translation_enabled
  * @property {string} status_page_url
  * @property {boolean} system_emoji_font
  * @property {string} default_content_type
  */
 
-/** @type {string} */
-const initialPath = document.querySelector("head meta[name=initialPath]")?.getAttribute("content") ?? '';
-/** @type {boolean} */
-export const hasMultiColumnPath = initialPath === '/'
-  || initialPath === '/getting-started'
-  || initialPath.startsWith('/deck');
+/**
+ * @typedef Role
+ * @property {string} id
+ * @property {string} name
+ * @property {string} permissions
+ * @property {string} color
+ * @property {boolean} highlighted
+ */
 
 /**
  * @typedef InitialState
- * @property {Record<string, Account>} accounts
+ * @property {Record<string, import("./api_types/accounts").ApiAccountJSON>} accounts
  * @property {InitialStateLanguage[]} languages
  * @property {boolean=} critical_updates_pending
  * @property {InitialStateMeta} meta
+ * @property {Role?} role
  * @property {object} local_settings
- * @property {number} max_toot_chars
+ * @property {number} max_feed_hashtags
  * @property {number} poll_limits
  */
 
 const element = document.getElementById('initial-state');
 /** @type {InitialState | undefined} */
 const initialState = element?.textContent && JSON.parse(element.textContent);
+
+/** @type {string} */
+const initialPath = document.querySelector("head meta[name=initialPath]")?.getAttribute("content") ?? '';
+/** @type {boolean} */
+export const hasMultiColumnPath = initialPath === '/'
+  || initialPath === '/getting-started'
+  || initialPath === '/home'
+  || initialPath.startsWith('/deck');
 
 // Glitch-soc-specific “local settings”
 if (initialState) {
@@ -134,6 +107,7 @@ export const boostModal = getMeta('boost_modal');
 export const cropImages = getMeta('crop_images');
 export const deleteModal = getMeta('delete_modal');
 export const disableSwiping = getMeta('disable_swiping');
+export const disableHoverCards = getMeta('disable_hover_cards');
 export const disabledAccountId = getMeta('disabled_account_id');
 export const displayMedia = getMeta('display_media');
 export const domain = getMeta('domain');
@@ -156,7 +130,6 @@ export const source_url = getMeta('source_url');
 export const timelinePreview = getMeta('timeline_preview');
 export const title = getMeta('title');
 export const trendsAsLanding = getMeta('trends_as_landing_page');
-export const unfollowModal = getMeta('unfollow_modal');
 export const useBlurhash = getMeta('use_blurhash');
 export const usePendingItems = getMeta('use_pending_items');
 export const version = getMeta('version');
@@ -166,10 +139,17 @@ export const statusPageUrl = getMeta('status_page_url');
 export const sso_redirect = getMeta('sso_redirect');
 
 // Glitch-soc-specific settings
-export const maxChars = (initialState && initialState.max_toot_chars) || 500;
+export const maxFeedHashtags = (initialState && initialState.max_feed_hashtags) || 4;
 export const favouriteModal = getMeta('favourite_modal');
 export const pollLimits = (initialState && initialState.poll_limits);
 export const defaultContentType = getMeta('default_content_type');
 export const useSystemEmojiFont = getMeta('system_emoji_font');
+
+/**
+ * @returns {string | undefined}
+ */
+export function getAccessToken() {
+  return getMeta('access_token');
+}
 
 export default initialState;

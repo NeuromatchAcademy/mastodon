@@ -3,12 +3,16 @@ import { PureComponent } from 'react';
 
 import { FormattedMessage } from 'react-intl';
 
+import { withRouter } from 'react-router-dom';
+
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
 import { fetchSuggestions, dismissSuggestion } from 'flavours/glitch/actions/suggestions';
 import { LoadingIndicator } from 'flavours/glitch/components/loading_indicator';
-import AccountCard from 'flavours/glitch/features/directory/components/account_card';
+import { WithRouterPropTypes } from 'flavours/glitch/utils/react_router';
+
+import { Card } from './components/card';
 
 const mapStateToProps = state => ({
   suggestions: state.getIn(['suggestions', 'items']),
@@ -21,10 +25,17 @@ class Suggestions extends PureComponent {
     isLoading: PropTypes.bool,
     suggestions: ImmutablePropTypes.list,
     dispatch: PropTypes.func.isRequired,
+    ...WithRouterPropTypes,
   };
 
   componentDidMount () {
-    const { dispatch } = this.props;
+    const { dispatch, suggestions, history } = this.props;
+
+    // If we're navigating back to the screen, do not trigger a reload
+    if (history.action === 'POP' && suggestions.size > 0) {
+      return;
+    }
+
     dispatch(fetchSuggestions(true));
   }
 
@@ -47,9 +58,13 @@ class Suggestions extends PureComponent {
     }
 
     return (
-      <div className='explore__suggestions'>
+      <div className='explore__suggestions scrollable' data-nosnippet>
         {isLoading ? <LoadingIndicator /> : suggestions.map(suggestion => (
-          <AccountCard key={suggestion.get('account')} id={suggestion.get('account')} onDismiss={suggestion.get('source') === 'past_interactions' ? this.handleDismiss : null} />
+          <Card
+            key={suggestion.get('account')}
+            id={suggestion.get('account')}
+            source={suggestion.getIn(['sources', 0])}
+          />
         ))}
       </div>
     );
@@ -57,4 +72,4 @@ class Suggestions extends PureComponent {
 
 }
 
-export default connect(mapStateToProps)(Suggestions);
+export default connect(mapStateToProps)(withRouter(Suggestions));

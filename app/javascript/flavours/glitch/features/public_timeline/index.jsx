@@ -7,14 +7,17 @@ import { Helmet } from 'react-helmet';
 
 import { connect } from 'react-redux';
 
-import { addColumn, removeColumn, moveColumn } from 'flavours/glitch/actions/columns';
-import { connectPublicStream } from 'flavours/glitch/actions/streaming';
-import { expandPublicTimeline } from 'flavours/glitch/actions/timelines';
-import Column from 'flavours/glitch/components/column';
-import ColumnHeader from 'flavours/glitch/components/column_header';
+import PublicIcon from '@/material-icons/400-24px/public.svg?react';
 import { DismissableBanner } from 'flavours/glitch/components/dismissable_banner';
-import StatusListContainer from 'flavours/glitch/features/ui/containers/status_list_container';
+import { identityContextPropShape, withIdentity } from 'flavours/glitch/identity_context';
 import { domain } from 'flavours/glitch/initial_state';
+
+import { addColumn, removeColumn, moveColumn } from '../../actions/columns';
+import { connectPublicStream } from '../../actions/streaming';
+import { expandPublicTimeline } from '../../actions/timelines';
+import Column from '../../components/column';
+import ColumnHeader from '../../components/column_header';
+import StatusListContainer from '../ui/containers/status_list_container';
 
 import ColumnSettingsContainer from './containers/column_settings_container';
 
@@ -42,17 +45,12 @@ const mapStateToProps = (state, { columnId }) => {
 };
 
 class PublicTimeline extends PureComponent {
-
   static defaultProps = {
     onlyMedia: false,
   };
 
-  static contextTypes = {
-    router: PropTypes.object,
-    identity: PropTypes.object,
-  };
-
   static propTypes = {
+    identity: identityContextPropShape,
     dispatch: PropTypes.func.isRequired,
     intl: PropTypes.object.isRequired,
     columnId: PropTypes.string,
@@ -85,7 +83,7 @@ class PublicTimeline extends PureComponent {
 
   componentDidMount () {
     const { dispatch, onlyMedia, onlyRemote, allowLocalOnly } = this.props;
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
 
     dispatch(expandPublicTimeline({ onlyMedia, onlyRemote, allowLocalOnly }));
     if (signedIn) {
@@ -94,7 +92,7 @@ class PublicTimeline extends PureComponent {
   }
 
   componentDidUpdate (prevProps) {
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
 
     if (prevProps.onlyMedia !== this.props.onlyMedia || prevProps.onlyRemote !== this.props.onlyRemote || prevProps.allowLocalOnly !== this.props.allowLocalOnly) {
       const { dispatch, onlyMedia, onlyRemote, allowLocalOnly } = this.props;
@@ -133,9 +131,10 @@ class PublicTimeline extends PureComponent {
     const pinned = !!columnId;
 
     return (
-      <Column bindToDocument={!multiColumn} ref={this.setRef} name='federated' label={intl.formatMessage(messages.title)}>
+      <Column bindToDocument={!multiColumn} ref={this.setRef} label={intl.formatMessage(messages.title)}>
         <ColumnHeader
           icon='globe'
+          iconComponent={PublicIcon}
           active={hasUnread}
           title={intl.formatMessage(messages.title)}
           onPin={this.handlePin}
@@ -168,4 +167,4 @@ class PublicTimeline extends PureComponent {
 
 }
 
-export default connect(mapStateToProps)(injectIntl(PublicTimeline));
+export default connect(mapStateToProps)(withIdentity(injectIntl(PublicTimeline)));

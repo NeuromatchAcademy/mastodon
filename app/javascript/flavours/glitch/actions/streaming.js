@@ -1,7 +1,6 @@
 // @ts-check
 
-import { getLocale } from 'flavours/glitch/locales';
-
+import { getLocale } from '../locales';
 import { connectStream } from '../stream';
 
 import {
@@ -11,6 +10,7 @@ import {
   deleteAnnouncement,
 } from './announcements';
 import { updateConversations } from './conversations';
+import { processNewNotificationForGroups } from './notification_groups';
 import { updateNotifications, expandNotifications } from './notifications';
 import { updateStatus } from './statuses';
 import {
@@ -68,8 +68,8 @@ export const connectTimelineStream = (timelineId, channelName, params = {}, opti
 
         // @ts-expect-error
         if (pollingId) {
-          clearTimeout(pollingId);
-          pollingId = null;
+          // @ts-ignore
+          clearTimeout(pollingId); pollingId = null;
         }
 
         if (options.fillGaps) {
@@ -78,7 +78,7 @@ export const connectTimelineStream = (timelineId, channelName, params = {}, opti
       },
 
       onDisconnect() {
-        dispatch(disconnectTimeline(timelineId));
+        dispatch(disconnectTimeline({ timeline: timelineId }));
 
         if (options.fallback) {
           // @ts-expect-error
@@ -86,8 +86,8 @@ export const connectTimelineStream = (timelineId, channelName, params = {}, opti
         }
       },
 
-      onReceive (data) {
-        switch(data.event) {
+      onReceive(data) {
+        switch (data.event) {
         case 'update':
           // @ts-expect-error
           dispatch(updateTimeline(timelineId, JSON.parse(data.payload), options.accept));
@@ -99,10 +99,16 @@ export const connectTimelineStream = (timelineId, channelName, params = {}, opti
         case 'delete':
           dispatch(deleteFromTimelines(data.payload));
           break;
-        case 'notification':
+        case 'notification': {
           // @ts-expect-error
-          dispatch(updateNotifications(JSON.parse(data.payload), messages, locale));
+          const notificationJSON = JSON.parse(data.payload);
+          dispatch(updateNotifications(notificationJSON, messages, locale));
+          // TODO: remove this once the groups feature replaces the previous one
+          if(getState().notificationGroups.groups.length > 0) {
+            dispatch(processNewNotificationForGroups(notificationJSON));
+          }
           break;
+        }
         case 'conversation':
           // @ts-expect-error
           dispatch(updateConversations(JSON.parse(data.payload)));

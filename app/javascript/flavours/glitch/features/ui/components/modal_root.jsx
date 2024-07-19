@@ -5,9 +5,9 @@ import { Helmet } from 'react-helmet';
 
 import Base from 'flavours/glitch/components/modal_root';
 import {
-  OnboardingModal,
   MuteModal,
   BlockModal,
+  DomainBlockModal,
   ReportModal,
   SettingsModal,
   EmbedModal,
@@ -26,7 +26,7 @@ import BundleContainer from '../containers/bundle_container';
 
 import ActionsModal from './actions_modal';
 import AudioModal from './audio_modal';
-import BoostModal from './boost_modal';
+import { BoostModal } from './boost_modal';
 import BundleModalError from './bundle_modal_error';
 import ConfirmationModal from './confirmation_modal';
 import DeprecatedSettingsModal from './deprecated_settings_modal';
@@ -40,7 +40,6 @@ import VideoModal from './video_modal';
 
 export const MODAL_COMPONENTS = {
   'MEDIA': () => Promise.resolve({ default: MediaModal }),
-  'ONBOARDING': OnboardingModal,
   'VIDEO': () => Promise.resolve({ default: VideoModal }),
   'AUDIO': () => Promise.resolve({ default: AudioModal }),
   'IMAGE': () => Promise.resolve({ default: ImageModal }),
@@ -50,6 +49,7 @@ export const MODAL_COMPONENTS = {
   'CONFIRM': () => Promise.resolve({ default: ConfirmationModal }),
   'MUTE': MuteModal,
   'BLOCK': BlockModal,
+  'DOMAIN_BLOCK': DomainBlockModal,
   'REPORT': ReportModal,
   'SETTINGS': SettingsModal,
   'DEPRECATED_SETTINGS': () => Promise.resolve({ default: DeprecatedSettingsModal }),
@@ -128,7 +128,7 @@ export default class ModalRoot extends PureComponent {
             <BundleContainer fetchComponent={MODAL_COMPONENTS[type]} loading={this.renderLoading(type)} error={this.renderError} renderDelay={200}>
               {(SpecificComponent) => {
                 const ref = typeof SpecificComponent !== 'function' ? this.setModalRef : undefined;
-                return <SpecificComponent {...props} onChangeBackgroundColor={this.setBackgroundColor} onClose={this.handleClose} ref={ref} />
+                return <SpecificComponent {...props} onChangeBackgroundColor={this.setBackgroundColor} onClose={this.handleClose} ref={ref} />;
               }}
             </BundleContainer>
 

@@ -9,15 +9,18 @@ class ApplicationController < ActionController::Base
   include UserTrackingConcern
   include SessionTrackingConcern
   include CacheConcern
+  include PreloadingConcern
   include DomainControlHelper
   include ThemingConcern
   include DatabaseHelper
   include AuthorizedFetchHelper
+  include SelfDestructHelper
 
   helper_method :current_account
   helper_method :current_session
   helper_method :current_flavour
   helper_method :current_skin
+  helper_method :current_theme
   helper_method :single_user_mode?
   helper_method :use_seamless_external_login?
   helper_method :omniauth_only?
@@ -40,6 +43,8 @@ class ApplicationController < ActionController::Base
     Rails.logger.warn "Storage server error: #{e}"
     service_unavailable
   end
+
+  before_action :check_self_destruct!
 
   before_action :store_referrer, except: :raise_not_found, if: :devise_controller?
   before_action :require_functional!, if: :user_signed_in?
@@ -128,7 +133,7 @@ class ApplicationController < ActionController::Base
   end
 
   def single_user_mode?
-    @single_user_mode ||= Rails.configuration.x.single_user_mode && Account.where('id > 0').exists?
+    @single_user_mode ||= Rails.configuration.x.single_user_mode && Account.without_internal.exists?
   end
 
   def use_seamless_external_login?
@@ -161,11 +166,17 @@ class ApplicationController < ActionController::Base
 
   def respond_with_error(code)
     respond_to do |format|
-      format.any do
-        use_pack 'error'
-        render "errors/#{code}", layout: 'error', status: code, formats: [:html]
-      end
+      format.any  { render "errors/#{code}", layout: 'error', status: code, formats: [:html] }
       format.json { render json: { error: Rack::Utils::HTTP_STATUS_CODES[code] }, status: code }
+    end
+  end
+
+  def check_self_destruct!
+    return unless self_destruct?
+
+    respond_to do |format|
+      format.any  { render 'errors/self_destruct', layout: 'auth', status: 410, formats: [:html] }
+      format.json { render json: { error: Rack::Utils::HTTP_STATUS_CODES[410] }, status: 410 }
     end
   end
 

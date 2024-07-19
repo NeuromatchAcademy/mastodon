@@ -8,6 +8,7 @@ import {
   selectComposeSuggestion,
   changeComposeSpoilerText,
   insertEmojiCompose,
+  startLaTeXCompose,
   uploadCompose,
 } from '../../../actions/compose';
 import ComposeForm from '../components/compose_form';
@@ -28,6 +29,7 @@ const mapStateToProps = state => ({
   anyMedia: state.getIn(['compose', 'media_attachments']).size > 0,
   isInReply: state.getIn(['compose', 'in_reply_to']) !== null,
   lang: state.getIn(['compose', 'language']),
+  maxChars: state.getIn(['server', 'server', 'configuration', 'statuses', 'max_characters'], 500),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -63,6 +65,10 @@ const mapDispatchToProps = (dispatch) => ({
   onPickEmoji (position, data, needsSpace) {
     dispatch(insertEmojiCompose(position, data, needsSpace));
   },
+
+  onLaTeXStart (position, data) {
+    dispatch(startLaTeXCompose(position, data));
+  }
 
 });
 

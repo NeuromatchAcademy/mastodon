@@ -10,9 +10,11 @@ import { List as ImmutableList } from 'immutable';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
-import { fetchServer, fetchExtendedDescription, fetchDomainBlocks } from 'flavours/glitch/actions/server';
+import ChevronRightIcon from '@/material-icons/400-24px/chevron_right.svg?react';
+import ExpandMoreIcon from '@/material-icons/400-24px/expand_more.svg?react';
+import { fetchServer, fetchExtendedDescription, fetchDomainBlocks  } from 'flavours/glitch/actions/server';
 import Column from 'flavours/glitch/components/column';
-import { Icon } from 'flavours/glitch/components/icon';
+import { Icon  }  from 'flavours/glitch/components/icon';
 import { ServerHeroImage } from 'flavours/glitch/components/server_hero_image';
 import { Skeleton } from 'flavours/glitch/components/skeleton';
 import Account from 'flavours/glitch/containers/account_container';
@@ -73,7 +75,7 @@ class Section extends PureComponent {
     return (
       <div className={classNames('about__section', { active: !collapsed })}>
         <div className='about__section__title' role='button' tabIndex={0} onClick={this.handleClick}>
-          <Icon id={collapsed ? 'chevron-right' : 'chevron-down'} fixedWidth /> {title}
+          <Icon id={collapsed ? 'chevron-right' : 'chevron-down'} icon={collapsed ? ChevronRightIcon : ExpandMoreIcon} /> {title}
         </div>
 
         {!collapsed && (
@@ -128,7 +130,7 @@ class About extends PureComponent {
             <div className='about__meta__column'>
               <h4><FormattedMessage id='server_banner.administered_by' defaultMessage='Administered by:' /></h4>
 
-              <Account id={server.getIn(['contact', 'account', 'id'])} size={36} />
+              <Account id={server.getIn(['contact', 'account', 'id'])} size={36} minimal />
             </div>
 
             <hr className='about__meta__divider' />
@@ -168,7 +170,8 @@ class About extends PureComponent {
               <ol className='rules-list'>
                 {server.get('rules').map(rule => (
                   <li key={rule.get('id')}>
-                    <span className='rules-list__text'>{rule.get('text')}</span>
+                    <div className='rules-list__text'>{rule.get('text')}</div>
+                    {rule.get('hint').length > 0 && (<div className='rules-list__hint'>{rule.get('hint')}</div>)}
                   </li>
                 ))}
               </ol>
@@ -186,18 +189,20 @@ class About extends PureComponent {
               <>
                 <p><FormattedMessage id='about.domain_blocks.preamble' defaultMessage='Mastodon generally allows you to view content from and interact with users from any other server in the fediverse. These are the exceptions that have been made on this particular server.' /></p>
 
-                <div className='about__domain-blocks'>
-                  {domainBlocks.get('items').map(block => (
-                    <div className='about__domain-blocks__domain' key={block.get('domain')}>
-                      <div className='about__domain-blocks__domain__header'>
-                        <h6><span title={`SHA-256: ${block.get('digest')}`}>{block.get('domain')}</span></h6>
-                        <span className='about__domain-blocks__domain__type' title={intl.formatMessage(severityMessages[block.get('severity')].explanation)}>{intl.formatMessage(severityMessages[block.get('severity')].title)}</span>
-                      </div>
+                {domainBlocks.get('items').size > 0 && (
+                  <div className='about__domain-blocks'>
+                    {domainBlocks.get('items').map(block => (
+                      <div className='about__domain-blocks__domain' key={block.get('domain')}>
+                        <div className='about__domain-blocks__domain__header'>
+                          <h6><span title={`SHA-256: ${block.get('digest')}`}>{block.get('domain')}</span></h6>
+                          <span className='about__domain-blocks__domain__type' title={intl.formatMessage(severityMessages[block.get('severity')].explanation)}>{intl.formatMessage(severityMessages[block.get('severity')].title)}</span>
+                        </div>
 
-                      <p>{(block.get('comment') || '').length > 0 ? block.get('comment') : <FormattedMessage id='about.domain_blocks.no_reason_available' defaultMessage='Reason not available' />}</p>
-                    </div>
-                  ))}
-                </div>
+                        <p>{(block.get('comment') || '').length > 0 ? block.get('comment') : <FormattedMessage id='about.domain_blocks.no_reason_available' defaultMessage='Reason not available' />}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </>
             ) : (
               <p><FormattedMessage id='about.not_available' defaultMessage='This information has not been made available on this server.' /></p>

@@ -6,13 +6,15 @@ import { useIntl, defineMessages, FormattedMessage } from 'react-intl';
 import { Helmet } from 'react-helmet';
 import { NavLink } from 'react-router-dom';
 
+import { useIdentity } from '@/flavours/glitch/identity_context';
+import PublicIcon from '@/material-icons/400-24px/public.svg?react';
 import { addColumn } from 'flavours/glitch/actions/columns';
 import { changeSetting } from 'flavours/glitch/actions/settings';
 import { connectPublicStream, connectCommunityStream } from 'flavours/glitch/actions/streaming';
 import { expandPublicTimeline, expandCommunityTimeline } from 'flavours/glitch/actions/timelines';
 import { DismissableBanner } from 'flavours/glitch/components/dismissable_banner';
 import SettingText from 'flavours/glitch/components/setting_text';
-import initialState, { domain } from 'flavours/glitch/initial_state';
+import { domain } from 'flavours/glitch/initial_state';
 import { useAppDispatch, useAppSelector } from 'flavours/glitch/store';
 
 import Column from '../../components/column';
@@ -25,15 +27,6 @@ const messages = defineMessages({
   filter_regex: { id: 'home.column_settings.filter_regex', defaultMessage: 'Filter out by regular expressions' },
 });
 
-// TODO: use a proper React context later on
-const useIdentity = () => ({
-  signedIn: !!initialState.meta.me,
-  accountId: initialState.meta.me,
-  disabledAccountId: initialState.meta.disabled_account_id,
-  accessToken: initialState.meta.access_token,
-  permissions: initialState.role ? initialState.role.permissions : 0,
-});
-
 const ColumnSettings = () => {
   const intl = useIntl();
   const dispatch = useAppDispatch();
@@ -44,28 +37,37 @@ const ColumnSettings = () => {
   );
 
   return (
-    <div>
-      <div className='column-settings__row'>
-        <SettingToggle
-          settings={settings}
-          settingPath={['onlyMedia']}
-          onChange={onChange}
-          label={<FormattedMessage id='community.column_settings.media_only' defaultMessage='Media only' />}
-        />
-        <SettingToggle
-          settings={settings}
-          settingPath={['allowLocalOnly']}
-          onChange={onChange}
-          label={<FormattedMessage id='firehose.column_settings.allow_local_only' defaultMessage='Show local-only posts in "All"' />}
-        />
-        <span className='column-settings__section'><FormattedMessage id='home.column_settings.advanced' defaultMessage='Advanced' /></span>
-        <SettingText
-          settings={settings}
-          settingPath={['regex', 'body']}
-          onChange={onChange}
-          label={intl.formatMessage(messages.filter_regex)}
-        />
-      </div>
+    <div className='column-settings'>
+      <section>
+        <div className='column-settings__row'>
+          <SettingToggle
+            settings={settings}
+            settingPath={['onlyMedia']}
+            onChange={onChange}
+            label={<FormattedMessage id='community.column_settings.media_only' defaultMessage='Media only' />}
+          />
+
+          <SettingToggle
+            settings={settings}
+            settingPath={['allowLocalOnly']}
+            onChange={onChange}
+            label={<FormattedMessage id='firehose.column_settings.allow_local_only' defaultMessage='Show local-only posts in "All"' />}
+          />
+        </div>
+      </section>
+
+      <section>
+        <h3><FormattedMessage id='home.column_settings.advanced' defaultMessage='Advanced' /></h3>
+
+        <div className='column-settings__row'>
+          <SettingText
+            settings={settings}
+            settingPath={['regex', 'body']}
+            onChange={onChange}
+            label={intl.formatMessage(messages.filter_regex)}
+          />
+        </div>
+      </section>
     </div>
   );
 };
@@ -179,6 +181,7 @@ const Firehose = ({ feedType, multiColumn }) => {
     <Column bindToDocument={!multiColumn} ref={columnRef} label={intl.formatMessage(messages.title)}>
       <ColumnHeader
         icon='globe'
+        iconComponent={PublicIcon}
         active={hasUnread}
         title={intl.formatMessage(messages.title)}
         onPin={handlePin}
@@ -188,32 +191,30 @@ const Firehose = ({ feedType, multiColumn }) => {
         <ColumnSettings />
       </ColumnHeader>
 
-      <div className='scrollable scrollable--flex'>
-        <div className='account__section-headline'>
-          <NavLink exact to='/public/local'>
-            <FormattedMessage tagName='div' id='firehose.local' defaultMessage='This server' />
-          </NavLink>
+      <div className='account__section-headline'>
+        <NavLink exact to='/public/local'>
+          <FormattedMessage tagName='div' id='firehose.local' defaultMessage='This server' />
+        </NavLink>
 
-          <NavLink exact to='/public/remote'>
-            <FormattedMessage tagName='div' id='firehose.remote' defaultMessage='Other servers' />
-          </NavLink>
+        <NavLink exact to='/public/remote'>
+          <FormattedMessage tagName='div' id='firehose.remote' defaultMessage='Other servers' />
+        </NavLink>
 
-          <NavLink exact to='/public'>
-            <FormattedMessage tagName='div' id='firehose.all' defaultMessage='All' />
-          </NavLink>
-        </div>
-
-        <StatusListContainer
-          prepend={prependBanner}
-          timelineId={`${feedType}${feedType === 'public' && allowLocalOnly ? ':allow_local_only' : ''}${onlyMedia ? ':media' : ''}`}
-          onLoadMore={handleLoadMore}
-          trackScroll
-          scrollKey='firehose'
-          emptyMessage={emptyMessage}
-          bindToDocument={!multiColumn}
-          regex={regex}
-        />
+        <NavLink exact to='/public'>
+          <FormattedMessage tagName='div' id='firehose.all' defaultMessage='All' />
+        </NavLink>
       </div>
+
+      <StatusListContainer
+        prepend={prependBanner}
+        timelineId={`${feedType}${feedType === 'public' && allowLocalOnly ? ':allow_local_only' : ''}${onlyMedia ? ':media' : ''}`}
+        onLoadMore={handleLoadMore}
+        trackScroll
+        scrollKey='firehose'
+        emptyMessage={emptyMessage}
+        bindToDocument={!multiColumn}
+        regex={regex}
+      />
 
       <Helmet>
         <title>{intl.formatMessage(messages.title)}</title>
@@ -221,7 +222,7 @@ const Firehose = ({ feedType, multiColumn }) => {
       </Helmet>
     </Column>
   );
-}
+};
 
 Firehose.propTypes = {
   multiColumn: PropTypes.bool,

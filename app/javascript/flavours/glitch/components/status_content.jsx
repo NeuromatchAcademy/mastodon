@@ -4,14 +4,16 @@ import { PureComponent } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 
 import classnames from 'classnames';
+import { withRouter } from 'react-router-dom';
 
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
+import { identityContextPropShape, withIdentity } from 'flavours/glitch/identity_context';
 import { autoPlayGif, languages as preloadedLanguages } from 'flavours/glitch/initial_state';
 import { decode as decodeIDNA } from 'flavours/glitch/utils/idna';
 
-import Permalink from './permalink';
+import { Permalink } from './permalink';
 import StatusExpandButton from './status_expand_button';
 
 const textMatchesTarget = (text, origin, host) => {
@@ -68,6 +70,15 @@ const isLinkMisleading = (link) => {
   return !(textMatchesTarget(text, origin, host) || textMatchesTarget(text.toLowerCase(), origin, host));
 };
 
+/**
+ *
+ * @param {any} status
+ * @returns {string}
+ */
+export function getStatusContent(status) {
+  return status.getIn(['translation', 'contentHtml']) || status.get('contentHtml');
+}
+
 class TranslateButton extends PureComponent {
 
   static propTypes = {
@@ -110,13 +121,10 @@ const mapStateToProps = state => ({
 });
 
 class StatusContent extends PureComponent {
-
-  static contextTypes = {
-    identity: PropTypes.object,
-  };
-
   static propTypes = {
+    identity: identityContextPropShape,
     status: ImmutablePropTypes.map.isRequired,
+    statusContent: PropTypes.string,
     expanded: PropTypes.bool,
     collapsed: PropTypes.bool,
     onExpandedToggle: PropTypes.func,
@@ -131,6 +139,10 @@ class StatusContent extends PureComponent {
     rewriteMentions: PropTypes.string,
     languages: ImmutablePropTypes.map,
     intl: PropTypes.object,
+    // from react-router
+    match: PropTypes.object.isRequired,
+    location: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired
   };
 
   static defaultProps = {
@@ -164,6 +176,7 @@ class StatusContent extends PureComponent {
       if (mention) {
         link.addEventListener('click', this.onMentionClick.bind(this, mention), false);
         link.setAttribute('title', `@${mention.get('acct')}`);
+        link.setAttribute('data-hover-card-account', mention.get('id'));
         if (rewriteMentions !== 'no') {
           while (link.firstChild) link.removeChild(link.firstChild);
           link.appendChild(document.createTextNode('@'));
@@ -235,12 +248,31 @@ class StatusContent extends PureComponent {
     }
   };
 
+  _renderMathJax() {
+    const {status} = this.props;
+    const contentHtml = status.get('contentHtml');
+    if(this.last_contentHtml === contentHtml) {
+      return;
+    }
+    this.last_contentHtml = contentHtml;
+    try {
+      // Loaded in script tag on page. not great but we couldn't figure out
+      // How to use MathJax as a module
+      // eslint-disable-next-line no-undef
+      MathJax.typeset([this.contentsNode]);
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
   componentDidMount () {
     this._updateStatusLinks();
+    this._renderMathJax();
   }
 
   componentDidUpdate () {
     this._updateStatusLinks();
+    this._renderMathJax();
     if (this.props.onUpdate) this.props.onUpdate();
   }
 
@@ -322,14 +354,15 @@ class StatusContent extends PureComponent {
       tagLinks,
       rewriteMentions,
       intl,
+      statusContent,
     } = this.props;
 
     const hidden = this.props.onExpandedToggle ? !this.props.expanded : this.state.hidden;
     const contentLocale = intl.locale.replace(/[_-].*/, '');
     const targetLanguages = this.props.languages?.get(status.get('language') || 'und');
-    const renderTranslate = this.props.onTranslate && this.context.identity.signedIn && ['public', 'unlisted'].includes(status.get('visibility')) && status.get('search_index').trim().length > 0 && targetLanguages?.includes(contentLocale);
+    const renderTranslate = this.props.onTranslate && this.props.identity.signedIn && ['public', 'unlisted'].includes(status.get('visibility')) && status.get('search_index').trim().length > 0 && targetLanguages?.includes(contentLocale);
 
-    const content = { __html: status.getIn(['translation', 'contentHtml']) || status.get('contentHtml') };
+    const content = { __html: statusContent ?? getStatusContent(status) };
     const spoilerContent = { __html: status.getIn(['translation', 'spoilerHtml']) || status.get('spoilerHtml') };
     const language = status.getIn(['translation', 'language']) || status.get('language');
     const classNames = classnames('status__content', {
@@ -442,4 +475,4 @@ class StatusContent extends PureComponent {
 
 }
 
-export default connect(mapStateToProps)(injectIntl(StatusContent));
+export default withRouter(withIdentity(connect(mapStateToProps)(injectIntl(StatusContent))));

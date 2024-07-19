@@ -7,7 +7,8 @@ import { connect } from 'react-redux';
 
 import fuzzysort from 'fuzzysort';
 
-import { Icon } from 'flavours/glitch/components/icon';
+import AddIcon from '@/material-icons/400-24px/add.svg?react';
+import { Icon }  from 'flavours/glitch/components/icon';
 import { toServerSideType } from 'flavours/glitch/utils/filters';
 import { loupeIcon, deleteIcon } from 'flavours/glitch/utils/icons';
 
@@ -78,7 +79,7 @@ class SelectFilter extends PureComponent {
   renderCreateNew (name) {
     return (
       <div key='add-new-filter' role='button' tabIndex={0} className='language-dropdown__dropdown__results__item' onClick={this.handleNewFilterClick} onKeyDown={this.handleKeyDown}>
-        <Icon id='plus' fixedWidth /> <FormattedMessage id='filter_modal.select_filter.prompt_new' defaultMessage='New category: {name}' values={{ name }} />
+        <Icon id='plus' icon={AddIcon} /> <FormattedMessage id='filter_modal.select_filter.prompt_new' defaultMessage='New category: {name}' values={{ name }} />
       </div>
     );
   }
@@ -179,7 +180,7 @@ class SelectFilter extends PureComponent {
 
         <div className='emoji-mart-search'>
           <input type='search' value={searchValue} onChange={this.handleSearchChange} onKeyDown={this.handleSearchKeyDown} placeholder={intl.formatMessage(messages.search)} autoFocus />
-          <button className='emoji-mart-search-icon' disabled={!isSearching} aria-label={intl.formatMessage(messages.clear)} onClick={this.handleClear}>{!isSearching ? loupeIcon : deleteIcon}</button>
+          <button type='button' className='emoji-mart-search-icon' disabled={!isSearching} aria-label={intl.formatMessage(messages.clear)} onClick={this.handleClear}>{!isSearching ? loupeIcon : deleteIcon}</button>
         </div>
 
         <div className='language-dropdown__dropdown__results emoji-mart-scroll' role='listbox' ref={this.setListRef}>

@@ -1,9 +1,8 @@
-import { PureComponent } from 'react';
-
 import { Provider } from 'react-redux';
 
 import { fetchCustomEmojis } from 'flavours/glitch/actions/custom_emojis';
 import { hydrateStore } from 'flavours/glitch/actions/store';
+import { Router } from 'flavours/glitch/components/router';
 import Compose from 'flavours/glitch/features/standalone/compose';
 import initialState from 'flavours/glitch/initial_state';
 import { IntlProvider } from 'flavours/glitch/locales';
@@ -15,16 +14,14 @@ if (initialState) {
 
 store.dispatch(fetchCustomEmojis());
 
-export default class ComposeContainer extends PureComponent {
+const ComposeContainer = () => (
+  <IntlProvider>
+    <Provider store={store}>
+      <Router>
+        <Compose />
+      </Router>
+    </Provider>
+  </IntlProvider>
+);
 
-  render () {
-    return (
-      <IntlProvider>
-        <Provider store={store}>
-          <Compose />
-        </Provider>
-      </IntlProvider>
-    );
-  }
-
-}
+export default ComposeContainer;

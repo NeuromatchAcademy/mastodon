@@ -10,13 +10,16 @@ import { connect } from 'react-redux';
 
 import { isEqual } from 'lodash';
 
+import TagIcon from '@/material-icons/400-24px/tag.svg?react';
 import { addColumn, removeColumn, moveColumn } from 'flavours/glitch/actions/columns';
 import { connectHashtagStream } from 'flavours/glitch/actions/streaming';
 import { fetchHashtag, followHashtag, unfollowHashtag } from 'flavours/glitch/actions/tags';
 import { expandHashtagTimeline, clearTimeline } from 'flavours/glitch/actions/timelines';
 import Column from 'flavours/glitch/components/column';
 import ColumnHeader from 'flavours/glitch/components/column_header';
-import StatusListContainer from 'flavours/glitch/features/ui/containers/status_list_container';
+import { identityContextPropShape, withIdentity } from 'flavours/glitch/identity_context';
+
+import StatusListContainer from '../ui/containers/status_list_container';
 
 import { HashtagHeader } from './components/hashtag_header';
 import ColumnSettingsContainer from './containers/column_settings_container';
@@ -27,14 +30,10 @@ const mapStateToProps = (state, props) => ({
 });
 
 class HashtagTimeline extends PureComponent {
-
   disconnects = [];
 
-  static contextTypes = {
-    identity: PropTypes.object,
-  };
-
   static propTypes = {
+    identity: identityContextPropShape,
     params: PropTypes.object.isRequired,
     columnId: PropTypes.string,
     dispatch: PropTypes.func.isRequired,
@@ -92,7 +91,7 @@ class HashtagTimeline extends PureComponent {
   };
 
   _subscribe (dispatch, id, tags = {}, local) {
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
 
     if (!signedIn) {
       return;
@@ -166,7 +165,7 @@ class HashtagTimeline extends PureComponent {
   handleFollow = () => {
     const { dispatch, params, tag } = this.props;
     const { id } = params;
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
 
     if (!signedIn) {
       return;
@@ -183,12 +182,13 @@ class HashtagTimeline extends PureComponent {
     const { hasUnread, columnId, multiColumn, tag } = this.props;
     const { id, local } = this.props.params;
     const pinned = !!columnId;
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
 
     return (
       <Column bindToDocument={!multiColumn} ref={this.setRef} label={`#${id}`}>
         <ColumnHeader
           icon='hashtag'
+          iconComponent={TagIcon}
           active={hasUnread}
           title={this.title()}
           onPin={this.handlePin}
@@ -222,4 +222,4 @@ class HashtagTimeline extends PureComponent {
 
 }
 
-export default connect(mapStateToProps)(HashtagTimeline);
+export default connect(mapStateToProps)(withIdentity(HashtagTimeline));

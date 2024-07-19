@@ -7,6 +7,8 @@ import api from 'mastodon/api';
 import { search as emojiSearch } from 'mastodon/features/emoji/emoji_mart_search_light';
 import { tagHistory } from 'mastodon/settings';
 
+import { tex_to_unicode } from '../features/compose/util/autolatex/autolatex';
+
 import { showAlert, showAlertForError } from './alerts';
 import { useEmoji } from './emojis';
 import { importFetchedAccounts, importFetchedStatus } from './importer';
@@ -59,6 +61,7 @@ export const COMPOSE_COMPOSING_CHANGE    = 'COMPOSE_COMPOSING_CHANGE';
 export const COMPOSE_LANGUAGE_CHANGE     = 'COMPOSE_LANGUAGE_CHANGE';
 
 export const COMPOSE_EMOJI_INSERT = 'COMPOSE_EMOJI_INSERT';
+export const COMPOSE_START_LATEX  = 'COMPOSE_START_LATEX';
 
 export const COMPOSE_UPLOAD_CHANGE_REQUEST     = 'COMPOSE_UPLOAD_UPDATE_REQUEST';
 export const COMPOSE_UPLOAD_CHANGE_SUCCESS     = 'COMPOSE_UPLOAD_UPDATE_SUCCESS';
@@ -75,6 +78,7 @@ export const INIT_MEDIA_EDIT_MODAL = 'INIT_MEDIA_EDIT_MODAL';
 
 export const COMPOSE_CHANGE_MEDIA_DESCRIPTION = 'COMPOSE_CHANGE_MEDIA_DESCRIPTION';
 export const COMPOSE_CHANGE_MEDIA_FOCUS       = 'COMPOSE_CHANGE_MEDIA_FOCUS';
+export const COMPOSE_CHANGE_MEDIA_ORDER       = 'COMPOSE_CHANGE_MEDIA_ORDER';
 
 export const COMPOSE_SET_STATUS = 'COMPOSE_SET_STATUS';
 export const COMPOSE_FOCUS = 'COMPOSE_FOCUS';
@@ -195,7 +199,7 @@ export function submitCompose(routerHistory) {
       });
     }
 
-    api(getState).request({
+    api().request({
       url: statusId === null ? '/api/v1/statuses' : `/api/v1/statuses/${statusId}`,
       method: statusId === null ? 'post' : 'put',
       data: {
@@ -280,7 +284,7 @@ export function submitComposeFail(error) {
 
 export function uploadCompose(files) {
   return function (dispatch, getState) {
-    const uploadLimit = 4;
+    const uploadLimit = getState().getIn(['server', 'server', 'configuration', 'statuses', 'max_media_attachments']);
     const media = getState().getIn(['compose', 'media_attachments']);
     const pending = getState().getIn(['compose', 'pending_media_attachments']);
     const progress = new Array(files.length).fill(0);
@@ -300,12 +304,12 @@ export function uploadCompose(files) {
     dispatch(uploadComposeRequest());
 
     for (const [i, file] of Array.from(files).entries()) {
-      if (media.size + i > 3) break;
+      if (media.size + i > (uploadLimit - 1)) break;
 
       const data = new FormData();
       data.append('file', file);
 
-      api(getState).post('/api/v2/media', data, {
+      api().post('/api/v2/media', data, {
         onUploadProgress: function({ loaded }){
           progress[i] = loaded;
           dispatch(uploadComposeProgress(progress.reduce((a, v) => a + v, 0), total));
@@ -322,7 +326,7 @@ export function uploadCompose(files) {
           let tryCount = 1;
 
           const poll = () => {
-            api(getState).get(`/api/v1/media/${data.id}`).then(response => {
+            api().get(`/api/v1/media/${data.id}`).then(response => {
               if (response.status === 200) {
                 dispatch(uploadComposeSuccess(response.data, file));
               } else if (response.status === 206) {
@@ -344,7 +348,7 @@ export const uploadComposeProcessing = () => ({
   type: COMPOSE_UPLOAD_PROCESSING,
 });
 
-export const uploadThumbnail = (id, file) => (dispatch, getState) => {
+export const uploadThumbnail = (id, file) => (dispatch) => {
   dispatch(uploadThumbnailRequest());
 
   const total = file.size;
@@ -352,7 +356,7 @@ export const uploadThumbnail = (id, file) => (dispatch, getState) => {
 
   data.append('thumbnail', file);
 
-  api(getState).put(`/api/v1/media/${id}`, data, {
+  api().put(`/api/v1/media/${id}`, data, {
     onUploadProgress: ({ loaded }) => {
       dispatch(uploadThumbnailProgress(loaded, total));
     },
@@ -435,7 +439,7 @@ export function changeUploadCompose(id, params) {
 
       dispatch(changeUploadComposeSuccess(data, true));
     } else {
-      api(getState).put(`/api/v1/media/${id}`, params).then(response => {
+      api().put(`/api/v1/media/${id}`, params).then(response => {
         dispatch(changeUploadComposeSuccess(response.data, false));
       }).catch(error => {
         dispatch(changeUploadComposeFail(id, error));
@@ -523,7 +527,7 @@ const fetchComposeSuggestionsAccounts = throttle((dispatch, getState, token) => 
 
   fetchComposeSuggestionsAccountsController = new AbortController();
 
-  api(getState).get('/api/v1/accounts/search', {
+  api().get('/api/v1/accounts/search', {
     signal: fetchComposeSuggestionsAccountsController.signal,
 
     params: {
@@ -557,7 +561,7 @@ const fetchComposeSuggestionsTags = throttle((dispatch, getState, token) => {
 
   fetchComposeSuggestionsTagsController = new AbortController();
 
-  api(getState).get('/api/v2/search', {
+  api().get('/api/v2/search', {
     signal: fetchComposeSuggestionsTagsController.signal,
 
     params: {
@@ -578,6 +582,36 @@ const fetchComposeSuggestionsTags = throttle((dispatch, getState, token) => {
   });
 }, 200, { leading: true, trailing: true });
 
+const fetchComposeSuggestionsLatex = (dispatch, getState, token) => {
+  const start_delimiter = token.slice(0,2);
+  const end_delimiter = {'\\(': '\\)', '\\[': '\\]'}[start_delimiter];
+  let expression = token.slice(2).replace(/\\[)\]]?$/,'');
+  let brace = 0;
+  for(let i=0;i<expression.length;i++) {
+    switch(expression[i]) {
+    case '\\':
+      i += 1;
+      break;
+    case '{':
+      brace += 1;
+      break;
+    case '}':
+      brace -= 1;
+      break;
+    }
+  }
+  for(;brace<0;brace++) {
+    expression = '{'+expression;
+  }
+  for(;brace>0;brace--) {
+    expression += '}';
+  }
+  const results = [
+    { start_delimiter, end_delimiter, expression }
+  ];
+  dispatch(readyComposeSuggestionsLatex(token, results));
+};
+
 export function fetchComposeSuggestions(token) {
   return (dispatch, getState) => {
     switch (token[0]) {
@@ -587,10 +621,21 @@ export function fetchComposeSuggestions(token) {
     case '#':
       fetchComposeSuggestionsTags(dispatch, getState, token);
       break;
+    case '\\':
+      fetchComposeSuggestionsLatex(dispatch, getState, token);
+      break;
     default:
       fetchComposeSuggestionsAccounts(dispatch, getState, token);
       break;
     }
+  };
+}
+
+export function readyComposeSuggestionsLatex(token, latex) {
+  return {
+    type: COMPOSE_SUGGESTIONS_READY,
+    token,
+    latex,
   };
 }
 
@@ -631,6 +676,10 @@ export function selectComposeSuggestion(position, token, suggestion, path) {
     } else if (suggestion.type === 'account') {
       completion    = getState().getIn(['accounts', suggestion.id, 'acct']);
       startPosition = position;
+    } else if (suggestion.type === 'latex') {
+      const unicode = tex_to_unicode(suggestion.expression);
+      completion = unicode || `${suggestion.start_delimiter}${suggestion.expression}${suggestion.end_delimiter}`;
+      startPosition = position - 1;
     }
 
     // We don't want to replace hashtags that vary only in case due to accessibility, but we need to fire off an event so that
@@ -762,6 +811,14 @@ export function insertEmojiCompose(position, emoji, needsSpace) {
   };
 }
 
+export function startLaTeXCompose(position, latex_style) {
+  return {
+    type: COMPOSE_START_LATEX,
+    position,
+    latex_style,
+  };
+}
+
 export function changeComposing(value) {
   return {
     type: COMPOSE_COMPOSING_CHANGE,
@@ -788,11 +845,12 @@ export function addPollOption(title) {
   };
 }
 
-export function changePollOption(index, title) {
+export function changePollOption(index, title, maxOptions) {
   return {
     type: COMPOSE_POLL_OPTION_CHANGE,
     index,
     title,
+    maxOptions,
   };
 }
 
@@ -810,3 +868,9 @@ export function changePollSettings(expiresIn, isMultiple) {
     isMultiple,
   };
 }
+
+export const changeMediaOrder = (a, b) => ({
+  type: COMPOSE_CHANGE_MEDIA_ORDER,
+  a,
+  b,
+});

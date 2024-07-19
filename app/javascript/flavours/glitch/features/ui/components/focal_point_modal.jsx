@@ -16,18 +16,19 @@ import tesseractWorkerPath from 'tesseract.js/dist/worker.min.js';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import tesseractCorePath from 'tesseract.js-core/tesseract-core.wasm.js';
 
-import Button from 'flavours/glitch/components/button';
+import CloseIcon from '@/material-icons/400-24px/close.svg?react';
+import { Button } from 'flavours/glitch/components/button';
 import { GIFV } from 'flavours/glitch/components/gifv';
 import { IconButton } from 'flavours/glitch/components/icon_button';
 import Audio from 'flavours/glitch/features/audio';
-import CharacterCounter from 'flavours/glitch/features/compose/components/character_counter';
-import UploadProgress from 'flavours/glitch/features/compose/components/upload_progress';
+import { CharacterCounter } from 'flavours/glitch/features/compose/components/character_counter';
+import { UploadProgress } from 'flavours/glitch/features/compose/components/upload_progress';
 import { Tesseract as fetchTesseract } from 'flavours/glitch/features/ui/util/async-components';
-import Video, { getPointerPosition } from 'flavours/glitch/features/video';
 import { me } from 'flavours/glitch/initial_state';
 import { assetHost } from 'flavours/glitch/utils/config';
 
 import { changeUploadCompose, uploadThumbnail, onChangeMediaDescription, onChangeMediaFocus } from '../../../actions/compose';
+import Video, { getPointerPosition } from '../../video';
 
 const messages = defineMessages({
   close: { id: 'lightbox.close', defaultMessage: 'Close' },
@@ -109,7 +110,7 @@ class FocalPointModal extends ImmutablePureComponent {
 
   static propTypes = {
     media: ImmutablePropTypes.map.isRequired,
-    account: ImmutablePropTypes.map.isRequired,
+    account: ImmutablePropTypes.record.isRequired,
     isUploadingThumbnail: PropTypes.bool,
     onSave: PropTypes.func.isRequired,
     onChangeDescription: PropTypes.func.isRequired,
@@ -180,14 +181,14 @@ class FocalPointModal extends ImmutablePureComponent {
 
   handleKeyDown = (e) => {
     if (e.keyCode === 13 && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      e.stopPropagation();
       this.props.onChangeDescription(e.target.value);
-      this.handleSubmit();
+      this.handleSubmit(e);
     }
   };
 
-  handleSubmit = () => {
+  handleSubmit = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     this.props.onSave(this.props.description, this.props.focusX, this.props.focusY);
   };
 
@@ -221,7 +222,7 @@ class FocalPointModal extends ImmutablePureComponent {
       const worker = createWorker({
         workerPath: tesseractWorkerPath,
         corePath: tesseractCorePath,
-        langPath: `${assetHost}/ocr/lang-data/`,
+        langPath: `${assetHost}/ocr/lang-data`,
         logger: ({ status, progress }) => {
           if (status === 'recognizing text') {
             this.setState({ ocrStatus: 'detecting', progress });
@@ -312,12 +313,12 @@ class FocalPointModal extends ImmutablePureComponent {
     return (
       <div className='modal-root__modal report-modal' style={{ maxWidth: 960 }}>
         <div className='report-modal__target'>
-          <IconButton className='report-modal__close' title={intl.formatMessage(messages.close)} icon='times' onClick={onClose} size={20} />
+          <IconButton className='report-modal__close' title={intl.formatMessage(messages.close)} icon='times' iconComponent={CloseIcon} onClick={onClose} size={20} />
           <FormattedMessage id='upload_modal.edit_media' defaultMessage='Edit media' />
         </div>
 
         <div className='report-modal__container'>
-          <div className='report-modal__comment'>
+          <form className='report-modal__comment' onSubmit={this.handleSubmit} >
             {focals && <p><FormattedMessage id='upload_modal.hint' defaultMessage='Click or drag the circle on the preview to choose the focal point which will always be in view on all thumbnails.' /></p>}
 
             {thumbnailable && (
@@ -366,12 +367,23 @@ class FocalPointModal extends ImmutablePureComponent {
             </div>
 
             <div className='setting-text__toolbar'>
-              <button disabled={detecting || media.get('type') !== 'image' || is_changing_upload} className='link-button' onClick={this.handleTextDetection}><FormattedMessage id='upload_modal.detect_text' defaultMessage='Detect text from picture' /></button>
+              <button
+                type='button'
+                disabled={detecting || media.get('type') !== 'image' || is_changing_upload}
+                className='link-button'
+                onClick={this.handleTextDetection}
+              >
+                <FormattedMessage id='upload_modal.detect_text' defaultMessage='Detect text from picture' />
+              </button>
               <CharacterCounter max={1500} text={detecting ? '' : description} />
             </div>
 
-            <Button disabled={!dirty || detecting || isUploadingThumbnail || length(description) > 1500 || is_changing_upload} text={intl.formatMessage(is_changing_upload ? messages.applying : messages.apply)} onClick={this.handleSubmit} />
-          </div>
+            <Button
+              type='submit'
+              disabled={!dirty || detecting || isUploadingThumbnail || length(description) > 1500 || is_changing_upload}
+              text={intl.formatMessage(is_changing_upload ? messages.applying : messages.apply)}
+            />
+          </form>
 
           <div className='focal-point-modal__content'>
             {focals && (

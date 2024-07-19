@@ -4,14 +4,17 @@ import { PureComponent } from 'react';
 import { FormattedMessage, injectIntl } from 'react-intl';
 
 import classnames from 'classnames';
-import { Link } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
+import ChevronRightIcon from '@/material-icons/400-24px/chevron_right.svg?react';
 import { Icon }  from 'mastodon/components/icon';
 import PollContainer from 'mastodon/containers/poll_container';
+import { identityContextPropShape, withIdentity } from 'mastodon/identity_context';
 import { autoPlayGif, languages as preloadedLanguages } from 'mastodon/initial_state';
+
 
 const MAX_HEIGHT = 706; // 22px * 32 (+ 2px padding at the top)
 
@@ -66,13 +69,8 @@ const mapStateToProps = state => ({
 });
 
 class StatusContent extends PureComponent {
-
-  static contextTypes = {
-    router: PropTypes.object,
-    identity: PropTypes.object,
-  };
-
   static propTypes = {
+    identity: identityContextPropShape,
     status: ImmutablePropTypes.map.isRequired,
     statusContent: PropTypes.string,
     expanded: PropTypes.bool,
@@ -83,6 +81,10 @@ class StatusContent extends PureComponent {
     onCollapsedToggle: PropTypes.func,
     languages: ImmutablePropTypes.map,
     intl: PropTypes.object,
+    // from react-router
+    match: PropTypes.object.isRequired,
+    location: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired
   };
 
   state = {
@@ -116,6 +118,7 @@ class StatusContent extends PureComponent {
         link.addEventListener('click', this.onMentionClick.bind(this, mention), false);
         link.setAttribute('title', `@${mention.get('acct')}`);
         link.setAttribute('href', `/@${mention.get('acct')}`);
+        link.setAttribute('data-hover-card-account', mention.get('id'));
       } else if (link.textContent[0] === '#' || (link.previousSibling && link.previousSibling.textContent && link.previousSibling.textContent[link.previousSibling.textContent.length - 1] === '#')) {
         link.addEventListener('click', this.onHashtagClick.bind(this, link.text), false);
         link.setAttribute('href', `/tags/${link.text.replace(/^#/, '')}`);
@@ -164,27 +167,46 @@ class StatusContent extends PureComponent {
     }
   };
 
+  _renderMathJax() {
+    const {status} = this.props;
+    const contentHtml = status.get('contentHtml');
+    if(this.last_contentHtml === contentHtml) {
+      return;
+    }
+    this.last_contentHtml = contentHtml;
+    try {
+      // Loaded in script tag on page. not great but we couldn't figure out
+      // How to use MathJax as a module
+      // eslint-disable-next-line no-undef
+      MathJax.typeset([this.node]);
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
   componentDidMount () {
     this._updateStatusLinks();
+    this._renderMathJax();
   }
 
   componentDidUpdate () {
     this._updateStatusLinks();
+    this._renderMathJax();
   }
 
   onMentionClick = (mention, e) => {
-    if (this.context.router && e.button === 0 && !(e.ctrlKey || e.metaKey)) {
+    if (this.props.history && e.button === 0 && !(e.ctrlKey || e.metaKey)) {
       e.preventDefault();
-      this.context.router.history.push(`/@${mention.get('acct')}`);
+      this.props.history.push(`/@${mention.get('acct')}`);
     }
   };
 
   onHashtagClick = (hashtag, e) => {
     hashtag = hashtag.replace(/^#/, '');
 
-    if (this.context.router && e.button === 0 && !(e.ctrlKey || e.metaKey)) {
+    if (this.props.history && e.button === 0 && !(e.ctrlKey || e.metaKey)) {
       e.preventDefault();
-      this.context.router.history.push(`/tags/${hashtag}`);
+      this.props.history.push(`/tags/${hashtag}`);
     }
   };
 
@@ -241,20 +263,20 @@ class StatusContent extends PureComponent {
     const renderReadMore = this.props.onClick && status.get('collapsed');
     const contentLocale = intl.locale.replace(/[_-].*/, '');
     const targetLanguages = this.props.languages?.get(status.get('language') || 'und');
-    const renderTranslate = this.props.onTranslate && this.context.identity.signedIn && ['public', 'unlisted'].includes(status.get('visibility')) && status.get('search_index').trim().length > 0 && targetLanguages?.includes(contentLocale);
+    const renderTranslate = this.props.onTranslate && this.props.identity.signedIn && ['public', 'unlisted'].includes(status.get('visibility')) && status.get('search_index').trim().length > 0 && targetLanguages?.includes(contentLocale);
 
     const content = { __html: statusContent ?? getStatusContent(status) };
     const spoilerContent = { __html: status.getIn(['translation', 'spoilerHtml']) || status.get('spoilerHtml') };
     const language = status.getIn(['translation', 'language']) || status.get('language');
     const classNames = classnames('status__content', {
-      'status__content--with-action': this.props.onClick && this.context.router,
+      'status__content--with-action': this.props.onClick && this.props.history,
       'status__content--with-spoiler': status.get('spoiler_text').length > 0,
       'status__content--collapsed': renderReadMore,
     });
 
     const readMoreButton = renderReadMore && (
       <button className='status__content__read-more-button' onClick={this.props.onClick} key='read-more'>
-        <FormattedMessage id='status.read_more' defaultMessage='Read more' /><Icon id='angle-right' fixedWidth />
+        <FormattedMessage id='status.read_more' defaultMessage='Read more' /><Icon id='angle-right' icon={ChevronRightIcon} />
       </button>
     );
 
@@ -324,4 +346,4 @@ class StatusContent extends PureComponent {
 
 }
 
-export default connect(mapStateToProps)(injectIntl(StatusContent));
+export default withRouter(withIdentity(connect(mapStateToProps)(injectIntl(StatusContent))));

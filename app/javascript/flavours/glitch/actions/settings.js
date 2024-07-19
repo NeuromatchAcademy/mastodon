@@ -20,13 +20,13 @@ export function changeSetting(path, value) {
 }
 
 const debouncedSave = debounce((dispatch, getState) => {
-  if (getState().getIn(['settings', 'saved'])) {
+  if (getState().getIn(['settings', 'saved']) || !getState().getIn(['meta', 'me'])) {
     return;
   }
 
   const data = getState().get('settings').filter((_, path) => path !== 'saved').toJS();
 
-  api(getState).put('/api/web/settings', { data })
+  api().put('/api/web/settings', { data })
     .then(() => dispatch({ type: SETTING_SAVE }))
     .catch(error => dispatch(showAlertForError(error)));
 }, 5000, { trailing: true });
