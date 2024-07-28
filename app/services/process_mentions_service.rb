@@ -18,6 +18,7 @@ class ProcessMentionsService < BaseService
 
     Status.transaction do
       scan_text!
+      identify_quote!
       assign_mentions!
     end
   end
@@ -63,6 +64,25 @@ class ProcessMentionsService < BaseService
     end
 
     @status.save! if @save_records
+  end
+
+  def identify_quote!
+    if @status.quote_id?
+      # There's got to be a better way to get an account from a status id...
+      quoted_status = Status.find(@status.quote_id)
+      mentioned_account = Account.find(quoted_status.account_id)
+
+      # mimic the tail of scan_text since we're not sure what is relevant there
+      return if mention_undeliverable?(mentioned_account) || mentioned_account&.unavailable?
+
+      mention   = @previous_mentions.find { |x| x.account_id == mentioned_account.id }
+      mention ||= @current_mentions.find  { |x| x.account_id == mentioned_account.id }
+      mention ||= @status.mentions.new(account: mentioned_account)
+
+      @current_mentions << mention
+
+      "@#{mentioned_account.acct}"
+    end
   end
 
   def assign_mentions!
