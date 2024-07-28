@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 
 import ImmutablePropTypes from "react-immutable-proptypes";
 
-import QuoteIcon from "@/material-icons/400-24px/format_quote-fill.svg";
+import QuoteIcon from "@/material-icons/400-24px/format_quote-fill.svg?react";
 import {Icon} from "flavours/glitch/components/icon";
 
 
