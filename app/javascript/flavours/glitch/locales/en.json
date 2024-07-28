@@ -159,6 +159,6 @@
   "status.in_reply_to": "This toot is a reply",
   "status.is_poll": "This toot is a poll",
   "status.local_only": "Only visible from your instance",
-  "status.uncollapse": "Uncollapse",
-  "status.quote": "Quote"
+  "status.quote": "Quote",
+  "status.uncollapse": "Uncollapse"
 }
