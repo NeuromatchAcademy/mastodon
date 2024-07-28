@@ -9,13 +9,12 @@ import { withRouter } from 'react-router-dom';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
-import QuoteIcon from '@/material-icons/400-24px/format_quote-fill.svg?react';
-import { Icon } from 'flavours/glitch/components/icon';
 import { identityContextPropShape, withIdentity } from 'flavours/glitch/identity_context';
 import { autoPlayGif, languages as preloadedLanguages } from 'flavours/glitch/initial_state';
 import { decode as decodeIDNA } from 'flavours/glitch/utils/idna';
 
 import { Permalink } from './permalink';
+import QuoteContent from "./quote_content";
 import StatusExpandButton from './status_expand_button';
 
 const textMatchesTarget = (text, origin, host) => {
@@ -376,34 +375,15 @@ class StatusContent extends PureComponent {
       <TranslateButton onClick={this.handleTranslate} translation={status.get('translation')} />
     );
 
-    let quote = '';
+    let quoteStatus = status.get('quote', null);
+    let quote = null;
 
-    if (status.get('quote', null) !== null) {
-      let quoteStatus = status.get('quote');
-      let quoteStatusContent = { __html: quoteStatus.get('contentHtml') };
-      let quoteStatusAccount = quoteStatus.get('account');
-      let quoteStatusDisplayName = { __html: quoteStatusAccount.get('display_name_html') };
-
+    if (quoteStatus !== null) {
       quote = (
-        <div className={"status__quote"}>
-          <blockquote>
-            <bdi>
-              <span className='quote-display-name'>
-                <Icon
-                  fixedWidth
-                  aria-hidden='true'
-                  key='icon-quote-right'
-                  icon={QuoteIcon} />
-                <strong className={"display-name__html"}>
-                  <a onClick={this.handleAccountClick} href={quoteStatus.getIn(['account', 'url'])} dangerouslySetInnerHTML={quoteStatusDisplayName} />
-                </strong>
-              </span>
-            </bdi>
-            <div>
-              <a href={quoteStatus.get('url')} target='_blank' rel='noopener noreferrer' dangerouslySetInnerHTML={quoteStatusContent} />
-            </div>
-          </blockquote>
-        </div>
+        <QuoteContent
+          handleAccountClick={this.handleAccountClick}
+          quoteStatus={quoteStatus}
+        />
       );
     }
 
@@ -442,7 +422,6 @@ class StatusContent extends PureComponent {
           {mentionsPlaceholder}
 
           <div className={`status__content__spoiler ${!hidden ? 'status__content__spoiler--visible' : ''}`}>
-            {quote}
             <div
               ref={this.setContentsRef}
               key={`contents-${tagLinks}`}
@@ -456,6 +435,7 @@ class StatusContent extends PureComponent {
             {!hidden && translateButton}
             {media}
           </div>
+          {quote}
 
           {extraMedia}
         </div>
@@ -468,7 +448,6 @@ class StatusContent extends PureComponent {
           onMouseUp={this.handleMouseUp}
           tabIndex={0}
         >
-          {quote}
           <div
             ref={this.setContentsRef}
             key={`contents-${tagLinks}-${rewriteMentions}`}
@@ -481,6 +460,7 @@ class StatusContent extends PureComponent {
           />
           {translateButton}
           {media}
+          {quote}
           {extraMedia}
         </div>
       );
@@ -490,7 +470,6 @@ class StatusContent extends PureComponent {
           className='status__content'
           tabIndex={0}
         >
-          {quote}
           <div
             ref={this.setContentsRef}
             key={`contents-${tagLinks}`}
@@ -503,6 +482,7 @@ class StatusContent extends PureComponent {
           />
           {translateButton}
           {media}
+          {quote}
           {extraMedia}
         </div>
       );

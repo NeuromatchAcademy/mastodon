@@ -100,8 +100,11 @@
 }
 
 .status__quote {
-  padding-bottom: 0.5em;
+  margin-top: 0.5em;
   pointer-events: none;
+  border: 1px solid var(--background-border-color);
+  border-radius: 8px;
+  padding: 8px;
 
   // HACK: adjust quote icon alignment & color icon for emph
   .quote-display-name > .icon {
