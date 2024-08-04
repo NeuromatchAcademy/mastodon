@@ -1019,6 +1019,7 @@ body > [data-popper-placement] {
 
 .status__content,
 .edit-indicator__content,
+.quote-indicator__content,
 .reply-indicator__content {
   position: relative;
   word-wrap: break-word;
@@ -1114,6 +1115,7 @@ body > [data-popper-placement] {
   overflow: visible;
 }
 
+.quote-indicator,
 .reply-indicator {
   display: grid;
   grid-template-columns: 46px minmax(0, 1fr);
@@ -1274,6 +1276,7 @@ body > [data-popper-placement] {
 }
 
 .edit-indicator__content,
+.quote-indicator__content,
 .reply-indicator__content {
   .emojione {
     width: 18px;

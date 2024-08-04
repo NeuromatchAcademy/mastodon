@@ -14,6 +14,7 @@ import { autoPlayGif, languages as preloadedLanguages } from 'flavours/glitch/in
 import { decode as decodeIDNA } from 'flavours/glitch/utils/idna';
 
 import { Permalink } from './permalink';
+import QuoteContent from "./quote_content";
 import StatusExpandButton from './status_expand_button';
 
 const textMatchesTarget = (text, origin, host) => {
@@ -374,6 +375,18 @@ class StatusContent extends PureComponent {
       <TranslateButton onClick={this.handleTranslate} translation={status.get('translation')} />
     );
 
+    let quoteStatus = status.get('quote', null);
+    let quote = null;
+
+    if (quoteStatus !== null) {
+      quote = (
+        <QuoteContent
+          parseClick={this.props.parseClick}
+          quoteStatus={quoteStatus}
+        />
+      );
+    }
+
     if (status.get('spoiler_text').length > 0) {
       let mentionsPlaceholder = '';
 
@@ -422,6 +435,7 @@ class StatusContent extends PureComponent {
             {!hidden && translateButton}
             {media}
           </div>
+          {quote}
 
           {extraMedia}
         </div>
@@ -446,6 +460,7 @@ class StatusContent extends PureComponent {
           />
           {translateButton}
           {media}
+          {quote}
           {extraMedia}
         </div>
       );
@@ -467,6 +482,7 @@ class StatusContent extends PureComponent {
           />
           {translateButton}
           {media}
+          {quote}
           {extraMedia}
         </div>
       );
