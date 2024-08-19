@@ -122,4 +122,5 @@ export interface ApiStatusJSON {
   // glitch-soc additions
   local_only?: boolean;
   content_type?: string;
+  quotable?: boolean;
 }

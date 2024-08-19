@@ -6,6 +6,7 @@ import { showAlertForError } from '../../../actions/alerts';
 import { initBlockModal } from '../../../actions/blocks';
 import {
   replyCompose,
+  quoteCompose,
   mentionCompose,
   directCompose,
 } from '../../../actions/compose';
@@ -48,6 +49,17 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(openModal({ modalType: 'CONFIRM_REPLY', modalProps: { status } }));
       } else {
         dispatch(replyCompose(status));
+      }
+    });
+  },
+
+  onQuote (status, router) {
+    dispatch((_, getState) => {
+      let state = getState();
+      if (state.getIn(['compose', 'text']).trim().length !== 0) {
+        dispatch(openModal({ modalType: 'CONFIRM_QUOTE', modalProps: { status } }));
+      } else {
+        dispatch(quoteCompose(status, router));
       }
     });
   },

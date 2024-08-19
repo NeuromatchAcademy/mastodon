@@ -1,6 +1,8 @@
+.status__quote,
 .status__content__text,
 .e-content,
 .edit-indicator__content,
+.quote-indicator__content,
 .reply-indicator__content {
   pre,
   blockquote {
@@ -62,6 +64,11 @@
   em,
   i {
     font-style: italic;
+  }
+
+  i[role='img'] {
+    font-style: normal;
+    padding-right: 0.25em;
   }
 
   sub {

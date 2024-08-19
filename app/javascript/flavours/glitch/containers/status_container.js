@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { initBlockModal } from 'flavours/glitch/actions/blocks';
 import {
   replyCompose,
+  quoteCompose,
   mentionCompose,
   directCompose,
 } from 'flavours/glitch/actions/compose';
@@ -80,6 +81,18 @@ const mapDispatchToProps = (dispatch, { contextType }) => ({
         dispatch(openModal({ modalType: 'CONFIRM_REPLY', modalProps: { status } }));
       } else {
         dispatch(replyCompose(status));
+      }
+    });
+  },
+
+  onQuote (status, router) {
+    dispatch((_, getState) => {
+      let state = getState();
+
+      if (state.getIn(['local_settings', 'confirm_before_clearing_draft']) && state.getIn(['compose', 'text']).trim().length !== 0) {
+        dispatch(openModal({ modalType: 'CONFIRM_QUOTE', modalProps: { status }}));
+      } else {
+        dispatch(quoteCompose(status, router));
       }
     });
   },

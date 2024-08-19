@@ -1,0 +1,79 @@
+/*
+This stylesheet required more than usual injection of styles into
+stuff that can get overridden by upstream.
+
+That includes stuff in these files, findable by ctrl+f'ing "quote"
+unless indicated otherwise.
+
+- componenents.scss
+- contrast/diff.scss
+- mastodon-light/diff.scss
+  + dismissable-banner (L435)
+
+*/
+
+$header-gap: 0.2em;
+$header-font-size: 15px;
+
+.status__quote {
+  margin-top: 0.5em;
+  border: 1px solid var(--background-border-color);
+  border-radius: 8px;
+  padding: 8px;
+
+  .quote {
+    &__header {
+      display: flex;
+      font-size: $header-font-size;
+      gap: $header-gap;
+    }
+
+    &__author {
+      display: flex;
+      font-size: $header-font-size;
+      gap: $header-gap;
+
+      &:hover {
+        text-decoration: none;
+
+        & .quote__display-name {
+          text-decoration: underline;
+        }
+      }
+
+      // quote icon has its own left padding
+      svg {
+        margin-left: -5px;
+      }
+    }
+
+    &__spacer {
+      margin: 0 0.25em;
+    }
+
+    &__display-name {
+      &:hover {
+        text-decoration: underline;
+      }
+
+      & > .icon {
+        // needs to match below: &:is(blockquote)
+        color: $highlight-text-color;
+      }
+    }
+
+    &__content-link:hover {
+      text-decoration: none;
+    }
+  }
+
+  .deemphasized {
+    color: $action-button-color;
+    text-decoration: none;
+  }
+
+  // see below: .status_quote|&:is(blockquote)
+  &:is(blockquote) {
+    border-left-color: $highlight-text-color;
+  }
+}
