@@ -1,8 +1,11 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import { PureComponent } from 'react';
+
 import { defineMessages, injectIntl } from 'react-intl';
 
-import IconButton from 'flavours/glitch/components/icon_button';
+import RefreshIcon from '@/material-icons/400-24px/refresh.svg?react';
+
+import { IconButton } from '../../../components/icon_button';
 
 const messages = defineMessages({
   error: { id: 'bundle_modal_error.message', defaultMessage: 'Something went wrong while loading this component.' },
@@ -10,7 +13,7 @@ const messages = defineMessages({
   close: { id: 'bundle_modal_error.close', defaultMessage: 'Close' },
 });
 
-class BundleModalError extends React.Component {
+class BundleModalError extends PureComponent {
 
   static propTypes = {
     onRetry: PropTypes.func.isRequired,
@@ -30,7 +33,7 @@ class BundleModalError extends React.Component {
     return (
       <div className='modal-root__modal error-modal'>
         <div className='error-modal__body'>
-          <IconButton title={formatMessage(messages.retry)} icon='refresh' onClick={this.handleRetry} size={64} />
+          <IconButton title={formatMessage(messages.retry)} icon='refresh' iconComponent={RefreshIcon} onClick={this.handleRetry} size={64} />
           {formatMessage(messages.error)}
         </div>
 

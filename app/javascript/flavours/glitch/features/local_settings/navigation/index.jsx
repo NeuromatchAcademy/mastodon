@@ -1,13 +1,19 @@
 //  Package imports
-import React from 'react';
 import PropTypes from 'prop-types';
+import { PureComponent } from 'react';
+
 import { injectIntl, defineMessages } from 'react-intl';
 
-//  Our imports
-import LocalSettingsNavigationItem from './item';
+import CloseIcon from '@/material-icons/400-24px/close.svg?react';
+import EditIcon from '@/material-icons/400-24px/edit.svg?react';
+import ExpandLessIcon from '@/material-icons/400-24px/expand_less.svg?react';
+import ImageIcon from '@/material-icons/400-24px/image.svg?react';
+import ManufacturingIcon from '@/material-icons/400-24px/manufacturing.svg?react';
+import SettingsIcon from '@/material-icons/400-24px/settings-fill.svg?react';
+import WarningIcon from '@/material-icons/400-24px/warning.svg?react';
 import { preferencesLink } from 'flavours/glitch/utils/backend_links';
 
-//  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+import LocalSettingsNavigationItem from './item';
 
 const messages = defineMessages({
   general: {  id: 'settings.general', defaultMessage: 'General' },
@@ -19,7 +25,7 @@ const messages = defineMessages({
   close: { id: 'settings.close', defaultMessage: 'Close' },
 });
 
-class LocalSettingsNavigation extends React.PureComponent {
+class LocalSettingsNavigation extends PureComponent {
 
   static propTypes = {
     index      : PropTypes.number,
@@ -39,6 +45,7 @@ class LocalSettingsNavigation extends React.PureComponent {
           index={0}
           onNavigate={onNavigate}
           icon='cogs'
+          iconComponent={ManufacturingIcon}
           title={intl.formatMessage(messages.general)}
         />
         <LocalSettingsNavigationItem
@@ -46,13 +53,15 @@ class LocalSettingsNavigation extends React.PureComponent {
           index={1}
           onNavigate={onNavigate}
           icon='pencil'
+          iconComponent={EditIcon}
           title={intl.formatMessage(messages.compose)}
         />
         <LocalSettingsNavigationItem
           active={index === 2}
           index={2}
           onNavigate={onNavigate}
-          textIcon='CW'
+          icon='warning'
+          iconComponent={WarningIcon}
           title={intl.formatMessage(messages.content_warnings)}
         />
         <LocalSettingsNavigationItem
@@ -60,6 +69,7 @@ class LocalSettingsNavigation extends React.PureComponent {
           index={3}
           onNavigate={onNavigate}
           icon='angle-double-up'
+          iconComponent={ExpandLessIcon}
           title={intl.formatMessage(messages.collapsed)}
         />
         <LocalSettingsNavigationItem
@@ -67,6 +77,7 @@ class LocalSettingsNavigation extends React.PureComponent {
           index={4}
           onNavigate={onNavigate}
           icon='image'
+          iconComponent={ImageIcon}
           title={intl.formatMessage(messages.media)}
         />
         <LocalSettingsNavigationItem
@@ -74,6 +85,7 @@ class LocalSettingsNavigation extends React.PureComponent {
           href={preferencesLink}
           index={5}
           icon='cog'
+          iconComponent={SettingsIcon}
           title={intl.formatMessage(messages.preferences)}
         />
         <LocalSettingsNavigationItem
@@ -82,6 +94,7 @@ class LocalSettingsNavigation extends React.PureComponent {
           index={6}
           onNavigate={onClose}
           icon='times'
+          iconComponent={CloseIcon}
           title={intl.formatMessage(messages.close)}
         />
       </nav>

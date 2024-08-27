@@ -2,6 +2,9 @@
 
 require 'csv'
 
+# NOTE: This is a deprecated service, only kept to not break ongoing imports
+# on upgrade. See `BulkImportService` for its replacement.
+
 class ImportService < BaseService
   ROWS_PROCESSING_LIMIT = 20_000
 
@@ -72,7 +75,7 @@ class ImportService < BaseService
     if @import.overwrite?
       presence_hash = items.each_with_object({}) { |(id, extra), mapping| mapping[id] = [true, extra] }
 
-      overwrite_scope.find_each do |target_account|
+      overwrite_scope.reorder(nil).find_each do |target_account|
         if presence_hash[target_account.acct]
           items.delete(target_account.acct)
           extra = presence_hash[target_account.acct][1]
@@ -132,7 +135,7 @@ class ImportService < BaseService
   def parse_import_data!(default_headers)
     data = CSV.parse(import_data, headers: true)
     data = CSV.parse(import_data, headers: default_headers) unless data.headers&.first&.strip&.include?(' ')
-    @data = data.reject(&:blank?)
+    @data = data.compact_blank
   end
 
   def import_data

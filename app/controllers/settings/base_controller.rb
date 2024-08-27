@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class Settings::BaseController < ApplicationController
-  before_action :set_pack
   layout 'admin'
 
   before_action :authenticate_user!
@@ -10,19 +9,15 @@ class Settings::BaseController < ApplicationController
 
   private
 
-  def set_pack
-    use_pack 'settings'
-  end
-
   def set_body_classes
     @body_classes = 'admin'
   end
 
   def set_cache_headers
-    response.headers['Cache-Control'] = 'private, no-store'
+    response.cache_control.replace(private: true, no_store: true)
   end
 
   def require_not_suspended!
-    forbidden if current_account.suspended?
+    forbidden if current_account.unavailable?
   end
 end

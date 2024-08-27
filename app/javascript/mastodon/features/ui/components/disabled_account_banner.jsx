@@ -1,34 +1,27 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { FormattedMessage, defineMessages, injectIntl } from 'react-intl';
-import { disabledAccountId, movedToAccountId, domain } from 'mastodon/initial_state';
-import { openModal } from 'mastodon/actions/modal';
-import { logOut } from 'mastodon/utils/log_out';
+import { PureComponent } from 'react';
 
-const messages = defineMessages({
-  logoutMessage: { id: 'confirmations.logout.message', defaultMessage: 'Are you sure you want to log out?' },
-  logoutConfirm: { id: 'confirmations.logout.confirm', defaultMessage: 'Log out' },
-});
+import { FormattedMessage, injectIntl } from 'react-intl';
+
+import { Link } from 'react-router-dom';
+
+import { connect } from 'react-redux';
+
+import { openModal } from 'mastodon/actions/modal';
+import { disabledAccountId, movedToAccountId, domain } from 'mastodon/initial_state';
 
 const mapStateToProps = (state) => ({
   disabledAcct: state.getIn(['accounts', disabledAccountId, 'acct']),
   movedToAcct: movedToAccountId ? state.getIn(['accounts', movedToAccountId, 'acct']) : undefined,
 });
 
-const mapDispatchToProps = (dispatch, { intl }) => ({
+const mapDispatchToProps = (dispatch) => ({
   onLogout () {
-    dispatch(openModal('CONFIRM', {
-      message: intl.formatMessage(messages.logoutMessage),
-      confirm: intl.formatMessage(messages.logoutConfirm),
-      closeWhenConfirm: false,
-      onConfirm: () => logOut(),
-    }));
+    dispatch(openModal({ modalType: 'CONFIRM_LOG_OUT' }));
   },
 });
 
-class DisabledAccountBanner extends React.PureComponent {
+class DisabledAccountBanner extends PureComponent {
 
   static propTypes = {
     disabledAcct: PropTypes.string.isRequired,

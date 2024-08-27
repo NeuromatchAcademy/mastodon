@@ -1,5 +1,5 @@
 import { connect } from 'react-redux';
-import ComposeForm from '../components/compose_form';
+
 import {
   changeCompose,
   submitCompose,
@@ -11,6 +11,7 @@ import {
   startLaTeXCompose,
   uploadCompose,
 } from '../../../actions/compose';
+import ComposeForm from '../components/compose_form';
 
 const mapStateToProps = state => ({
   text: state.getIn(['compose', 'text']),
@@ -28,6 +29,7 @@ const mapStateToProps = state => ({
   anyMedia: state.getIn(['compose', 'media_attachments']).size > 0,
   isInReply: state.getIn(['compose', 'in_reply_to']) !== null,
   lang: state.getIn(['compose', 'language']),
+  maxChars: state.getIn(['server', 'server', 'configuration', 'statuses', 'max_characters'], 500),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -36,8 +38,8 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(changeCompose(text));
   },
 
-  onSubmit (router) {
-    dispatch(submitCompose(router));
+  onSubmit () {
+    dispatch(submitCompose());
   },
 
   onClearSuggestions () {

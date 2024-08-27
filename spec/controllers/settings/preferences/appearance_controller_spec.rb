@@ -12,9 +12,24 @@ describe Settings::Preferences::AppearanceController do
   end
 
   describe 'GET #show' do
-    it 'returns http success' do
+    before do
       get :show
+    end
+
+    it 'returns http success with private cache control headers', :aggregate_failures do
       expect(response).to have_http_status(200)
+      expect(response.headers['Cache-Control']).to include('private, no-store')
+    end
+  end
+
+  describe 'PUT #update' do
+    subject { put :update, params: { user: { settings_attributes: { skin: 'contrast' } } } }
+
+    it 'redirects correctly' do
+      expect { subject }
+        .to change { user.reload.settings.skin }.to('contrast')
+
+      expect(response).to redirect_to(settings_preferences_appearance_path)
     end
   end
 end

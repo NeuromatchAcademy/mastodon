@@ -6,8 +6,8 @@ class InvitesController < ApplicationController
   layout 'admin'
 
   before_action :authenticate_user!
-  before_action :set_pack
   before_action :set_body_classes
+  before_action :set_cache_headers
 
   def index
     authorize :invite, :create?
@@ -39,10 +39,6 @@ class InvitesController < ApplicationController
 
   private
 
-  def set_pack
-    use_pack 'settings'
-  end
-
   def invites
     current_user.invites.order(id: :desc)
   end
@@ -53,5 +49,9 @@ class InvitesController < ApplicationController
 
   def set_body_classes
     @body_classes = 'admin'
+  end
+
+  def set_cache_headers
+    response.cache_control.replace(private: true, no_store: true)
   end
 end

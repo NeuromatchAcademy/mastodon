@@ -1,17 +1,25 @@
-import React from 'react';
-import { connect } from 'react-redux';
-import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
 import PropTypes from 'prop-types';
-import StatusListContainer from 'flavours/glitch/features/ui/containers/status_list_container';
-import Column from 'flavours/glitch/components/column';
-import ColumnHeader from 'flavours/glitch/components/column_header';
-import { expandCommunityTimeline } from 'flavours/glitch/actions/timelines';
-import { addColumn, removeColumn, moveColumn } from 'flavours/glitch/actions/columns';
-import ColumnSettingsContainer from './containers/column_settings_container';
-import { connectCommunityStream } from 'flavours/glitch/actions/streaming';
+import { PureComponent } from 'react';
+
+import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
+
 import { Helmet } from 'react-helmet';
+
+import { connect } from 'react-redux';
+
+import PeopleIcon from '@/material-icons/400-24px/group.svg?react';
+import { DismissableBanner } from 'flavours/glitch/components/dismissable_banner';
+import { identityContextPropShape, withIdentity } from 'flavours/glitch/identity_context';
 import { domain } from 'flavours/glitch/initial_state';
-import DismissableBanner from 'flavours/glitch/components/dismissable_banner';
+
+import { addColumn, removeColumn, moveColumn } from '../../actions/columns';
+import { connectCommunityStream } from '../../actions/streaming';
+import { expandCommunityTimeline } from '../../actions/timelines';
+import Column from '../../components/column';
+import ColumnHeader from '../../components/column_header';
+import StatusListContainer from '../ui/containers/status_list_container';
+
+import ColumnSettingsContainer from './containers/column_settings_container';
 
 const messages = defineMessages({
   title: { id: 'column.community', defaultMessage: 'Local timeline' },
@@ -32,18 +40,13 @@ const mapStateToProps = (state, { columnId }) => {
   };
 };
 
-class CommunityTimeline extends React.PureComponent {
-
+class CommunityTimeline extends PureComponent {
   static defaultProps = {
     onlyMedia: false,
   };
 
-  static contextTypes = {
-    router: PropTypes.object,
-    identity: PropTypes.object,
-  };
-
   static propTypes = {
+    identity: identityContextPropShape,
     dispatch: PropTypes.func.isRequired,
     columnId: PropTypes.string,
     intl: PropTypes.object.isRequired,
@@ -74,7 +77,7 @@ class CommunityTimeline extends React.PureComponent {
 
   componentDidMount () {
     const { dispatch, onlyMedia } = this.props;
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
 
     dispatch(expandCommunityTimeline({ onlyMedia }));
 
@@ -84,7 +87,7 @@ class CommunityTimeline extends React.PureComponent {
   }
 
   componentDidUpdate (prevProps) {
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
 
     if (prevProps.onlyMedia !== this.props.onlyMedia) {
       const { dispatch, onlyMedia } = this.props;
@@ -123,9 +126,10 @@ class CommunityTimeline extends React.PureComponent {
     const pinned = !!columnId;
 
     return (
-      <Column ref={this.setRef} name='local' bindToDocument={!multiColumn} label={intl.formatMessage(messages.title)}>
+      <Column bindToDocument={!multiColumn} ref={this.setRef} label={intl.formatMessage(messages.title)}>
         <ColumnHeader
           icon='users'
+          iconComponent={PeopleIcon}
           active={hasUnread}
           title={intl.formatMessage(messages.title)}
           onPin={this.handlePin}
@@ -137,11 +141,8 @@ class CommunityTimeline extends React.PureComponent {
           <ColumnSettingsContainer columnId={columnId} />
         </ColumnHeader>
 
-        <DismissableBanner id='community_timeline'>
-          <FormattedMessage id='dismissable_banner.community_timeline' defaultMessage='These are the most recent public posts from people whose accounts are hosted by {domain}.' values={{ domain }} />
-        </DismissableBanner>
-
         <StatusListContainer
+          prepend={<DismissableBanner id='community_timeline'><FormattedMessage id='dismissable_banner.community_timeline' defaultMessage='These are the most recent public posts from people whose accounts are hosted by {domain}.' values={{ domain }} /></DismissableBanner>}
           trackScroll={!pinned}
           scrollKey={`community_timeline-${columnId}`}
           timelineId={`community${onlyMedia ? ':media' : ''}`}
@@ -161,4 +162,4 @@ class CommunityTimeline extends React.PureComponent {
 
 }
 
-export default connect(mapStateToProps)(injectIntl(CommunityTimeline));
+export default withIdentity(connect(mapStateToProps)(injectIntl(CommunityTimeline)));

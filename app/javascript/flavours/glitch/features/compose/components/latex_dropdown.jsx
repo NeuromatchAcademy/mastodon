@@ -1,14 +1,18 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
+
 import { injectIntl, defineMessages } from 'react-intl';
-import IconButton from '../../../components/icon_button';
-import Overlay from 'react-overlays/Overlay';
-import Motion from '../../ui/util/optional_motion';
-import spring from 'react-motion/lib/spring';
-import { supportsPassiveEvents } from 'detect-passive-events';
+
 import classNames from 'classnames';
-import Icon from 'mastodon/components/icon';
-import { assetHost } from 'mastodon/utils/config';
+
+import { supportsPassiveEvents } from 'detect-passive-events';
+import spring from 'react-motion/lib/spring';
+import Overlay from 'react-overlays/Overlay';
+
+import { Icon } from 'flavours/glitch/components/icon';
+import { assetHost } from 'flavours/glitch/utils/config';
+
+import Motion from '../../ui/util/optional_motion';
 
 const messages = defineMessages({
   inline_short:  { id: 'latex.inline.short', defaultMessage: 'Inline' },
@@ -28,6 +32,7 @@ class LaTeXDropdownMenu extends React.PureComponent {
     placement: PropTypes.string.isRequired,
     onClose: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired,
+    value: PropTypes.any
   };
 
   state = {
@@ -161,12 +166,26 @@ class LaTeXDropdown extends React.PureComponent {
     disabled: PropTypes.bool,
     intl: PropTypes.object.isRequired,
     button: PropTypes.node,
+    value: PropTypes.any
   };
 
   state = {
     open: false,
     placement: 'bottom',
   };
+
+  constructor(props) {
+    super();
+
+    this.props = props;
+
+    const { intl: { formatMessage } } = this.props;
+
+    this.options = [
+      { icon: 'inline-mode', value: 'inline', text: formatMessage(messages.inline_short), meta: formatMessage(messages.inline_long) },
+      { icon: 'display-mode', value: 'display', text: formatMessage(messages.display_short), meta: formatMessage(messages.display_long) },
+    ];
+  }
 
   handleToggle = ({ target }) => {
     if (this.props.isUserTouching && this.props.isUserTouching()) {
@@ -231,15 +250,6 @@ class LaTeXDropdown extends React.PureComponent {
     this.props.onChange(value);
   };
 
-  componentWillMount () {
-    const { intl: { formatMessage } } = this.props;
-
-    this.options = [
-      { icon: 'inline-mode', value: 'inline', text: formatMessage(messages.inline_short), meta: formatMessage(messages.inline_long) },
-      { icon: 'display-mode', value: 'display', text: formatMessage(messages.display_short), meta: formatMessage(messages.display_long) },
-    ];
-  }
-
   setTargetRef = c => {
     this.target = c;
   };
@@ -249,7 +259,7 @@ class LaTeXDropdown extends React.PureComponent {
   };
 
   render () {
-    const { value, container, disabled, intl, button } = this.props;
+    const { container, intl, button } = this.props;
     const { open, placement } = this.state;
 
     const title = intl.formatMessage(messages.start_latex);

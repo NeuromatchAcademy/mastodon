@@ -51,7 +51,7 @@ class ProcessMentionsService < BaseService
 
       # If after resolving it still isn't found or isn't the right
       # protocol, then give up
-      next match if mention_undeliverable?(mentioned_account) || mentioned_account&.suspended?
+      next match if mention_undeliverable?(mentioned_account) || mentioned_account&.unavailable?
 
       mention   = @previous_mentions.find { |x| x.account_id == mentioned_account.id }
       mention ||= @current_mentions.find  { |x| x.account_id == mentioned_account.id }
@@ -68,7 +68,7 @@ class ProcessMentionsService < BaseService
   def assign_mentions!
     # Make sure we never mention blocked accounts
     unless @current_mentions.empty?
-      mentioned_domains = @current_mentions.map { |m| m.account.domain }.compact.uniq
+      mentioned_domains = @current_mentions.filter_map { |m| m.account.domain }.uniq
       blocked_domains   = Set.new(mentioned_domains.empty? ? [] : AccountDomainBlock.where(account_id: @status.account_id, domain: mentioned_domains))
       mentioned_account_ids = @current_mentions.map(&:account_id)
       blocked_account_ids = Set.new(@status.account.block_relationships.where(target_account_id: mentioned_account_ids).pluck(:target_account_id))

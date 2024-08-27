@@ -1,15 +1,14 @@
 # frozen_string_literal: true
 
 class ActivityPub::RepliesController < ActivityPub::BaseController
-  include SignatureVerification
   include Authorization
-  include AccountOwnedConcern
 
   DESCENDANTS_LIMIT = 60
 
+  vary_by -> { 'Signature' if authorized_fetch_mode? }
+
   before_action :require_account_signature!, if: :authorized_fetch_mode?
   before_action :set_status
-  before_action :set_cache_headers
   before_action :set_replies
 
   def index
@@ -32,7 +31,7 @@ class ActivityPub::RepliesController < ActivityPub::BaseController
 
   def set_replies
     @replies = only_other_accounts? ? Status.where.not(account_id: @account.id).joins(:account).merge(Account.without_suspended) : @account.statuses
-    @replies = @replies.where(in_reply_to_id: @status.id, visibility: [:public, :unlisted])
+    @replies = @replies.distributable_visibility.where(in_reply_to_id: @status.id)
     @replies = @replies.paginate_by_min_id(DESCENDANTS_LIMIT, params[:min_id])
   end
 

@@ -1,27 +1,31 @@
-import React from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+
+import { FormattedMessage } from 'react-intl';
+
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import ImmutablePureComponent from 'react-immutable-pure-component';
+import { connect } from 'react-redux';
+
 import { debounce } from 'lodash';
-import LoadingIndicator from 'flavours/glitch/components/loading_indicator';
+
+import { TimelineHint } from 'flavours/glitch/components/timeline_hint';
+import BundleColumnError from 'flavours/glitch/features/ui/components/bundle_column_error';
+import { normalizeForLookup } from 'flavours/glitch/reducers/accounts_map';
+import { getAccountHidden } from 'flavours/glitch/selectors';
+
 import {
   lookupAccount,
   fetchAccount,
   fetchFollowing,
   expandFollowing,
-} from 'flavours/glitch/actions/accounts';
-import { FormattedMessage } from 'react-intl';
-import AccountContainer from 'flavours/glitch/containers/account_container';
-import Column from 'flavours/glitch/features/ui/components/column';
-import ProfileColumnHeader from 'flavours/glitch/features/account/components/profile_column_header';
-import HeaderContainer from 'flavours/glitch/features/account_timeline/containers/header_container';
-import ImmutablePureComponent from 'react-immutable-pure-component';
-import MissingIndicator from 'flavours/glitch/components/missing_indicator';
-import ScrollableList from 'flavours/glitch/components/scrollable_list';
-import TimelineHint from 'flavours/glitch/components/timeline_hint';
-import LimitedAccountHint from '../account_timeline/components/limited_account_hint';
-import { getAccountHidden } from 'flavours/glitch/selectors';
-import { normalizeForLookup } from 'flavours/glitch/reducers/accounts_map';
+} from '../../actions/accounts';
+import { LoadingIndicator } from '../../components/loading_indicator';
+import ScrollableList from '../../components/scrollable_list';
+import AccountContainer from '../../containers/account_container';
+import ProfileColumnHeader from '../account/components/profile_column_header';
+import { LimitedAccountHint } from '../account_timeline/components/limited_account_hint';
+import HeaderContainer from '../account_timeline/containers/header_container';
+import Column from '../ui/components/column';
 
 const mapStateToProps = (state, { params: { acct, id } }) => {
   const accountId = id || state.getIn(['accounts_map', normalizeForLookup(acct)]);
@@ -41,6 +45,7 @@ const mapStateToProps = (state, { params: { acct, id } }) => {
     hasMore: !!state.getIn(['user_lists', 'following', accountId, 'next']),
     isLoading: state.getIn(['user_lists', 'following', accountId, 'isLoading'], true),
     suspended: state.getIn(['accounts', accountId, 'suspended'], false),
+    hideCollections: state.getIn(['accounts', accountId, 'hide_collections'], false),
     hidden: getAccountHidden(state, accountId),
   };
 };
@@ -113,13 +118,11 @@ class Following extends ImmutablePureComponent {
   };
 
   render () {
-    const { accountId, accountIds, hasMore, isAccount, multiColumn, isLoading, suspended, hidden, remote, remoteUrl } = this.props;
+    const { accountId, accountIds, hasMore, isAccount, multiColumn, isLoading, suspended, hidden, remote, remoteUrl, hideCollections } = this.props;
 
     if (!isAccount) {
       return (
-        <Column>
-          <MissingIndicator />
-        </Column>
+        <BundleColumnError multiColumn={multiColumn} errorType='routing' />
       );
     }
 
@@ -139,6 +142,8 @@ class Following extends ImmutablePureComponent {
       emptyMessage = <FormattedMessage id='empty_column.account_suspended' defaultMessage='Account suspended' />;
     } else if (hidden) {
       emptyMessage = <LimitedAccountHint accountId={accountId} />;
+    } else if (hideCollections && accountIds.isEmpty()) {
+      emptyMessage = <FormattedMessage id='empty_column.account_hides_collections' defaultMessage='This user has chosen to not make this information available' />;
     } else if (remote && accountIds.isEmpty()) {
       emptyMessage = <RemoteHint url={remoteUrl} />;
     } else {

@@ -1,9 +1,26 @@
-import React from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import { PureComponent } from 'react';
+
+import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
+
+import { Helmet } from 'react-helmet';
+
+import { createSelector } from '@reduxjs/toolkit';
+import { List as ImmutableList } from 'immutable';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import Column from '../../components/column';
-import ColumnHeader from '../../components/column_header';
+import { connect } from 'react-redux';
+
+import { debounce } from 'lodash';
+
+import DoneAllIcon from '@/material-icons/400-24px/done_all.svg?react';
+import NotificationsIcon from '@/material-icons/400-24px/notifications-fill.svg?react';
+import { compareId } from 'mastodon/compare_id';
+import { Icon }  from 'mastodon/components/icon';
+import { NotSignedInIndicator } from 'mastodon/components/not_signed_in_indicator';
+import { identityContextPropShape, withIdentity } from 'mastodon/identity_context';
+
+import { addColumn, removeColumn, moveColumn } from '../../actions/columns';
+import { submitMarkers } from '../../actions/markers';
 import {
   expandNotifications,
   scrollTopNotifications,
@@ -12,22 +29,19 @@ import {
   unmountNotifications,
   markNotificationsAsRead,
 } from '../../actions/notifications';
-import { submitMarkers } from '../../actions/markers';
-import { addColumn, removeColumn, moveColumn } from '../../actions/columns';
-import NotificationContainer from './containers/notification_container';
-import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
+import Column from '../../components/column';
+import ColumnHeader from '../../components/column_header';
+import { LoadGap } from '../../components/load_gap';
+import ScrollableList from '../../components/scrollable_list';
+
+import {
+  FilteredNotificationsBanner,
+  FilteredNotificationsIconButton,
+} from './components/filtered_notifications_banner';
+import NotificationsPermissionBanner from './components/notifications_permission_banner';
 import ColumnSettingsContainer from './containers/column_settings_container';
 import FilterBarContainer from './containers/filter_bar_container';
-import { createSelector } from 'reselect';
-import { List as ImmutableList } from 'immutable';
-import { debounce } from 'lodash';
-import ScrollableList from '../../components/scrollable_list';
-import LoadGap from '../../components/load_gap';
-import Icon from 'mastodon/components/icon';
-import compareId from 'mastodon/compare_id';
-import NotificationsPermissionBanner from './components/notifications_permission_banner';
-import NotSignedInIndicator from 'mastodon/components/not_signed_in_indicator';
-import { Helmet } from 'react-helmet';
+import NotificationContainer from './containers/notification_container';
 
 const messages = defineMessages({
   title: { id: 'column.notifications', defaultMessage: 'Notifications' },
@@ -56,7 +70,6 @@ const getNotifications = createSelector([
 });
 
 const mapStateToProps = state => ({
-  showFilterBar: state.getIn(['settings', 'notifications', 'quickFilter', 'show']),
   notifications: getNotifications(state),
   isLoading: state.getIn(['notifications', 'isLoading'], 0) > 0,
   isUnread: state.getIn(['notifications', 'unread']) > 0 || state.getIn(['notifications', 'pendingItems']).size > 0,
@@ -67,16 +80,11 @@ const mapStateToProps = state => ({
   needsNotificationPermission: state.getIn(['settings', 'notifications', 'alerts']).includes(true) && state.getIn(['notifications', 'browserSupport']) && state.getIn(['notifications', 'browserPermission']) === 'default' && !state.getIn(['settings', 'notifications', 'dismissPermissionBanner']),
 });
 
-class Notifications extends React.PureComponent {
-
-  static contextTypes = {
-    identity: PropTypes.object,
-  };
-
+class Notifications extends PureComponent {
   static propTypes = {
+    identity: identityContextPropShape,
     columnId: PropTypes.string,
     notifications: ImmutablePropTypes.list.isRequired,
-    showFilterBar: PropTypes.bool.isRequired,
     dispatch: PropTypes.func.isRequired,
     intl: PropTypes.object.isRequired,
     isLoading: PropTypes.bool,
@@ -93,7 +101,7 @@ class Notifications extends React.PureComponent {
     trackScroll: true,
   };
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.props.dispatch(mountNotifications());
   }
 
@@ -179,14 +187,14 @@ class Notifications extends React.PureComponent {
   };
 
   render () {
-    const { intl, notifications, isLoading, isUnread, columnId, multiColumn, hasMore, numPending, showFilterBar, lastReadId, canMarkAsRead, needsNotificationPermission } = this.props;
+    const { intl, notifications, isLoading, isUnread, columnId, multiColumn, hasMore, numPending, lastReadId, canMarkAsRead, needsNotificationPermission } = this.props;
     const pinned = !!columnId;
     const emptyMessage = <FormattedMessage id='empty_column.notifications' defaultMessage="You don't have any notifications yet. When other people interact with you, you will see it here." />;
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
 
     let scrollableContent = null;
 
-    const filterBarContainer = (signedIn && showFilterBar)
+    const filterBarContainer = signedIn
       ? (<FilterBarContainer />)
       : null;
 
@@ -197,7 +205,7 @@ class Notifications extends React.PureComponent {
         <LoadGap
           key={'gap:' + notifications.getIn([index + 1, 'id'])}
           disabled={isLoading}
-          maxId={index > 0 ? notifications.getIn([index - 1, 'id']) : null}
+          param={index > 0 ? notifications.getIn([index - 1, 'id']) : null}
           onClick={this.handleLoadGap}
         />
       ) : (
@@ -218,6 +226,13 @@ class Notifications extends React.PureComponent {
 
     let scrollContainer;
 
+    const prepend = (
+      <>
+        {needsNotificationPermission && <NotificationsPermissionBanner />}
+        <FilteredNotificationsBanner />
+      </>
+    );
+
     if (signedIn) {
       scrollContainer = (
         <ScrollableList
@@ -227,7 +242,7 @@ class Notifications extends React.PureComponent {
           showLoading={isLoading && notifications.size === 0}
           hasMore={hasMore}
           numPending={numPending}
-          prepend={needsNotificationPermission && <NotificationsPermissionBanner />}
+          prepend={prepend}
           alwaysPrepend
           emptyMessage={emptyMessage}
           onLoadMore={this.handleLoadOlder}
@@ -243,25 +258,27 @@ class Notifications extends React.PureComponent {
       scrollContainer = <NotSignedInIndicator />;
     }
 
-    let extraButton = null;
-
-    if (canMarkAsRead) {
-      extraButton = (
-        <button
-          aria-label={intl.formatMessage(messages.markAsRead)}
-          title={intl.formatMessage(messages.markAsRead)}
-          onClick={this.handleMarkAsRead}
-          className='column-header__button'
-        >
-          <Icon id='check' />
-        </button>
-      );
-    }
+    const extraButton = (
+      <>
+        <FilteredNotificationsIconButton className='column-header__button' />
+        {canMarkAsRead && (
+          <button
+            aria-label={intl.formatMessage(messages.markAsRead)}
+            title={intl.formatMessage(messages.markAsRead)}
+            onClick={this.handleMarkAsRead}
+            className='column-header__button'
+          >
+            <Icon id='done-all' icon={DoneAllIcon} />
+          </button>
+        )}
+      </>
+    );
 
     return (
       <Column bindToDocument={!multiColumn} ref={this.setColumnRef} label={intl.formatMessage(messages.title)}>
         <ColumnHeader
           icon='bell'
+          iconComponent={NotificationsIcon}
           active={isUnread}
           title={intl.formatMessage(messages.title)}
           onPin={this.handlePin}
@@ -275,6 +292,7 @@ class Notifications extends React.PureComponent {
         </ColumnHeader>
 
         {filterBarContainer}
+
         {scrollContainer}
 
         <Helmet>
@@ -287,4 +305,4 @@ class Notifications extends React.PureComponent {
 
 }
 
-export default connect(mapStateToProps)(injectIntl(Notifications));
+export default connect(mapStateToProps)(withIdentity(injectIntl(Notifications)));

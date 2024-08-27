@@ -1,14 +1,16 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import { Children, cloneElement, useCallback } from 'react';
+
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
+
+import { supportsPassiveEvents } from 'detect-passive-events';
+
+import { scrollRight } from '../../../scroll';
 import BundleContainer from '../containers/bundle_container';
-import ColumnLoading from './column_loading';
-import DrawerLoading from './drawer_loading';
-import BundleColumnError from './bundle_column_error';
 import {
   Compose,
-  Notifications,
+  NotificationsWrapper,
   HomeTimeline,
   CommunityTimeline,
   PublicTimeline,
@@ -18,17 +20,19 @@ import {
   BookmarkedStatuses,
   ListTimeline,
   Directory,
-} from '../../ui/util/async-components';
-import ComposePanel from './compose_panel';
-import NavigationPanel from './navigation_panel';
+} from '../util/async-components';
+import { useColumnsContext } from '../util/columns_context';
 
-import { supportsPassiveEvents } from 'detect-passive-events';
-import { scrollRight } from 'flavours/glitch/scroll';
+import BundleColumnError from './bundle_column_error';
+import { ColumnLoading } from './column_loading';
+import ComposePanel from './compose_panel';
+import DrawerLoading from './drawer_loading';
+import NavigationPanel from './navigation_panel';
 
 const componentMap = {
   'COMPOSE': Compose,
   'HOME': HomeTimeline,
-  'NOTIFICATIONS': Notifications,
+  'NOTIFICATIONS': NotificationsWrapper,
   'PUBLIC': PublicTimeline,
   'REMOTE': PublicTimeline,
   'COMMUNITY': CommunityTimeline,
@@ -40,17 +44,23 @@ const componentMap = {
   'DIRECTORY': Directory,
 };
 
+const TabsBarPortal = () => {
+  const {setTabsBarElement} = useColumnsContext();
+
+  const setRef = useCallback((element) => {
+    if(element)
+      setTabsBarElement(element);
+  }, [setTabsBarElement]);
+
+  return <div id='tabs-bar__portal' ref={setRef} />;
+};
+
 export default class ColumnsArea extends ImmutablePureComponent {
-
-  static contextTypes = {
-    router: PropTypes.object.isRequired,
-  };
-
   static propTypes = {
     columns: ImmutablePropTypes.list.isRequired,
+    isModalOpen: PropTypes.bool.isRequired,
     singleColumn: PropTypes.bool,
     children: PropTypes.node,
-    navbarUnder: PropTypes.bool,
     openSettings: PropTypes.func,
   };
 
@@ -78,7 +88,7 @@ export default class ColumnsArea extends ImmutablePureComponent {
     this.isRtlLayout = document.getElementsByTagName('body')[0].classList.contains('rtl');
   }
 
-  componentWillUpdate(nextProps) {
+  UNSAFE_componentWillUpdate(nextProps) {
     if (this.props.singleColumn !== nextProps.singleColumn && nextProps.singleColumn) {
       this.node.removeEventListener('wheel', this.handleWheel);
     }
@@ -136,7 +146,7 @@ export default class ColumnsArea extends ImmutablePureComponent {
   };
 
   render () {
-    const { columns, children, singleColumn, navbarUnder, openSettings } = this.props;
+    const { columns, children, singleColumn, isModalOpen, openSettings } = this.props;
     const { renderComposePanel } = this.state;
 
     if (singleColumn) {
@@ -149,7 +159,7 @@ export default class ColumnsArea extends ImmutablePureComponent {
           </div>
 
           <div className='columns-area__panels__main'>
-            <div className='tabs-bar__wrapper'><div id='tabs-bar__portal' /></div>
+            <div className='tabs-bar__wrapper'><TabsBarPortal /></div>
             <div className='columns-area columns-area--mobile'>{children}</div>
           </div>
 
@@ -163,7 +173,7 @@ export default class ColumnsArea extends ImmutablePureComponent {
     }
 
     return (
-      <div className='columns-area' ref={this.setRef}>
+      <div className={`columns-area ${ isModalOpen ? 'unscrollable' : '' }`} ref={this.setRef}>
         {columns.map(column => {
           const params = column.get('params', null) === null ? null : column.get('params').toJS();
           const other  = params && params.other ? params.other : {};
@@ -175,7 +185,7 @@ export default class ColumnsArea extends ImmutablePureComponent {
           );
         })}
 
-        {React.Children.map(children, child => React.cloneElement(child, { multiColumn: true }))}
+        {Children.map(children, child => cloneElement(child, { multiColumn: true }))}
       </div>
     );
   }

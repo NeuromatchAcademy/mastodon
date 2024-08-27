@@ -1,11 +1,13 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { setupBrowserNotifications } from 'flavours/glitch/actions/notifications';
-import Mastodon, { store } from 'flavours/glitch/containers/mastodon';
-import { me } from 'flavours/glitch/initial_state';
-import ready from 'flavours/glitch/ready';
+import { createRoot } from 'react-dom/client';
 
-const perf = require('flavours/glitch/performance');
+import { setupBrowserNotifications } from 'flavours/glitch/actions/notifications';
+import Mastodon from 'flavours/glitch/containers/mastodon';
+import { me } from 'flavours/glitch/initial_state';
+import * as perf from 'flavours/glitch/performance';
+import ready from 'flavours/glitch/ready';
+import { store } from 'flavours/glitch/store';
+
+import { isProduction } from './utils/environment';
 
 /**
  * @returns {Promise<void>}
@@ -17,10 +19,11 @@ function main() {
     const mountNode = document.getElementById('mastodon');
     const props = JSON.parse(mountNode.getAttribute('data-props'));
 
-    ReactDOM.render(<Mastodon {...props} />, mountNode);
+    const root = createRoot(mountNode);
+    root.render(<Mastodon {...props} />);
     store.dispatch(setupBrowserNotifications());
 
-    if (process.env.NODE_ENV === 'production' && me && 'serviceWorker' in navigator) {
+    if (isProduction() && me && 'serviceWorker' in navigator) {
       const { Workbox } = await import('workbox-window');
       const wb = new Workbox('/sw.js');
       /** @type {ServiceWorkerRegistration} */
@@ -32,7 +35,7 @@ function main() {
         console.error(err);
       }
 
-      if (registration) {
+      if (registration && 'Notification' in window && Notification.permission === 'granted') {
         const registerPushNotifications = await import('flavours/glitch/actions/push_notifications');
 
         store.dispatch(registerPushNotifications.register());

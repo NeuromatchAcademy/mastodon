@@ -1,11 +1,14 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import api from 'mastodon/api';
-import { FormattedMessage } from 'react-intl';
-import classNames from 'classnames';
-import Hashtag from 'mastodon/components/hashtag';
+import { PureComponent } from 'react';
 
-export default class Trends extends React.PureComponent {
+import { FormattedMessage } from 'react-intl';
+
+import classNames from 'classnames';
+
+import api from 'mastodon/api';
+import { Hashtag } from 'mastodon/components/hashtag';
+
+export default class Trends extends PureComponent {
 
   static propTypes = {
     limit: PropTypes.number.isRequired,
@@ -19,7 +22,7 @@ export default class Trends extends React.PureComponent {
   componentDidMount () {
     const { limit } = this.props;
 
-    api().get('/api/v1/admin/trends/tags', { params: { limit } }).then(res => {
+    api(false).get('/api/v1/admin/trends/tags', { params: { limit } }).then(res => {
       this.setState({
         loading: false,
         data: res.data,

@@ -1,17 +1,22 @@
-import React from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import PropTypes from 'prop-types';
-import InnerHeader from 'flavours/glitch/features/account/components/header';
-import ActionBar from 'flavours/glitch/features/account/components/action_bar';
-import ImmutablePureComponent from 'react-immutable-pure-component';
+
 import { FormattedMessage } from 'react-intl';
+
 import { NavLink } from 'react-router-dom';
+
+import ImmutablePropTypes from 'react-immutable-proptypes';
+import ImmutablePureComponent from 'react-immutable-pure-component';
+
+import ActionBar from '../../account/components/action_bar';
+import InnerHeader from '../../account/components/header';
+
+import MemorialNote from './memorial_note';
 import MovedNote from './moved_note';
 
-export default class Header extends ImmutablePureComponent {
+class Header extends ImmutablePureComponent {
 
   static propTypes = {
-    account: ImmutablePropTypes.map,
+    account: ImmutablePropTypes.record,
     onFollow: PropTypes.func.isRequired,
     onBlock: PropTypes.func.isRequired,
     onMention: PropTypes.func.isRequired,
@@ -31,10 +36,6 @@ export default class Header extends ImmutablePureComponent {
     hidden: PropTypes.bool,
   };
 
-  static contextTypes = {
-    router: PropTypes.object,
-  };
-
   handleFollow = () => {
     this.props.onFollow(this.props.account);
   };
@@ -44,11 +45,11 @@ export default class Header extends ImmutablePureComponent {
   };
 
   handleMention = () => {
-    this.props.onMention(this.props.account, this.context.router.history);
+    this.props.onMention(this.props.account);
   };
 
   handleDirect = () => {
-    this.props.onDirect(this.props.account, this.context.router.history);
+    this.props.onDirect(this.props.account);
   };
 
   handleReport = () => {
@@ -68,11 +69,7 @@ export default class Header extends ImmutablePureComponent {
   };
 
   handleBlockDomain = () => {
-    const domain = this.props.account.get('acct').split('@')[1];
-
-    if (!domain) return;
-
-    this.props.onBlockDomain(domain);
+    this.props.onBlockDomain(this.props.account);
   };
 
   handleUnblockDomain = () => {
@@ -116,6 +113,7 @@ export default class Header extends ImmutablePureComponent {
 
     return (
       <div className='account-timeline__header'>
+        {(!hidden && account.get('memorial')) && <MemorialNote />}
         {(!hidden && account.get('moved')) && <MovedNote from={account} to={account.get('moved')} />}
 
         <InnerHeader
@@ -147,7 +145,7 @@ export default class Header extends ImmutablePureComponent {
         {!(hideTabs || hidden) && (
           <div className='account__section-headline'>
             <NavLink exact to={`/@${account.get('acct')}`}><FormattedMessage id='account.posts' defaultMessage='Posts' /></NavLink>
-            <NavLink exact to={`/@${account.get('acct')}/with_replies`}><FormattedMessage id='account.posts_with_replies' defaultMessage='Posts with replies' /></NavLink>
+            <NavLink exact to={`/@${account.get('acct')}/with_replies`}><FormattedMessage id='account.posts_with_replies' defaultMessage='Posts and replies' /></NavLink>
             <NavLink exact to={`/@${account.get('acct')}/media`}><FormattedMessage id='account.media' defaultMessage='Media' /></NavLink>
           </div>
         )}
@@ -156,3 +154,5 @@ export default class Header extends ImmutablePureComponent {
   }
 
 }
+
+export default Header;

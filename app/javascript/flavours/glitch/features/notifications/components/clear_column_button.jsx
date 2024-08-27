@@ -1,9 +1,12 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import { FormattedMessage } from 'react-intl';
-import Icon from 'flavours/glitch/components/icon';
+import { PureComponent } from 'react';
 
-export default class ClearColumnButton extends React.Component {
+import { FormattedMessage } from 'react-intl';
+
+import DeleteForeverIcon from '@/material-icons/400-24px/delete_forever.svg?react';
+import { Icon }  from 'flavours/glitch/components/icon';
+
+export default class ClearColumnButton extends PureComponent {
 
   static propTypes = {
     onClick: PropTypes.func.isRequired,
@@ -11,7 +14,7 @@ export default class ClearColumnButton extends React.Component {
 
   render () {
     return (
-      <button className='text-btn column-header__setting-btn' tabIndex='0' onClick={this.props.onClick}><Icon id='eraser' /> <FormattedMessage id='notifications.clear' defaultMessage='Clear notifications' /></button>
+      <button className='text-btn column-header__setting-btn' tabIndex={0} onClick={this.props.onClick}><Icon id='eraser' icon={DeleteForeverIcon} /> <FormattedMessage id='notifications.clear' defaultMessage='Clear notifications' /></button>
     );
   }
 

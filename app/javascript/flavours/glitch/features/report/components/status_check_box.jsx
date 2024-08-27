@@ -1,21 +1,25 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
-import StatusContent from 'flavours/glitch/components/status_content';
-import Avatar from 'flavours/glitch/components/avatar';
-import DisplayName from 'flavours/glitch/components/display_name';
-import RelativeTimestamp from 'flavours/glitch/components/relative_timestamp';
-import Option from './option';
-import MediaAttachments from 'flavours/glitch/components/media_attachments';
-import VisibilityIcon from 'flavours/glitch/components/status_visibility_icon';
+import { PureComponent } from 'react';
 
-export default class StatusCheckBox extends React.PureComponent {
+import ImmutablePropTypes from 'react-immutable-proptypes';
+
+import { Avatar } from 'flavours/glitch/components/avatar';
+import { DisplayName } from 'flavours/glitch/components/display_name';
+import MediaAttachments from 'flavours/glitch/components/media_attachments';
+import { RelativeTimestamp } from 'flavours/glitch/components/relative_timestamp';
+import StatusContent from 'flavours/glitch/components/status_content';
+import { VisibilityIcon } from 'flavours/glitch/components/visibility_icon';
+
+import Option from './option';
+
+class StatusCheckBox extends PureComponent {
 
   static propTypes = {
     id: PropTypes.string.isRequired,
     status: ImmutablePropTypes.map.isRequired,
     checked: PropTypes.bool,
     onToggle: PropTypes.func.isRequired,
+    intl: PropTypes.object.isRequired,
   };
 
   handleStatusesToggle = (value, checked) => {
@@ -37,10 +41,12 @@ export default class StatusCheckBox extends React.PureComponent {
             <Avatar account={status.get('account')} size={46} />
           </div>
 
-          <div><DisplayName account={status.get('account')} /> · <VisibilityIcon visibility={status.get('visibility')} /><RelativeTimestamp timestamp={status.get('created_at')} /></div>
+          <div>
+            <DisplayName account={status.get('account')} /> · <VisibilityIcon visibility={status.get('visibility')} /><RelativeTimestamp timestamp={status.get('created_at')} />
+          </div>
         </div>
 
-        <StatusContent status={status} media={<MediaAttachments status={status} revealed={false} />} />
+        <StatusContent status={status} media={<MediaAttachments status={status} visible={false} />} />
       </div>
     );
 
@@ -58,3 +64,5 @@ export default class StatusCheckBox extends React.PureComponent {
   }
 
 }
+
+export default StatusCheckBox;

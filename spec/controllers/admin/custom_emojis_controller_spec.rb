@@ -12,24 +12,24 @@ describe Admin::CustomEmojisController do
   end
 
   describe 'GET #index' do
-    subject { get :index }
-
     before do
       Fabricate(:custom_emoji)
     end
 
     it 'renders index page' do
-      expect(subject).to have_http_status 200
-      expect(subject).to render_template :index
+      get :index
+
+      expect(response).to have_http_status 200
+      expect(response).to render_template :index
     end
   end
 
   describe 'GET #new' do
-    subject { get :new }
-
     it 'renders new page' do
-      expect(subject).to have_http_status 200
-      expect(subject).to render_template :new
+      get :new
+
+      expect(response).to have_http_status 200
+      expect(response).to render_template :new
     end
   end
 
@@ -42,7 +42,7 @@ describe Admin::CustomEmojisController do
       let(:params) { { shortcode: 'test', image: image } }
 
       it 'creates custom emoji' do
-        expect { subject }.to change { CustomEmoji.count }.by(1)
+        expect { subject }.to change(CustomEmoji, :count).by(1)
       end
     end
 

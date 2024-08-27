@@ -1,20 +1,19 @@
-import React from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import SearchContainer from 'flavours/glitch/features/compose/containers/search_container';
-import ComposeFormContainer from 'flavours/glitch/features/compose/containers/compose_form_container';
-import NavigationContainer from 'flavours/glitch/features/compose/containers/navigation_container';
-import LinkFooter from './link_footer';
-import ServerBanner from 'flavours/glitch/components/server_banner';
+import { PureComponent } from 'react';
+
+import { connect } from 'react-redux';
+
 import { mountCompose, unmountCompose } from 'flavours/glitch/actions/compose';
+import ServerBanner from 'flavours/glitch/components/server_banner';
+import ComposeFormContainer from 'flavours/glitch/features/compose/containers/compose_form_container';
+import SearchContainer from 'flavours/glitch/features/compose/containers/search_container';
+import { identityContextPropShape, withIdentity } from 'flavours/glitch/identity_context';
 
-class ComposePanel extends React.PureComponent {
+import LinkFooter from './link_footer';
 
-  static contextTypes = {
-    identity: PropTypes.object.isRequired,
-  };
-
+class ComposePanel extends PureComponent {
   static propTypes = {
+    identity: identityContextPropShape,
     dispatch: PropTypes.func.isRequired,
   };
 
@@ -29,24 +28,21 @@ class ComposePanel extends React.PureComponent {
   }
 
   render() {
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
 
     return (
       <div className='compose-panel'>
         <SearchContainer openInRoute />
 
         {!signedIn && (
-          <React.Fragment>
+          <>
             <ServerBanner />
             <div className='flex-spacer' />
-          </React.Fragment>
+          </>
         )}
 
         {signedIn && (
-          <React.Fragment>
-            <NavigationContainer />
-            <ComposeFormContainer singleColumn />
-          </React.Fragment>
+          <ComposeFormContainer singleColumn />
         )}
 
         <LinkFooter />
@@ -56,4 +52,4 @@ class ComposePanel extends React.PureComponent {
 
 }
 
-export default connect()(ComposePanel);
+export default connect()(withIdentity(ComposePanel));

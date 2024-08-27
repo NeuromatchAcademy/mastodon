@@ -1,15 +1,21 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import Button from 'flavours/glitch/components/button';
-import ImmutablePureComponent from 'react-immutable-pure-component';
-import Atrament from 'atrament'; // the doodling library
-import { connect } from 'react-redux';
-import ImmutablePropTypes from 'react-immutable-proptypes';
-import { doodleSet, uploadCompose } from 'flavours/glitch/actions/compose';
-import IconButton from 'flavours/glitch/components/icon_button';
-import { debounce, mapValues } from 'lodash';
+
 import classNames from 'classnames';
 
+import ImmutablePropTypes from 'react-immutable-proptypes';
+import ImmutablePureComponent from 'react-immutable-pure-component';
+import { connect } from 'react-redux';
+
+import Atrament from 'atrament'; // the doodling library
+import { debounce, mapValues } from 'lodash';
+
+import ColorsIcon from '@/material-icons/400-24px/colors.svg?react';
+import DeleteIcon from '@/material-icons/400-24px/delete.svg?react';
+import EditIcon from '@/material-icons/400-24px/edit.svg?react';
+import UndoIcon from '@/material-icons/400-24px/undo.svg?react';
+import { doodleSet, uploadCompose } from 'flavours/glitch/actions/compose';
+import { Button } from 'flavours/glitch/components/button';
+import { IconButton } from 'flavours/glitch/components/icon_button';
 // palette nicked from MyPaint, CC0
 const palette = [
   ['rgb(  0,    0,    0)', 'Black'],
@@ -125,9 +131,15 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  /** Set options in the redux store */
+  /**
+   * Set options in the redux store
+   * @param {Object} opts
+   */
   setOpt: (opts) => dispatch(doodleSet(opts)),
-  /** Submit doodle for upload */
+  /**
+   * Submit doodle for upload
+   * @param {File} file
+   */
   submit: (file) => dispatch(uploadCompose([file])),
 });
 
@@ -230,7 +242,10 @@ class DoodleModal extends ImmutablePureComponent {
 
   //endregion
 
-  /** Key up handler */
+  /**
+   * Key up handler
+   * @param {KeyboardEvent} e
+   */
   handleKeyUp = (e) => {
     if (e.target.nodeName === 'INPUT') return;
 
@@ -256,7 +271,10 @@ class DoodleModal extends ImmutablePureComponent {
     }
   };
 
-  /** Key down handler */
+  /**
+   * Key down handler
+   * @param {KeyboardEvent} e
+   */
   handleKeyDown = (e) => {
     if (e.key === 'Control' || e.key === 'Meta') {
       this.controlHeld = true;
@@ -292,8 +310,7 @@ class DoodleModal extends ImmutablePureComponent {
   /**
    * Set reference to the canvas element.
    * This is called during component init
-   *
-   * @param elem - canvas element
+   * @param {HTMLCanvasElement} elem - canvas element
    */
   setCanvasRef = (elem) => {
     this.canvas = elem;
@@ -334,8 +351,7 @@ class DoodleModal extends ImmutablePureComponent {
 
   /**
    * Set up the sketcher instance
-   *
-   * @param canvas - canvas element. Null if we're just resizing
+   * @param {HTMLCanvasElement | null} canvas - canvas element. Null if we're just resizing
    */
   initSketcher (canvas = null) {
     const sizepreset = DOODLE_SIZES[this.size];
@@ -433,8 +449,7 @@ class DoodleModal extends ImmutablePureComponent {
   /**
    * Palette left click.
    * Selects Fg color (or Bg, if Control/Meta is held)
-   *
-   * @param e - event
+   * @param {MouseEvent<HTMLButtonElement>} e - event
    */
   onPaletteClick = (e) => {
     const c = e.target.dataset.color;
@@ -452,8 +467,7 @@ class DoodleModal extends ImmutablePureComponent {
   /**
    * Palette right click.
    * Selects Bg color
-   *
-   * @param e - event
+   * @param {MouseEvent<HTMLButtonElement>} e - event
    */
   onPaletteRClick = (e) => {
     this.bg = e.target.dataset.color;
@@ -463,8 +477,7 @@ class DoodleModal extends ImmutablePureComponent {
 
   /**
    * Handle click on the Draw mode button
-   *
-   * @param e - event
+   * @param {MouseEvent<HTMLButtonElement>} e - event
    */
   setModeDraw = (e) => {
     this.mode = 'draw';
@@ -473,8 +486,7 @@ class DoodleModal extends ImmutablePureComponent {
 
   /**
    * Handle click on the Fill mode button
-   *
-   * @param e - event
+   * @param {MouseEvent<HTMLButtonElement>} e - event
    */
   setModeFill = (e) => {
     this.mode = 'fill';
@@ -483,8 +495,7 @@ class DoodleModal extends ImmutablePureComponent {
 
   /**
    * Handle click on Smooth checkbox
-   *
-   * @param e - event
+   * @param {ChangeEvent<HTMLInputElement>} e - event
    */
   tglSmooth = (e) => {
     this.smoothing = !this.smoothing;
@@ -493,8 +504,7 @@ class DoodleModal extends ImmutablePureComponent {
 
   /**
    * Handle click on Adaptive checkbox
-   *
-   * @param e - event
+   * @param {ChangeEvent<HTMLInputElement>} e - event
    */
   tglAdaptive = (e) => {
     this.adaptiveStroke = !this.adaptiveStroke;
@@ -503,8 +513,7 @@ class DoodleModal extends ImmutablePureComponent {
 
   /**
    * Handle change of the Weight input field
-   *
-   * @param e - event
+   * @param {ChangeEvent<HTMLInputElement>} e - event
    */
   setWeight = (e) => {
     this.weight = +e.target.value || 1;
@@ -512,8 +521,7 @@ class DoodleModal extends ImmutablePureComponent {
 
   /**
    * Set size - clalback from the select box
-   *
-   * @param e - event
+   * @param {ChangeEvent<HTMLSelectElement>} e - event
    */
   changeSize = (e) => {
     let newSize = e.target.value;
@@ -580,10 +588,10 @@ class DoodleModal extends ImmutablePureComponent {
             </div>
           </div>
           <div className='doodle-toolbar'>
-            <IconButton icon='pencil' title='Draw' label='Draw' onClick={this.setModeDraw} size={18} active={this.mode === 'draw'} inverted />
-            <IconButton icon='bath' title='Fill' label='Fill' onClick={this.setModeFill} size={18} active={this.mode === 'fill'} inverted />
-            <IconButton icon='undo' title='Undo' label='Undo' onClick={this.undo} size={18} inverted />
-            <IconButton icon='trash' title='Clear' label='Clear' onClick={this.handleClearBtn} size={18} inverted />
+            <IconButton icon='pencil' iconComponent={EditIcon} title='Draw' label='Draw' onClick={this.setModeDraw} size={18} active={this.mode === 'draw'} inverted />
+            <IconButton icon='bath' iconComponent={ColorsIcon} title='Fill' label='Fill' onClick={this.setModeFill} size={18} active={this.mode === 'fill'} inverted />
+            <IconButton icon='undo' iconComponent={UndoIcon} title='Undo' label='Undo' onClick={this.undo} size={18} inverted />
+            <IconButton icon='trash' iconComponent={DeleteIcon} title='Clear' label='Clear' onClick={this.handleClearBtn} size={18} inverted />
           </div>
           <div className='doodle-palette'>
             {

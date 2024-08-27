@@ -1,43 +1,36 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
-import ActionBar from './action_bar';
-import Avatar from '../../../components/avatar';
-import { Link } from 'react-router-dom';
-import IconButton from '../../../components/icon_button';
-import { FormattedMessage } from 'react-intl';
-import ImmutablePureComponent from 'react-immutable-pure-component';
+import { useCallback } from 'react';
 
-export default class NavigationBar extends ImmutablePureComponent {
+import { useIntl, defineMessages } from 'react-intl';
 
-  static propTypes = {
-    account: ImmutablePropTypes.map.isRequired,
-    onLogout: PropTypes.func.isRequired,
-    onClose: PropTypes.func,
-  };
+import { useSelector, useDispatch } from 'react-redux';
 
-  render () {
-    return (
-      <div className='navigation-bar'>
-        <Link to={`/@${this.props.account.get('acct')}`}>
-          <span style={{ display: 'none' }}>{this.props.account.get('acct')}</span>
-          <Avatar account={this.props.account} size={46} />
-        </Link>
+import CloseIcon from '@/material-icons/400-24px/close.svg?react';
+import { cancelReplyCompose } from 'mastodon/actions/compose';
+import Account from 'mastodon/components/account';
+import { IconButton } from 'mastodon/components/icon_button';
+import { me } from 'mastodon/initial_state';
 
-        <div className='navigation-bar__profile'>
-          <Link to={`/@${this.props.account.get('acct')}`}>
-            <strong className='navigation-bar__profile-account'>@{this.props.account.get('acct')}</strong>
-          </Link>
+import { ActionBar } from './action_bar';
 
-          <a href='/settings/profile' className='navigation-bar__profile-edit'><FormattedMessage id='navigation_bar.edit_profile' defaultMessage='Edit profile' /></a>
-        </div>
 
-        <div className='navigation-bar__actions'>
-          <IconButton className='close' title='' icon='close' onClick={this.props.onClose} />
-          <ActionBar account={this.props.account} onLogout={this.props.onLogout} />
-        </div>
-      </div>
-    );
-  }
+const messages = defineMessages({
+  cancel: { id: 'reply_indicator.cancel', defaultMessage: 'Cancel' },
+});
 
-}
+export const NavigationBar = () => {
+  const dispatch = useDispatch();
+  const intl = useIntl();
+  const account = useSelector(state => state.getIn(['accounts', me]));
+  const isReplying = useSelector(state => !!state.getIn(['compose', 'in_reply_to']));
+
+  const handleCancelClick = useCallback(() => {
+    dispatch(cancelReplyCompose());
+  }, [dispatch]);
+
+  return (
+    <div className='navigation-bar'>
+      <Account account={account} minimal />
+      {isReplying ? <IconButton title={intl.formatMessage(messages.cancel)} iconComponent={CloseIcon} onClick={handleCancelClick} /> : <ActionBar />}
+    </div>
+  );
+};

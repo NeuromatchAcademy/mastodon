@@ -1,8 +1,8 @@
 import { connect } from 'react-redux';
-import LaTeXDropdown from '../components/latex_dropdown';
-import { startLaTeXCompose } from '../../../actions/compose';
+
 import { openModal, closeModal } from '../../../actions/modal';
 import { isUserTouching } from '../../../is_mobile';
+import LaTeXDropdown from '../components/latex_dropdown';
 
 const mapStateToProps = state => ({
   value: state.getIn(['compose', 'startlatex']),

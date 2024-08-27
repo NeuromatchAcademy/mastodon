@@ -6,8 +6,8 @@ class Filters::StatusesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_filter
   before_action :set_status_filters
-  before_action :set_pack
   before_action :set_body_classes
+  before_action :set_cache_headers
 
   PER_PAGE = 20
 
@@ -25,10 +25,6 @@ class Filters::StatusesController < ApplicationController
   end
 
   private
-
-  def set_pack
-    use_pack 'admin'
-  end
 
   def set_filter
     @filter = current_account.custom_filters.find(params[:filter_id])
@@ -48,5 +44,9 @@ class Filters::StatusesController < ApplicationController
 
   def set_body_classes
     @body_classes = 'admin'
+  end
+
+  def set_cache_headers
+    response.cache_control.replace(private: true, no_store: true)
   end
 end

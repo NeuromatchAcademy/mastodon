@@ -1,11 +1,14 @@
-import {
-  ACCOUNT_BLOCK_SUCCESS,
-  ACCOUNT_MUTE_SUCCESS,
-} from 'flavours/glitch/actions/accounts';
-import { CONTEXT_FETCH_SUCCESS } from 'flavours/glitch/actions/statuses';
-import { TIMELINE_DELETE, TIMELINE_UPDATE } from 'flavours/glitch/actions/timelines';
 import { Map as ImmutableMap, List as ImmutableList } from 'immutable';
-import compareId from '../compare_id';
+
+import { timelineDelete } from 'flavours/glitch/actions/timelines_typed';
+
+import {
+  blockAccountSuccess,
+  muteAccountSuccess,
+} from '../actions/accounts';
+import { CONTEXT_FETCH_SUCCESS } from '../actions/statuses';
+import { TIMELINE_UPDATE } from '../actions/timelines';
+import { compareId } from '../compare_id';
 
 const initialState = ImmutableMap({
   inReplyTos: ImmutableMap(),
@@ -66,7 +69,8 @@ const deleteFromContexts = (immutableState, ids) => immutableState.withMutations
 });
 
 const filterContexts = (state, relationship, statuses) => {
-  const ownedStatusIds = statuses.filter(status => status.get('account') === relationship.id)
+  const ownedStatusIds = statuses
+    .filter(status => status.get('account') === relationship.id)
     .map(status => status.get('id'));
 
   return deleteFromContexts(state, ownedStatusIds);
@@ -90,13 +94,13 @@ const updateContext = (state, status) => {
 
 export default function replies(state = initialState, action) {
   switch(action.type) {
-  case ACCOUNT_BLOCK_SUCCESS:
-  case ACCOUNT_MUTE_SUCCESS:
-    return filterContexts(state, action.relationship, action.statuses);
+  case blockAccountSuccess.type:
+  case muteAccountSuccess.type:
+    return filterContexts(state, action.payload.relationship, action.payload.statuses);
   case CONTEXT_FETCH_SUCCESS:
     return normalizeContext(state, action.id, action.ancestors, action.descendants);
-  case TIMELINE_DELETE:
-    return deleteFromContexts(state, [action.id]);
+  case timelineDelete.type:
+    return deleteFromContexts(state, [action.payload.statusId]);
   case TIMELINE_UPDATE:
     return updateContext(state, action.status);
   default:

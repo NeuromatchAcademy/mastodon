@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe HomeController, type: :controller do
+RSpec.describe HomeController do
   render_views
 
   describe 'GET #index' do
@@ -10,7 +10,7 @@ RSpec.describe HomeController, type: :controller do
 
     context 'when not signed in' do
       it 'returns http success' do
-        @request.path = '/'
+        request.path = '/'
         expect(subject).to have_http_status(:success)
       end
     end

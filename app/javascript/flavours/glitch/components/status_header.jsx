@@ -1,19 +1,20 @@
 //  Package imports.
-import React from 'react';
 import PropTypes from 'prop-types';
+import { PureComponent } from 'react';
+
 import ImmutablePropTypes from 'react-immutable-proptypes';
 
 //  Mastodon imports.
-import Avatar from './avatar';
-import AvatarOverlay from './avatar_overlay';
-import AvatarComposite from './avatar_composite';
-import DisplayName from './display_name';
+import { Avatar } from './avatar';
+import { AvatarOverlay } from './avatar_overlay';
+import { DisplayName } from './display_name';
 
-export default class StatusHeader extends React.PureComponent {
+export default class StatusHeader extends PureComponent {
 
   static propTypes = {
     status: ImmutablePropTypes.map.isRequired,
     friend: ImmutablePropTypes.map,
+    avatarSize: PropTypes.number,
     parseClick: PropTypes.func.isRequired,
   };
 
@@ -33,38 +34,34 @@ export default class StatusHeader extends React.PureComponent {
     const {
       status,
       friend,
+      avatarSize,
     } = this.props;
 
     const account = status.get('account');
 
     let statusAvatar;
     if (friend === undefined || friend === null) {
-      statusAvatar = <Avatar account={account} size={48} />;
+      statusAvatar = <Avatar account={account} size={avatarSize} />;
     } else {
       statusAvatar = <AvatarOverlay account={account} friend={friend} />;
     }
 
     return (
-      <div className='status__info__account'>
-        <a
-          href={account.get('url')}
-          target='_blank'
-          className='status__avatar'
-          onClick={this.handleAccountClick}
-          rel='noopener noreferrer'
-        >
+      <a
+        href={account.get('url')}
+        className='status__display-name'
+        target='_blank'
+        onClick={this.handleAccountClick}
+        rel='noopener noreferrer'
+        title={status.getIn(['account', 'acct'])}
+        data-hover-card-account={status.getIn(['account', 'id'])}
+      >
+        <div className='status__avatar'>
           {statusAvatar}
-        </a>
-        <a
-          href={account.get('url')}
-          target='_blank'
-          className='status__display-name'
-          onClick={this.handleAccountClick}
-          rel='noopener noreferrer'
-        >
-          <DisplayName account={account} />
-        </a>
-      </div>
+        </div>
+
+        <DisplayName account={account} />
+      </a>
     );
   }
 

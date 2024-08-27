@@ -1,7 +1,10 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
+import { PureComponent } from 'react';
+
 import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
+
+import ImmutablePropTypes from 'react-immutable-proptypes';
+
 import SettingText from 'flavours/glitch/components/setting_text';
 import SettingToggle from 'flavours/glitch/features/notifications/components/setting_toggle';
 
@@ -10,7 +13,7 @@ const messages = defineMessages({
   settings: { id: 'home.settings', defaultMessage: 'Column settings' },
 });
 
-class ColumnSettings extends React.PureComponent {
+class ColumnSettings extends PureComponent {
 
   static propTypes = {
     settings: ImmutablePropTypes.map.isRequired,
@@ -23,7 +26,7 @@ class ColumnSettings extends React.PureComponent {
     const { settings, onChange, intl } = this.props;
 
     return (
-      <div>
+      <div className='column-settings'>
         <div className='column-settings__row'>
           <SettingToggle settings={settings} settingPath={['other', 'onlyMedia']} onChange={onChange} label={<FormattedMessage id='community.column_settings.media_only' defaultMessage='Media only' />} />
         </div>

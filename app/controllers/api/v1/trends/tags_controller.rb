@@ -8,6 +8,7 @@ class Api::V1::Trends::TagsController < Api::BaseController
   DEFAULT_TAGS_LIMIT = (ENV['MAX_TRENDING_TAGS'] || 10).to_i
 
   def index
+    cache_if_unauthenticated!
     render json: @tags, each_serializer: REST::TagSerializer, relationships: TagRelationshipsPresenter.new(@tags, current_user&.account_id)
   end
 
@@ -27,14 +28,6 @@ class Api::V1::Trends::TagsController < Api::BaseController
 
   def tags_from_trends
     Trends.tags.query.allowed
-  end
-
-  def insert_pagination_headers
-    set_pagination_headers(next_path, prev_path)
-  end
-
-  def pagination_params(core_params)
-    params.slice(:limit).permit(:limit).merge(core_params)
   end
 
   def next_path

@@ -1,21 +1,26 @@
-import React from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
-import { fetchPinnedStatuses } from '../../actions/pin_statuses';
-import Column from '../ui/components/column';
-import ColumnBackButtonSlim from '../../components/column_back_button_slim';
-import StatusList from '../../components/status_list';
+
 import { defineMessages, injectIntl } from 'react-intl';
-import ImmutablePureComponent from 'react-immutable-pure-component';
+
 import { Helmet } from 'react-helmet';
+
+import ImmutablePropTypes from 'react-immutable-proptypes';
+import ImmutablePureComponent from 'react-immutable-pure-component';
+import { connect } from 'react-redux';
+
+import PushPinIcon from '@/material-icons/400-24px/push_pin.svg?react';
+import { getStatusList } from 'mastodon/selectors';
+
+import { fetchPinnedStatuses } from '../../actions/pin_statuses';
+import StatusList from '../../components/status_list';
+import Column from '../ui/components/column';
 
 const messages = defineMessages({
   heading: { id: 'column.pins', defaultMessage: 'Pinned post' },
 });
 
 const mapStateToProps = state => ({
-  statusIds: state.getIn(['status_lists', 'pins', 'items']),
+  statusIds: getStatusList(state, 'pins'),
   hasMore: !!state.getIn(['status_lists', 'pins', 'next']),
 });
 
@@ -29,7 +34,7 @@ class PinnedStatuses extends ImmutablePureComponent {
     multiColumn: PropTypes.bool,
   };
 
-  componentWillMount () {
+  UNSAFE_componentWillMount () {
     this.props.dispatch(fetchPinnedStatuses());
   }
 
@@ -45,8 +50,7 @@ class PinnedStatuses extends ImmutablePureComponent {
     const { intl, statusIds, hasMore, multiColumn } = this.props;
 
     return (
-      <Column bindToDocument={!multiColumn} icon='thumb-tack' heading={intl.formatMessage(messages.heading)} ref={this.setRef}>
-        <ColumnBackButtonSlim />
+      <Column bindToDocument={!multiColumn} icon='thumb-tack' iconComponent={PushPinIcon} heading={intl.formatMessage(messages.heading)} ref={this.setRef} alwaysShowBackButton>
         <StatusList
           statusIds={statusIds}
           scrollKey='pinned_statuses'

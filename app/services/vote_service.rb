@@ -18,8 +18,8 @@ class VoteService < BaseService
 
     already_voted = true
 
-    with_lock("vote:#{@poll.id}:#{@account.id}") do
-      already_voted = @poll.votes.where(account: @account).exists?
+    with_redis_lock("vote:#{@poll.id}:#{@account.id}") do
+      already_voted = @poll.votes.exists?(account: @account)
 
       ApplicationRecord.transaction do
         @choices.each do |choice|

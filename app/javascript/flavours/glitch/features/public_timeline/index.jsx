@@ -1,16 +1,25 @@
-import React from 'react';
-import { connect } from 'react-redux';
-import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
 import PropTypes from 'prop-types';
-import StatusListContainer from 'flavours/glitch/features/ui/containers/status_list_container';
-import Column from 'flavours/glitch/components/column';
-import ColumnHeader from 'flavours/glitch/components/column_header';
-import { expandPublicTimeline } from 'flavours/glitch/actions/timelines';
-import { addColumn, removeColumn, moveColumn } from 'flavours/glitch/actions/columns';
-import ColumnSettingsContainer from './containers/column_settings_container';
-import { connectPublicStream } from 'flavours/glitch/actions/streaming';
+import { PureComponent } from 'react';
+
+import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
+
 import { Helmet } from 'react-helmet';
-import DismissableBanner from 'flavours/glitch/components/dismissable_banner';
+
+import { connect } from 'react-redux';
+
+import PublicIcon from '@/material-icons/400-24px/public.svg?react';
+import { DismissableBanner } from 'flavours/glitch/components/dismissable_banner';
+import { identityContextPropShape, withIdentity } from 'flavours/glitch/identity_context';
+import { domain } from 'flavours/glitch/initial_state';
+
+import { addColumn, removeColumn, moveColumn } from '../../actions/columns';
+import { connectPublicStream } from '../../actions/streaming';
+import { expandPublicTimeline } from '../../actions/timelines';
+import Column from '../../components/column';
+import ColumnHeader from '../../components/column_header';
+import StatusListContainer from '../ui/containers/status_list_container';
+
+import ColumnSettingsContainer from './containers/column_settings_container';
 
 const messages = defineMessages({
   title: { id: 'column.public', defaultMessage: 'Federated timeline' },
@@ -24,7 +33,7 @@ const mapStateToProps = (state, { columnId }) => {
   const onlyRemote = (columnId && index >= 0) ? columns.get(index).getIn(['params', 'other', 'onlyRemote']) : state.getIn(['settings', 'public', 'other', 'onlyRemote']);
   const allowLocalOnly = (columnId && index >= 0) ? columns.get(index).getIn(['params', 'other', 'allowLocalOnly']) : state.getIn(['settings', 'public', 'other', 'allowLocalOnly']);
   const regex = (columnId && index >= 0) ? columns.get(index).getIn(['params', 'regex', 'body']) : state.getIn(['settings', 'public', 'regex', 'body']);
-  const timelineState = state.getIn(['timelines', `public${onlyMedia ? ':media' : ''}`]);
+  const timelineState = state.getIn(['timelines', `public${onlyRemote ? ':remote' : allowLocalOnly ? ':allow_local_only' : ''}${onlyMedia ? ':media' : ''}`]);
 
   return {
     hasUnread: !!timelineState && timelineState.get('unread') > 0,
@@ -35,18 +44,13 @@ const mapStateToProps = (state, { columnId }) => {
   };
 };
 
-class PublicTimeline extends React.PureComponent {
-
+class PublicTimeline extends PureComponent {
   static defaultProps = {
     onlyMedia: false,
   };
 
-  static contextTypes = {
-    router: PropTypes.object,
-    identity: PropTypes.object,
-  };
-
   static propTypes = {
+    identity: identityContextPropShape,
     dispatch: PropTypes.func.isRequired,
     intl: PropTypes.object.isRequired,
     columnId: PropTypes.string,
@@ -79,7 +83,7 @@ class PublicTimeline extends React.PureComponent {
 
   componentDidMount () {
     const { dispatch, onlyMedia, onlyRemote, allowLocalOnly } = this.props;
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
 
     dispatch(expandPublicTimeline({ onlyMedia, onlyRemote, allowLocalOnly }));
     if (signedIn) {
@@ -88,7 +92,7 @@ class PublicTimeline extends React.PureComponent {
   }
 
   componentDidUpdate (prevProps) {
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
 
     if (prevProps.onlyMedia !== this.props.onlyMedia || prevProps.onlyRemote !== this.props.onlyRemote || prevProps.allowLocalOnly !== this.props.allowLocalOnly) {
       const { dispatch, onlyMedia, onlyRemote, allowLocalOnly } = this.props;
@@ -127,9 +131,10 @@ class PublicTimeline extends React.PureComponent {
     const pinned = !!columnId;
 
     return (
-      <Column bindToDocument={!multiColumn} ref={this.setRef} name='federated' label={intl.formatMessage(messages.title)}>
+      <Column bindToDocument={!multiColumn} ref={this.setRef} label={intl.formatMessage(messages.title)}>
         <ColumnHeader
           icon='globe'
+          iconComponent={PublicIcon}
           active={hasUnread}
           title={intl.formatMessage(messages.title)}
           onPin={this.handlePin}
@@ -141,11 +146,8 @@ class PublicTimeline extends React.PureComponent {
           <ColumnSettingsContainer columnId={columnId} />
         </ColumnHeader>
 
-        <DismissableBanner id='public_timeline'>
-          <FormattedMessage id='dismissable_banner.public_timeline' defaultMessage='These are the most recent public posts from people on this and other servers of the decentralized network that this server knows about.' />
-        </DismissableBanner>
-
         <StatusListContainer
+          prepend={<DismissableBanner id='public_timeline'><FormattedMessage id='dismissable_banner.public_timeline' defaultMessage='These are the most recent public posts from people on the social web that people on {domain} follow.' values={{ domain }} /></DismissableBanner>}
           timelineId={`public${onlyRemote ? ':remote' : (allowLocalOnly ? ':allow_local_only' : '')}${onlyMedia ? ':media' : ''}`}
           onLoadMore={this.handleLoadMore}
           trackScroll={!pinned}
@@ -165,4 +167,4 @@ class PublicTimeline extends React.PureComponent {
 
 }
 
-export default connect(mapStateToProps)(injectIntl(PublicTimeline));
+export default connect(mapStateToProps)(withIdentity(injectIntl(PublicTimeline)));

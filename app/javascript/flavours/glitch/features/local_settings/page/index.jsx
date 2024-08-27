@@ -1,24 +1,22 @@
 //  Package imports
-import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
+import { PureComponent } from 'react';
+
 import { defineMessages, FormattedMessage, injectIntl } from 'react-intl';
+
+import ImmutablePropTypes from 'react-immutable-proptypes';
+
 
 //  Our imports
 import { expandSpoilers } from 'flavours/glitch/initial_state';
 import { preferenceLink } from 'flavours/glitch/utils/backend_links';
-import LocalSettingsPageItem from './item';
+
 import DeprecatedLocalSettingsPageItem from './deprecated_item';
+import LocalSettingsPageItem from './item';
 
 //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 const messages = defineMessages({
-  layout_auto: {  id: 'layout.auto', defaultMessage: 'Auto' },
-  layout_auto_hint: {  id: 'layout.hint.auto', defaultMessage: 'Automatically chose layout based on “Enable advanced web interface” setting and screen size.' },
-  layout_desktop: { id: 'layout.desktop', defaultMessage: 'Desktop' },
-  layout_desktop_hint: { id: 'layout.hint.desktop', defaultMessage: 'Use multiple-column layout regardless of the “Enable advanced web interface” setting or screen size.' },
-  layout_mobile: { id: 'layout.single', defaultMessage: 'Mobile' },
-  layout_mobile_hint: { id: 'layout.hint.single', defaultMessage: 'Use single-column layout regardless of the “Enable advanced web interface” setting or screen size.' },
   side_arm_none: { id: 'settings.side_arm.none', defaultMessage: 'None' },
   side_arm_keep: { id: 'settings.side_arm_reply_mode.keep', defaultMessage: 'Keep its set privacy' },
   side_arm_copy: { id: 'settings.side_arm_reply_mode.copy', defaultMessage: 'Copy privacy setting of the toot being replied to' },
@@ -29,9 +27,13 @@ const messages = defineMessages({
   rewrite_mentions_username: { id: 'settings.rewrite_mentions_username', defaultMessage:  'Rewrite with username' },
   pop_in_left: { id: 'settings.pop_in_left', defaultMessage: 'Left' },
   pop_in_right: { id: 'settings.pop_in_right', defaultMessage:  'Right' },
+  public: { id: 'privacy.public.short', defaultMessage: 'Public' },
+  unlisted: { id: 'privacy.unlisted.short', defaultMessage: 'Quiet public' },
+  private: { id: 'privacy.private.short', defaultMessage: 'Followers' },
+  direct: { id: 'privacy.direct.short', defaultMessage: 'Specific people' },
 });
 
-class LocalSettingsPage extends React.PureComponent {
+class LocalSettingsPage extends PureComponent {
 
   static propTypes = {
     index    : PropTypes.number,
@@ -160,19 +162,6 @@ class LocalSettingsPage extends React.PureComponent {
           <h2><FormattedMessage id='settings.layout_opts' defaultMessage='Layout options' /></h2>
           <LocalSettingsPageItem
             settings={settings}
-            item={['layout']}
-            id='mastodon-settings--layout'
-            options={[
-              { value: 'auto', message: intl.formatMessage(messages.layout_auto), hint: intl.formatMessage(messages.layout_auto_hint) },
-              { value: 'multiple', message: intl.formatMessage(messages.layout_desktop), hint: intl.formatMessage(messages.layout_desktop_hint) },
-              { value: 'single', message: intl.formatMessage(messages.layout_mobile), hint: intl.formatMessage(messages.layout_mobile_hint) },
-            ]}
-            onChange={onChange}
-          >
-            <FormattedMessage id='settings.layout' defaultMessage='Layout:' />
-          </LocalSettingsPageItem>
-          <LocalSettingsPageItem
-            settings={settings}
             item={['stretch']}
             id='mastodon-settings--stretch'
             onChange={onChange}
@@ -237,14 +226,22 @@ class LocalSettingsPage extends React.PureComponent {
         </LocalSettingsPageItem>
         <LocalSettingsPageItem
           settings={settings}
+          item={['show_published_toast']}
+          id='mastodon-settings--show_published_toast'
+          onChange={onChange}
+        >
+          <FormattedMessage id='settings.show_published_toast' defaultMessage='Display toast when publishing/saving a post' />
+        </LocalSettingsPageItem>
+        <LocalSettingsPageItem
+          settings={settings}
           item={['side_arm']}
           id='mastodon-settings--side_arm'
           options={[
             { value: 'none', message: intl.formatMessage(messages.side_arm_none) },
-            { value: 'direct', message: intl.formatMessage({ id: 'privacy.direct.short' }) },
-            { value: 'private', message: intl.formatMessage({ id: 'privacy.private.short' }) },
-            { value: 'unlisted', message: intl.formatMessage({ id: 'privacy.unlisted.short' }) },
-            { value: 'public', message: intl.formatMessage({ id: 'privacy.public.short' }) },
+            { value: 'direct', message: intl.formatMessage(messages.direct) },
+            { value: 'private', message: intl.formatMessage(messages.private) },
+            { value: 'unlisted', message: intl.formatMessage(messages.unlisted) },
+            { value: 'public', message: intl.formatMessage(messages.public) },
           ]}
           onChange={onChange}
         >
@@ -267,7 +264,7 @@ class LocalSettingsPage extends React.PureComponent {
     ),
     ({ intl, onChange, settings }) => (
       <div className='glitch local-settings__page content_warnings'>
-        <h1><FormattedMessage id='settings.content_warnings' defaultMessage='Content warnings' /></h1>
+        <h1><FormattedMessage id='settings.content_warnings' defaultMessage='Content Warnings' /></h1>
         <LocalSettingsPageItem
           settings={settings}
           item={['content_warnings', 'shared_state']}

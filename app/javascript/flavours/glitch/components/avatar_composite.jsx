@@ -1,9 +1,13 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
-import { autoPlayGif } from 'flavours/glitch/initial_state';
+import { PureComponent } from 'react';
 
-export default class AvatarComposite extends React.PureComponent {
+import ImmutablePropTypes from 'react-immutable-proptypes';
+
+import { autoPlayGif } from '../initial_state';
+
+import { Avatar } from './avatar';
+
+export default class AvatarComposite extends PureComponent {
 
   static propTypes = {
     accounts: ImmutablePropTypes.list.isRequired,
@@ -74,20 +78,12 @@ export default class AvatarComposite extends React.PureComponent {
       bottom: bottom,
       width: `${width}%`,
       height: `${height}%`,
-      backgroundSize: 'cover',
-      backgroundImage: `url(${account.get(animate ? 'avatar' : 'avatar_static')})`,
     };
 
     return (
-      <a
-        href={account.get('url')}
-        target='_blank'
-        onClick={(e) => this.props.onAccountClick(account.get('acct'), e)}
-        title={`@${account.get('acct')}`}
-        key={account.get('id')}
-      >
-        <div style={style} data-avatar-of={`@${account.get('acct')}`} />
-      </a>
+      <div key={account.get('id')} style={style}>
+        <Avatar account={account} animate={animate} />
+      </div>
     );
   }
 

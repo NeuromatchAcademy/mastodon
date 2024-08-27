@@ -6,9 +6,14 @@ describe CustomCssController do
   render_views
 
   describe 'GET #show' do
-    it 'returns http success' do
+    before do
       get :show
+    end
+
+    it 'returns http success' do
       expect(response).to have_http_status(200)
     end
+
+    it_behaves_like 'cacheable response'
   end
 end

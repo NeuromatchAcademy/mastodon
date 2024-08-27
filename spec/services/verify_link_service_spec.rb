@@ -2,10 +2,10 @@
 
 require 'rails_helper'
 
-RSpec.describe VerifyLinkService, type: :service do
+RSpec.describe VerifyLinkService do
   subject { described_class.new }
 
-  context 'given a local account' do
+  context 'when given a local account' do
     let(:account) { Fabricate(:account, username: 'alice') }
     let(:field)   { Account::Field.new(account, 'name' => 'Website', 'value' => 'http://example.com') }
 
@@ -77,27 +77,28 @@ RSpec.describe VerifyLinkService, type: :service do
 
     context 'when a document is truncated but the link back is valid' do
       let(:html) do
-        "
+        <<-HTML
           <!doctype html>
           <body>
-            <a rel=\"me\" href=\"#{ActivityPub::TagManager.instance.url_for(account)}\"
-        "
+            <a rel="me" href="#{ActivityPub::TagManager.instance.url_for(account)}">
+        HTML
       end
 
-      it 'marks the field as not verified' do
-        expect(field.verified?).to be false
+      it 'marks the field as verified' do
+        expect(field.verified?).to be true
       end
     end
 
-    context 'when a link back might be truncated' do
+    context 'when a link tag might be truncated' do
       let(:html) do
-        "
+        <<-HTML_TRUNCATED
           <!doctype html>
           <body>
-            <a rel=\"me\" href=\"#{ActivityPub::TagManager.instance.url_for(account)}"
+            <a rel="me" href="#{ActivityPub::TagManager.instance.url_for(account)}"
+        HTML_TRUNCATED
       end
 
-      it 'does not mark the field as verified' do
+      it 'marks the field as not verified' do
         expect(field.verified?).to be false
       end
     end
@@ -129,7 +130,7 @@ RSpec.describe VerifyLinkService, type: :service do
     end
   end
 
-  context 'given a remote account' do
+  context 'when given a remote account' do
     let(:account) { Fabricate(:account, username: 'alice', domain: 'example.com', url: 'https://profile.example.com/alice') }
     let(:field)   { Account::Field.new(account, 'name' => 'Website', 'value' => '<a href="http://example.com" rel="me"><span class="invisible">http://</span><span class="">example.com</span><span class="invisible"></span></a>') }
 
@@ -165,7 +166,11 @@ RSpec.describe VerifyLinkService, type: :service do
       #
       # apparently github allows the user to enter website URLs with a single
       # slash and makes no attempts to correct that.
-      let(:html) { '<a href="http:/unrelated.example">Hello</a>' }
+      let(:html) do
+        <<-HTML
+          <a href="http:/unrelated.example">Hello</a>
+        HTML
+      end
 
       it 'does not crash' do
         # We could probably put more effort into perhaps auto-correcting the

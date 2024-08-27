@@ -4,6 +4,7 @@ class FetchResourceService < BaseService
   include JsonLdHelper
 
   ACCEPT_HEADER = 'application/activity+json, application/ld+json; profile="https://www.w3.org/ns/activitystreams", text/html;q=0.1'
+  ACTIVITY_STREAM_LINK_TYPES = ['application/activity+json', 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"'].freeze
 
   attr_reader :response_code
 
@@ -18,7 +19,7 @@ class FetchResourceService < BaseService
 
   private
 
-  def process(url, terminal = false)
+  def process(url, terminal: false)
     @url = url
 
     perform_request { |response| process_response(response, terminal) }
@@ -43,11 +44,19 @@ class FetchResourceService < BaseService
     @response_code = response.code
     return nil if response.code != 200
 
-    if ['application/activity+json', 'application/ld+json'].include?(response.mime_type)
+    if valid_activitypub_content_type?(response)
       body = response.body_with_limit
       json = body_to_json(body)
 
-      [json['id'], { prefetched_body: body, id: true }] if supported_context?(json) && (equals_or_includes_any?(json['type'], ActivityPub::FetchRemoteActorService::SUPPORTED_TYPES) || expected_type?(json))
+      return unless supported_context?(json) && (equals_or_includes_any?(json['type'], ActivityPub::FetchRemoteActorService::SUPPORTED_TYPES) || expected_type?(json))
+
+      if json['id'] != @url
+        return if terminal
+
+        return process(json['id'], terminal: true)
+      end
+
+      [@url, { prefetched_body: body }]
     elsif !terminal
       link_header = response['Link'] && parse_link_header(response)
 
@@ -65,7 +74,7 @@ class FetchResourceService < BaseService
 
   def process_html(response)
     page      = Nokogiri::HTML(response.body_with_limit)
-    json_link = page.xpath('//link[@rel="alternate"]').find { |link| ['application/activity+json', 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"'].include?(link['type']) }
+    json_link = page.xpath('//link[@rel="alternate"]').find { |link| ACTIVITY_STREAM_LINK_TYPES.include?(link['type']) }
 
     process(json_link['href'], terminal: true) unless json_link.nil?
   end

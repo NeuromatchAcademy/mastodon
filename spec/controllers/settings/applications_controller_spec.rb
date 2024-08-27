@@ -13,13 +13,14 @@ describe Settings::ApplicationsController do
   end
 
   describe 'GET #index' do
-    let!(:other_app) { Fabricate(:application) }
-
-    it 'shows apps' do
+    before do
+      Fabricate(:application)
       get :index
+    end
+
+    it 'returns http success with private cache control headers', :aggregate_failures do
       expect(response).to have_http_status(200)
-      expect(assigns(:applications)).to include(app)
-      expect(assigns(:applications)).to_not include(other_app)
+      expect(response.headers['Cache-Control']).to include('private, no-store')
     end
   end
 
@@ -46,8 +47,8 @@ describe Settings::ApplicationsController do
   end
 
   describe 'POST #create' do
-    context 'success (passed scopes as a String)' do
-      def call_create
+    context 'when success (passed scopes as a String)' do
+      subject do
         post :create, params: {
           doorkeeper_application: {
             name: 'My New App',
@@ -56,20 +57,16 @@ describe Settings::ApplicationsController do
             scopes: 'read write follow',
           },
         }
-        response
       end
 
-      it 'creates an entry in the database' do
-        expect { call_create }.to change(Doorkeeper::Application, :count)
-      end
-
-      it 'redirects back to applications page' do
-        expect(call_create).to redirect_to(settings_applications_path)
+      it 'creates an entry in the database', :aggregate_failures do
+        expect { subject }.to change(Doorkeeper::Application, :count)
+        expect(response).to redirect_to(settings_applications_path)
       end
     end
 
-    context 'success (passed scopes as an Array)' do
-      def call_create
+    context 'when success (passed scopes as an Array)' do
+      subject do
         post :create, params: {
           doorkeeper_application: {
             name: 'My New App',
@@ -78,19 +75,15 @@ describe Settings::ApplicationsController do
             scopes: %w(read write follow),
           },
         }
-        response
       end
 
-      it 'creates an entry in the database' do
-        expect { call_create }.to change(Doorkeeper::Application, :count)
-      end
-
-      it 'redirects back to applications page' do
-        expect(call_create).to redirect_to(settings_applications_path)
+      it 'creates an entry in the database', :aggregate_failures do
+        expect { subject }.to change(Doorkeeper::Application, :count)
+        expect(response).to redirect_to(settings_applications_path)
       end
     end
 
-    context 'failure' do
+    context 'with failure request' do
       before do
         post :create, params: {
           doorkeeper_application: {
@@ -102,25 +95,16 @@ describe Settings::ApplicationsController do
         }
       end
 
-      it 'returns http success' do
+      it 'returns http success and renders form', :aggregate_failures do
         expect(response).to have_http_status(200)
-      end
-
-      it 'renders form again' do
         expect(response).to render_template(:new)
       end
     end
   end
 
   describe 'PATCH #update' do
-    context 'success' do
-      let(:opts) do
-        {
-          website: 'https://foo.bar/',
-        }
-      end
-
-      def call_update
+    context 'when success' do
+      subject do
         patch :update, params: {
           id: app.id,
           doorkeeper_application: opts,
@@ -128,17 +112,21 @@ describe Settings::ApplicationsController do
         response
       end
 
-      it 'updates existing application' do
-        call_update
-        expect(app.reload.website).to eql(opts[:website])
+      let(:opts) do
+        {
+          website: 'https://foo.bar/',
+        }
       end
 
-      it 'redirects back to applications page' do
-        expect(call_update).to redirect_to(settings_application_path(app))
+      it 'updates existing application' do
+        subject
+
+        expect(app.reload.website).to eql(opts[:website])
+        expect(response).to redirect_to(settings_application_path(app))
       end
     end
 
-    context 'failure' do
+    context 'with failure request' do
       before do
         patch :update, params: {
           id: app.id,
@@ -151,39 +139,39 @@ describe Settings::ApplicationsController do
         }
       end
 
-      it 'returns http success' do
+      it 'returns http success and renders form', :aggregate_failures do
         expect(response).to have_http_status(200)
-      end
-
-      it 'renders form again' do
         expect(response).to render_template(:show)
       end
     end
   end
 
   describe 'destroy' do
+    let(:redis_pipeline_stub) { instance_double(Redis::Namespace, publish: nil) }
+    let!(:access_token) { Fabricate(:accessible_access_token, application: app) }
+
     before do
+      allow(redis).to receive(:pipelined).and_yield(redis_pipeline_stub)
       post :destroy, params: { id: app.id }
     end
 
-    it 'redirects back to applications page' do
+    it 'redirects back to applications page removes the app' do
       expect(response).to redirect_to(settings_applications_path)
+      expect(Doorkeeper::Application.find_by(id: app.id)).to be_nil
     end
 
-    it 'removes the app' do
-      expect(Doorkeeper::Application.find_by(id: app.id)).to be_nil
+    it 'sends a session kill payload to the streaming server' do
+      expect(redis_pipeline_stub).to have_received(:publish).with("timeline:access_token:#{access_token.id}", '{"event":"kill"}')
     end
   end
 
   describe 'regenerate' do
     let(:token) { user.token_for_app(app) }
 
-    before do
+    it 'creates new token' do
       expect(token).to_not be_nil
       post :regenerate, params: { id: app.id }
-    end
 
-    it 'creates new token' do
       expect(user.token_for_app(app)).to_not eql(token)
     end
   end

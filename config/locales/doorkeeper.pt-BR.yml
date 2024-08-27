@@ -127,7 +127,7 @@ pt-BR:
         bookmarks: Salvos
         conversations: Conversas
         crypto: Criptografia de ponta a ponta
-        favourites: Favoritos
+        favourites: Favoritas
         filters: Filtros
         follow: Seguidores, Silenciados e Bloqueados
         follows: Seguidores
@@ -135,6 +135,7 @@ pt-BR:
         media: Mídias anexadas
         mutes: Silenciados
         notifications: Notificações
+        profile: Seu perfil do Mastodon
         push: Notificações push
         reports: Denúncias
         search: Buscar
@@ -165,12 +166,13 @@ pt-BR:
       admin:write:reports: executar ações de moderação em denúncias
       crypto: usar criptografia de ponta-a-ponta
       follow: alterar o relacionamento das contas
+      profile: ler somente as informações do perfil da sua conta
       push: receber notificações push
       read: ler todos os dados da sua conta
       read:accounts: ver informações das contas
       read:blocks: ver seus bloqueados
       read:bookmarks: ver seus salvos
-      read:favourites: ver seus favoritos
+      read:favourites: veja suas favoritas
       read:filters: ver seus filtros
       read:follows: ver quem você segue
       read:lists: ver suas listas
@@ -184,7 +186,7 @@ pt-BR:
       write:blocks: bloquear contas e domínios
       write:bookmarks: salvar toots
       write:conversations: silenciar e excluir conversas
-      write:favourites: favoritar toots
+      write:favourites: publicações favoritas
       write:filters: criar filtros
       write:follows: seguir pessoas
       write:lists: criar listas

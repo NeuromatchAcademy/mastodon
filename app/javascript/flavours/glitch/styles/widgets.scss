@@ -165,7 +165,7 @@
     margin-bottom: 15px;
 
     .fa {
-      margin-right: 5px;
+      margin-inline-end: 5px;
       color: $darker-text-color;
     }
   }
@@ -198,7 +198,7 @@
 }
 
 .directory {
-  background: $ui-base-color;
+  background: var(--background-color);
   border-radius: 4px;
   box-shadow: 0 0 15px rgba($base-shadow-color, 0.2);
 
@@ -211,7 +211,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: $ui-base-color;
+      border: 1px solid var(--background-border-color);
       border-radius: 4px;
       padding: 15px;
       text-decoration: none;
@@ -223,7 +223,7 @@
       &:hover,
       &:active,
       &:focus {
-        background: lighten($ui-base-color, 8%);
+        background: $ui-base-color;
       }
     }
 
@@ -298,7 +298,7 @@
     padding: 10px;
 
     &:first-child {
-      text-align: left;
+      text-align: start;
     }
   }
 
@@ -329,9 +329,9 @@
 
   tbody td.accounts-table__extra {
     width: 120px;
-    text-align: right;
+    text-align: end;
     color: $darker-text-color;
-    padding-right: 16px;
+    padding-inline-end: 16px;
 
     a {
       text-decoration: none;
@@ -340,7 +340,7 @@
       &:focus,
       &:hover,
       &:active {
-        text-decoration: underline;
+        color: $highlight-text-color;
       }
     }
   }

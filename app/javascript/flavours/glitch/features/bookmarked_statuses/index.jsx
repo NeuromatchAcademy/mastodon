@@ -1,23 +1,29 @@
-import { debounce } from 'lodash';
 import PropTypes from 'prop-types';
-import React from 'react';
-import { Helmet } from 'react-helmet';
+
 import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
+
+import { Helmet } from 'react-helmet';
+
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 import { connect } from 'react-redux';
+
+import { debounce } from 'lodash';
+
+import BookmarksIcon from '@/material-icons/400-24px/bookmarks-fill.svg?react';
 import { fetchBookmarkedStatuses, expandBookmarkedStatuses } from 'flavours/glitch/actions/bookmarks';
 import { addColumn, removeColumn, moveColumn } from 'flavours/glitch/actions/columns';
 import ColumnHeader from 'flavours/glitch/components/column_header';
 import StatusList from 'flavours/glitch/components/status_list';
 import Column from 'flavours/glitch/features/ui/components/column';
+import { getStatusList } from 'flavours/glitch/selectors';
 
 const messages = defineMessages({
   heading: { id: 'column.bookmarks', defaultMessage: 'Bookmarks' },
 });
 
 const mapStateToProps = state => ({
-  statusIds: state.getIn(['status_lists', 'bookmarks', 'items']),
+  statusIds: getStatusList(state, 'bookmarks'),
   isLoading: state.getIn(['status_lists', 'bookmarks', 'isLoading'], true),
   hasMore: !!state.getIn(['status_lists', 'bookmarks', 'next']),
 });
@@ -34,7 +40,7 @@ class Bookmarks extends ImmutablePureComponent {
     isLoading: PropTypes.bool,
   };
 
-  componentWillMount () {
+  UNSAFE_componentWillMount () {
     this.props.dispatch(fetchBookmarkedStatuses());
   }
 
@@ -72,9 +78,10 @@ class Bookmarks extends ImmutablePureComponent {
     const emptyMessage = <FormattedMessage id='empty_column.bookmarked_statuses' defaultMessage="You don't have any bookmarked posts yet. When you bookmark one, it will show up here." />;
 
     return (
-      <Column bindToDocument={!multiColumn} ref={this.setRef} name='bookmarks'>
+      <Column bindToDocument={!multiColumn} ref={this.setRef}>
         <ColumnHeader
-          icon='bookmark'
+          icon='bookmarks'
+          iconComponent={BookmarksIcon}
           title={intl.formatMessage(messages.heading)}
           onPin={this.handlePin}
           onMove={this.handleMove}

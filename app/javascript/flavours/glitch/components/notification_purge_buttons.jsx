@@ -4,13 +4,17 @@
  * a Confirm and Abort buttons are shown in its place.
  */
 
-
-//  Package imports  //
-import React from 'react';
 import PropTypes from 'prop-types';
+
 import { defineMessages, injectIntl } from 'react-intl';
+
+import classNames from 'classnames';
+
 import ImmutablePureComponent from 'react-immutable-pure-component';
-import Icon from 'flavours/glitch/components/icon';
+
+import DeleteIcon from '@/material-icons/400-24px/delete.svg?react';
+import { Icon } from 'flavours/glitch/components/icon';
+
 
 const messages = defineMessages({
   btnAll : { id: 'notification_purge.btn_all', defaultMessage: 'Select\nall' },
@@ -36,20 +40,20 @@ class NotificationPurgeButtons extends ImmutablePureComponent {
     //className='active'
     return (
       <div className='column-header__notif-cleaning-buttons'>
-        <button onClick={this.props.onMarkAll} className={markNewForDelete ? 'active' : ''}>
+        <button onClick={this.props.onMarkAll} className={classNames('column-header__button', { active: markNewForDelete })}>
           <b>∀</b><br />{intl.formatMessage(messages.btnAll)}
         </button>
 
-        <button onClick={this.props.onMarkNone} className={!markNewForDelete ? 'active' : ''}>
+        <button onClick={this.props.onMarkNone} className={classNames('column-header__button', { active: !markNewForDelete })}>
           <b>∅</b><br />{intl.formatMessage(messages.btnNone)}
         </button>
 
-        <button onClick={this.props.onInvert}>
+        <button onClick={this.props.onInvert} className='column-header__button'>
           <b>¬</b><br />{intl.formatMessage(messages.btnInvert)}
         </button>
 
-        <button onClick={this.props.onDeleteMarked}>
-          <Icon id='trash' /><br />{intl.formatMessage(messages.btnApply)}
+        <button onClick={this.props.onDeleteMarked} className='column-header__button'>
+          <Icon id='trash' icon={DeleteIcon} /><br />{intl.formatMessage(messages.btnApply)}
         </button>
       </div>
     );

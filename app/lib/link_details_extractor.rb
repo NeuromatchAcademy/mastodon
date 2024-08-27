@@ -7,15 +7,15 @@ class LinkDetailsExtractor
   # Some publications wrap their JSON-LD data in their <script> tags
   # in commented-out CDATA blocks, they need to be removed before
   # attempting to parse JSON
-  CDATA_JUNK_PATTERN = %r{^[\s]*(
-    (/\*[\s]*<!\[CDATA\[[\s]*\*/) # Block comment style opening
+  CDATA_JUNK_PATTERN = %r{^\s*(
+    (/\*\s*<!\[CDATA\[\s*\*/) # Block comment style opening
     |
-    (//[\s]*<!\[CDATA\[) # Single-line comment style opening
+    (//\s*<!\[CDATA\[) # Single-line comment style opening
     |
-    (/\*[\s]*\]\]>[\s]*\*/) # Block comment style closing
+    (/\*\s*\]\]>\s*\*/) # Block comment style closing
     |
-    (//[\s]*\]\]>) # Single-line comment style closing
-  )[\s]*$}x
+    (//\s*\]\]>) # Single-line comment style closing
+  )\s*$}x
 
   class StructuredData
     SUPPORTED_TYPES = %w(
@@ -36,7 +36,9 @@ class LinkDetailsExtractor
     end
 
     def language
-      json['inLanguage']
+      lang = json['inLanguage']
+      lang = lang.first if lang.is_a?(Array)
+      lang.is_a?(Hash) ? (lang['alternateName'] || lang['name']) : lang
     end
 
     def type
@@ -60,7 +62,8 @@ class LinkDetailsExtractor
     end
 
     def author_name
-      author['name']
+      name = author['name']
+      name.is_a?(Array) ? name.join(', ') : name
     end
 
     def author_url
@@ -98,7 +101,7 @@ class LinkDetailsExtractor
     end
 
     def json
-      @json ||= root_array(Oj.load(@data)).find { |obj| SUPPORTED_TYPES.include?(obj['@type']) } || {}
+      @json ||= root_array(Oj.load(@data)).compact.find { |obj| SUPPORTED_TYPES.include?(obj['@type']) } || {}
     end
   end
 
@@ -113,6 +116,7 @@ class LinkDetailsExtractor
       title: title || '',
       description: description || '',
       image_remote_url: image,
+      image_description: image_alt || '',
       type: type,
       link_type: link_type,
       width: width || 0,
@@ -124,6 +128,7 @@ class LinkDetailsExtractor
       author_url: author_url || '',
       embed_url: embed_url || '',
       language: language,
+      published_at: published_at.presence,
     }
   end
 
@@ -140,7 +145,7 @@ class LinkDetailsExtractor
   end
 
   def html
-    player_url.present? ? content_tag(:iframe, nil, src: player_url, width: width, height: height, allowtransparency: 'true', scrolling: 'no', frameborder: '0') : nil
+    player_url.present? ? content_tag(:iframe, nil, src: player_url, width: width, height: height, allowfullscreen: 'true', allowtransparency: 'true', scrolling: 'no', frameborder: '0') : nil
   end
 
   def width
@@ -152,15 +157,23 @@ class LinkDetailsExtractor
   end
 
   def title
-    html_entities.decode(structured_data&.headline || opengraph_tag('og:title') || document.xpath('//title').map(&:content).first)
+    html_entities_decode(structured_data&.headline || opengraph_tag('og:title') || document.xpath('//title').map(&:content).first)&.strip
   end
 
   def description
-    html_entities.decode(structured_data&.description || opengraph_tag('og:description') || meta_tag('description'))
+    html_entities_decode(structured_data&.description || opengraph_tag('og:description') || meta_tag('description'))
+  end
+
+  def published_at
+    structured_data&.date_published || opengraph_tag('article:published_time')
   end
 
   def image
     valid_url_or_nil(opengraph_tag('og:image'))
+  end
+
+  def image_alt
+    opengraph_tag('og:image:alt')
   end
 
   def canonical_url
@@ -168,7 +181,7 @@ class LinkDetailsExtractor
   end
 
   def provider_name
-    html_entities.decode(structured_data&.publisher_name || opengraph_tag('og:site_name'))
+    html_entities_decode(structured_data&.publisher_name || opengraph_tag('og:site_name'))
   end
 
   def provider_url
@@ -176,11 +189,15 @@ class LinkDetailsExtractor
   end
 
   def author_name
-    html_entities.decode(structured_data&.author_name || opengraph_tag('og:author') || opengraph_tag('og:author:username'))
+    html_entities_decode(structured_data&.author_name || opengraph_tag('og:author') || opengraph_tag('og:author:username'))
   end
 
   def author_url
     structured_data&.author_url
+  end
+
+  def author_account
+    opengraph_tag('fediverse:creator')
   end
 
   def embed_url
@@ -204,7 +221,7 @@ class LinkDetailsExtractor
   def host_to_url(str)
     return if str.blank?
 
-    str.start_with?(/https?:\/\//) ? str : "http://#{str}"
+    str.start_with?(%r{https?://}) ? str : "http://#{str}"
   end
 
   def valid_url_or_nil(str, same_origin_only: false)
@@ -241,7 +258,7 @@ class LinkDetailsExtractor
 
       next if json_ld.blank?
 
-      structured_data = StructuredData.new(html_entities.decode(json_ld))
+      structured_data = StructuredData.new(html_entities_decode(json_ld))
 
       next unless structured_data.valid?
 
@@ -253,14 +270,27 @@ class LinkDetailsExtractor
   end
 
   def document
-    @document ||= Nokogiri::HTML(@html, nil, encoding)
+    @document ||= detect_encoding_and_parse_document
   end
 
-  def encoding
-    @encoding ||= begin
-      guess = detector.detect(@html, @html_charset)
-      guess&.fetch(:confidence, 0).to_i > 60 ? guess&.fetch(:encoding, nil) : nil
+  def detect_encoding_and_parse_document
+    [detect_encoding, nil, header_encoding].uniq.each do |encoding|
+      document = Nokogiri::HTML(@html, nil, encoding)
+      return document if document.to_s.valid_encoding?
     end
+    Nokogiri::HTML(@html, nil, 'UTF-8')
+  end
+
+  def detect_encoding
+    guess = detector.detect(@html, @html_charset)
+    guess&.fetch(:confidence, 0).to_i > 60 ? guess&.fetch(:encoding, nil) : nil
+  end
+
+  def header_encoding
+    Encoding.find(@html_charset).name if @html_charset
+  rescue ArgumentError
+    # Encoding from HTTP header is not recognized by ruby
+    nil
   end
 
   def detector
@@ -269,7 +299,16 @@ class LinkDetailsExtractor
     end
   end
 
+  def html_entities_decode(string)
+    return if string.nil?
+
+    unicode_string = string.to_s.encode('UTF-8')
+    raise EncodingError, 'cannot convert string to valid UTF-8' unless unicode_string.valid_encoding?
+
+    html_entities.decode(unicode_string)
+  end
+
   def html_entities
-    @html_entities ||= HTMLEntities.new
+    @html_entities ||= HTMLEntities.new(:expanded)
   end
 end

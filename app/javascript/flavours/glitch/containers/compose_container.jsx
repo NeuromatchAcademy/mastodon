@@ -1,18 +1,12 @@
-import React from 'react';
 import { Provider } from 'react-redux';
-import PropTypes from 'prop-types';
-import configureStore from 'flavours/glitch/store/configureStore';
+
+import { fetchCustomEmojis } from 'flavours/glitch/actions/custom_emojis';
 import { hydrateStore } from 'flavours/glitch/actions/store';
-import { IntlProvider, addLocaleData } from 'react-intl';
-import { getLocale } from 'mastodon/locales';
+import { Router } from 'flavours/glitch/components/router';
 import Compose from 'flavours/glitch/features/standalone/compose';
 import initialState from 'flavours/glitch/initial_state';
-import { fetchCustomEmojis } from 'flavours/glitch/actions/custom_emojis';
-
-const { localeData, messages } = getLocale();
-addLocaleData(localeData);
-
-const store = configureStore();
+import { IntlProvider } from 'flavours/glitch/locales';
+import { store } from 'flavours/glitch/store';
 
 if (initialState) {
   store.dispatch(hydrateStore(initialState));
@@ -20,22 +14,14 @@ if (initialState) {
 
 store.dispatch(fetchCustomEmojis());
 
-export default class TimelineContainer extends React.PureComponent {
+const ComposeContainer = () => (
+  <IntlProvider>
+    <Provider store={store}>
+      <Router>
+        <Compose />
+      </Router>
+    </Provider>
+  </IntlProvider>
+);
 
-  static propTypes = {
-    locale: PropTypes.string.isRequired,
-  };
-
-  render () {
-    const { locale } = this.props;
-
-    return (
-      <IntlProvider locale={locale} messages={messages}>
-        <Provider store={store}>
-          <Compose />
-        </Provider>
-      </IntlProvider>
-    );
-  }
-
-}
+export default ComposeContainer;

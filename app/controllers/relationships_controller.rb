@@ -5,9 +5,9 @@ class RelationshipsController < ApplicationController
 
   before_action :authenticate_user!
   before_action :set_accounts, only: :show
-  before_action :set_pack
   before_action :set_relationships, only: :show
   before_action :set_body_classes
+  before_action :set_cache_headers
 
   helper_method :following_relationship?, :followed_by_relationship?, :mutual_relationship?
 
@@ -33,7 +33,7 @@ class RelationshipsController < ApplicationController
   end
 
   def set_relationships
-    @relationships = AccountRelationshipsPresenter.new(@accounts.pluck(:id), current_user.account_id)
+    @relationships = AccountRelationshipsPresenter.new(@accounts, current_user.account_id)
   end
 
   def form_account_batch_params
@@ -72,7 +72,7 @@ class RelationshipsController < ApplicationController
     @body_classes = 'admin'
   end
 
-  def set_pack
-    use_pack 'admin'
+  def set_cache_headers
+    response.cache_control.replace(private: true, no_store: true)
   end
 end

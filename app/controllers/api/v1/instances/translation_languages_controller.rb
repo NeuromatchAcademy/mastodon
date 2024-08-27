@@ -1,12 +1,10 @@
 # frozen_string_literal: true
 
-class Api::V1::Instances::TranslationLanguagesController < Api::BaseController
-  skip_before_action :require_authenticated_user!, unless: :whitelist_mode?
-
+class Api::V1::Instances::TranslationLanguagesController < Api::V1::Instances::BaseController
   before_action :set_languages
 
   def show
-    expires_in 1.day, public: true
+    cache_even_if_authenticated!
     render json: @languages
   end
 

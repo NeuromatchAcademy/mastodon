@@ -1,20 +1,23 @@
-import React from 'react';
-import { connect } from 'react-redux';
-import { submitReport } from 'mastodon/actions/reports';
-import { expandAccountTimeline } from 'mastodon/actions/timelines';
-import { fetchServer } from 'mastodon/actions/server';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
-import { makeGetAccount } from 'mastodon/selectors';
+
 import { defineMessages, FormattedMessage, injectIntl } from 'react-intl';
+
 import { OrderedSet } from 'immutable';
+import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
-import IconButton from 'mastodon/components/icon_button';
+import { connect } from 'react-redux';
+
+import CloseIcon from '@/material-icons/400-24px/close.svg?react';
+import { submitReport } from 'mastodon/actions/reports';
+import { fetchServer } from 'mastodon/actions/server';
+import { expandAccountTimeline } from 'mastodon/actions/timelines';
+import { IconButton } from 'mastodon/components/icon_button';
 import Category from 'mastodon/features/report/category';
-import Statuses from 'mastodon/features/report/statuses';
-import Rules from 'mastodon/features/report/rules';
 import Comment from 'mastodon/features/report/comment';
+import Rules from 'mastodon/features/report/rules';
+import Statuses from 'mastodon/features/report/statuses';
 import Thanks from 'mastodon/features/report/thanks';
+import { makeGetAccount } from 'mastodon/selectors';
 
 const messages = defineMessages({
   close: { id: 'lightbox.close', defaultMessage: 'Close' },
@@ -37,31 +40,32 @@ class ReportModal extends ImmutablePureComponent {
     statusId: PropTypes.string,
     dispatch: PropTypes.func.isRequired,
     intl: PropTypes.object.isRequired,
-    account: ImmutablePropTypes.map.isRequired,
+    account: ImmutablePropTypes.record.isRequired,
   };
 
   state = {
     step: 'category',
     selectedStatusIds: OrderedSet(this.props.statusId ? [this.props.statusId] : []),
+    selectedDomains: OrderedSet(),
     comment: '',
     category: null,
     selectedRuleIds: OrderedSet(),
-    forward: true,
     isSubmitting: false,
     isSubmitted: false,
   };
 
   handleSubmit = () => {
     const { dispatch, accountId } = this.props;
-    const { selectedStatusIds, comment, category, selectedRuleIds, forward } = this.state;
+    const { selectedStatusIds, selectedDomains, comment, category, selectedRuleIds } = this.state;
 
     this.setState({ isSubmitting: true });
 
     dispatch(submitReport({
       account_id: accountId,
       status_ids: selectedStatusIds.toArray(),
+      forward_to_domains: selectedDomains.toArray(),
       comment,
-      forward,
+      forward: selectedDomains.size > 0,
       category,
       rule_ids: selectedRuleIds.toArray(),
     }, this.handleSuccess, this.handleFail));
@@ -85,13 +89,19 @@ class ReportModal extends ImmutablePureComponent {
     }
   };
 
-  handleRuleToggle = (ruleId, checked) => {
-    const { selectedRuleIds } = this.state;
-
+  handleDomainToggle = (domain, checked) => {
     if (checked) {
-      this.setState({ selectedRuleIds: selectedRuleIds.add(ruleId) });
+      this.setState((state) => ({ selectedDomains: state.selectedDomains.add(domain) }));
     } else {
-      this.setState({ selectedRuleIds: selectedRuleIds.remove(ruleId) });
+      this.setState((state) => ({ selectedDomains: state.selectedDomains.remove(domain) }));
+    }
+  };
+
+  handleRuleToggle = (ruleId, checked) => {
+    if (checked) {
+      this.setState((state) => ({ selectedRuleIds: state.selectedRuleIds.add(ruleId) }));
+    } else {
+      this.setState((state) => ({ selectedRuleIds: state.selectedRuleIds.remove(ruleId) }));
     }
   };
 
@@ -101,10 +111,6 @@ class ReportModal extends ImmutablePureComponent {
 
   handleChangeComment = comment => {
     this.setState({ comment });
-  };
-
-  handleChangeForward = forward => {
-    this.setState({ forward });
   };
 
   handleNextStep = step => {
@@ -134,8 +140,8 @@ class ReportModal extends ImmutablePureComponent {
       step,
       selectedStatusIds,
       selectedRuleIds,
+      selectedDomains,
       comment,
-      forward,
       category,
       isSubmitting,
       isSubmitted,
@@ -183,10 +189,11 @@ class ReportModal extends ImmutablePureComponent {
           isSubmitting={isSubmitting}
           isRemote={isRemote}
           comment={comment}
-          forward={forward}
           domain={domain}
           onChangeComment={this.handleChangeComment}
-          onChangeForward={this.handleChangeForward}
+          statusIds={selectedStatusIds}
+          selectedDomains={selectedDomains}
+          onToggleDomain={this.handleDomainToggle}
         />
       );
       break;
@@ -203,7 +210,7 @@ class ReportModal extends ImmutablePureComponent {
     return (
       <div className='modal-root__modal report-dialog-modal'>
         <div className='report-modal__target'>
-          <IconButton className='report-modal__close' title={intl.formatMessage(messages.close)} icon='times' onClick={onClose} size={20} />
+          <IconButton className='report-modal__close' title={intl.formatMessage(messages.close)} icon='times' iconComponent={CloseIcon} onClick={onClose} size={20} />
           <FormattedMessage id='report.target' defaultMessage='Report {target}' values={{ target: <strong>{account.get('acct')}</strong> }} />
         </div>
 

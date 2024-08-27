@@ -1,13 +1,17 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import ColumnHeader from '../../../components/column_header';
+import { PureComponent } from 'react';
+
 import { injectIntl, defineMessages } from 'react-intl';
+
+import PersonIcon from '@/material-icons/400-24px/person.svg?react';
+
+import ColumnHeader from '../../../components/column_header';
 
 const messages = defineMessages({
   profile: { id: 'column_header.profile', defaultMessage: 'Profile' },
 });
 
-class ProfileColumnHeader extends React.PureComponent {
+class ProfileColumnHeader extends PureComponent {
 
   static propTypes = {
     onClick: PropTypes.func,
@@ -21,6 +25,7 @@ class ProfileColumnHeader extends React.PureComponent {
     return (
       <ColumnHeader
         icon='user-circle'
+        iconComponent={PersonIcon}
         title={intl.formatMessage(messages.profile)}
         onClick={onClick}
         showBackButton

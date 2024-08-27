@@ -1,21 +1,25 @@
-import React from 'react';
-import { connect } from 'react-redux';
-import ImmutablePropTypes from 'react-immutable-proptypes';
-import { debounce } from 'lodash';
 import PropTypes from 'prop-types';
-import LoadingIndicator from '../../components/loading_indicator';
-import Column from '../ui/components/column';
-import ColumnBackButtonSlim from '../../components/column_back_button_slim';
-import DomainContainer from '../../containers/domain_container';
-import { fetchDomainBlocks, expandDomainBlocks } from '../../actions/domain_blocks';
+
 import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
-import ImmutablePureComponent from 'react-immutable-pure-component';
-import ScrollableList from 'flavours/glitch/components/scrollable_list';
+
 import { Helmet } from 'react-helmet';
+
+import ImmutablePropTypes from 'react-immutable-proptypes';
+import ImmutablePureComponent from 'react-immutable-pure-component';
+import { connect } from 'react-redux';
+
+import { debounce } from 'lodash';
+
+import BlockIcon from '@/material-icons/400-24px/block-fill.svg?react';
+import { Domain } from 'flavours/glitch/components/domain';
+
+import { fetchDomainBlocks, expandDomainBlocks } from '../../actions/domain_blocks';
+import { LoadingIndicator } from '../../components/loading_indicator';
+import ScrollableList from '../../components/scrollable_list';
+import Column from '../ui/components/column';
 
 const messages = defineMessages({
   heading: { id: 'column.domain_blocks', defaultMessage: 'Blocked domains' },
-  unblockDomain: { id: 'account.unblock_domain', defaultMessage: 'Unblock domain {domain}' },
 });
 
 const mapStateToProps = state => ({
@@ -29,12 +33,12 @@ class Blocks extends ImmutablePureComponent {
     params: PropTypes.object.isRequired,
     dispatch: PropTypes.func.isRequired,
     hasMore: PropTypes.bool,
-    domains: ImmutablePropTypes.list,
+    domains: ImmutablePropTypes.orderedSet,
     intl: PropTypes.object.isRequired,
     multiColumn: PropTypes.bool,
   };
 
-  componentWillMount () {
+  UNSAFE_componentWillMount () {
     this.props.dispatch(fetchDomainBlocks());
   }
 
@@ -56,9 +60,7 @@ class Blocks extends ImmutablePureComponent {
     const emptyMessage = <FormattedMessage id='empty_column.domain_blocks' defaultMessage='There are no blocked domains yet.' />;
 
     return (
-      <Column bindToDocument={!multiColumn} icon='minus-circle' heading={intl.formatMessage(messages.heading)}>
-        <ColumnBackButtonSlim />
-
+      <Column bindToDocument={!multiColumn} icon='ban' iconComponent={BlockIcon} heading={intl.formatMessage(messages.heading)} alwaysShowBackButton>
         <ScrollableList
           scrollKey='domain_blocks'
           onLoadMore={this.handleLoadMore}
@@ -67,7 +69,7 @@ class Blocks extends ImmutablePureComponent {
           bindToDocument={!multiColumn}
         >
           {domains.map(domain =>
-            <DomainContainer key={domain} domain={domain} />,
+            <Domain key={domain} domain={domain} />,
           )}
         </ScrollableList>
 

@@ -1,11 +1,9 @@
+import { Map as ImmutableMap, OrderedSet as ImmutableOrderedSet } from 'immutable';
+
 import {
-  FAVOURITED_STATUSES_FETCH_REQUEST,
-  FAVOURITED_STATUSES_FETCH_SUCCESS,
-  FAVOURITED_STATUSES_FETCH_FAIL,
-  FAVOURITED_STATUSES_EXPAND_REQUEST,
-  FAVOURITED_STATUSES_EXPAND_SUCCESS,
-  FAVOURITED_STATUSES_EXPAND_FAIL,
-} from 'flavours/glitch/actions/favourites';
+  blockAccountSuccess,
+  muteAccountSuccess,
+} from '../actions/accounts';
 import {
   BOOKMARKED_STATUSES_FETCH_REQUEST,
   BOOKMARKED_STATUSES_FETCH_SUCCESS,
@@ -13,19 +11,15 @@ import {
   BOOKMARKED_STATUSES_EXPAND_REQUEST,
   BOOKMARKED_STATUSES_EXPAND_SUCCESS,
   BOOKMARKED_STATUSES_EXPAND_FAIL,
-} from 'flavours/glitch/actions/bookmarks';
+} from '../actions/bookmarks';
 import {
-  PINNED_STATUSES_FETCH_SUCCESS,
-} from 'flavours/glitch/actions/pin_statuses';
-import {
-  TRENDS_STATUSES_FETCH_REQUEST,
-  TRENDS_STATUSES_FETCH_SUCCESS,
-  TRENDS_STATUSES_FETCH_FAIL,
-  TRENDS_STATUSES_EXPAND_REQUEST,
-  TRENDS_STATUSES_EXPAND_SUCCESS,
-  TRENDS_STATUSES_EXPAND_FAIL,
-} from 'flavours/glitch/actions/trends';
-import { Map as ImmutableMap, OrderedSet as ImmutableOrderedSet } from 'immutable';
+  FAVOURITED_STATUSES_FETCH_REQUEST,
+  FAVOURITED_STATUSES_FETCH_SUCCESS,
+  FAVOURITED_STATUSES_FETCH_FAIL,
+  FAVOURITED_STATUSES_EXPAND_REQUEST,
+  FAVOURITED_STATUSES_EXPAND_SUCCESS,
+  FAVOURITED_STATUSES_EXPAND_FAIL,
+} from '../actions/favourites';
 import {
   FAVOURITE_SUCCESS,
   UNFAVOURITE_SUCCESS,
@@ -33,11 +27,20 @@ import {
   UNBOOKMARK_SUCCESS,
   PIN_SUCCESS,
   UNPIN_SUCCESS,
-} from 'flavours/glitch/actions/interactions';
+} from '../actions/interactions';
 import {
-  ACCOUNT_BLOCK_SUCCESS,
-  ACCOUNT_MUTE_SUCCESS,
-} from 'flavours/glitch/actions/accounts';
+  PINNED_STATUSES_FETCH_SUCCESS,
+} from '../actions/pin_statuses';
+import {
+  TRENDS_STATUSES_FETCH_REQUEST,
+  TRENDS_STATUSES_FETCH_SUCCESS,
+  TRENDS_STATUSES_FETCH_FAIL,
+  TRENDS_STATUSES_EXPAND_REQUEST,
+  TRENDS_STATUSES_EXPAND_SUCCESS,
+  TRENDS_STATUSES_EXPAND_FAIL,
+} from '../actions/trends';
+
+
 
 const initialState = ImmutableMap({
   favourites: ImmutableMap({
@@ -139,9 +142,9 @@ export default function statusLists(state = initialState, action) {
     return prependOneToList(state, 'pins', action.status);
   case UNPIN_SUCCESS:
     return removeOneFromList(state, 'pins', action.status);
-  case ACCOUNT_BLOCK_SUCCESS:
-  case ACCOUNT_MUTE_SUCCESS:
-    return state.updateIn(['trending', 'items'], ImmutableOrderedSet(), list => list.filterNot(statusId => action.statuses.getIn([statusId, 'account']) === action.relationship.id));
+  case blockAccountSuccess.type:
+  case muteAccountSuccess.type:
+    return state.updateIn(['trending', 'items'], ImmutableOrderedSet(), list => list.filterNot(statusId => action.payload.statuses.getIn([statusId, 'account']) === action.payload.relationship.id));
   default:
     return state;
   }

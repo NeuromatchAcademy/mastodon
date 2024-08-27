@@ -1,16 +1,24 @@
 //  Package imports.
-import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
+import { PureComponent } from 'react';
+
 import { defineMessages, injectIntl } from 'react-intl';
 
-//  Mastodon imports.
-import IconButton from './icon_button';
-import VisibilityIcon from './status_visibility_icon';
-import Icon from 'flavours/glitch/components/icon';
+import ImmutablePropTypes from 'react-immutable-proptypes';
+
+import ForumIcon from '@/material-icons/400-24px/forum.svg?react';
+import HomeIcon from '@/material-icons/400-24px/home.svg?react';
+import ImageIcon from '@/material-icons/400-24px/image.svg?react';
+import InsertChartIcon from '@/material-icons/400-24px/insert_chart.svg?react';
+import LinkIcon from '@/material-icons/400-24px/link.svg?react';
+import MovieIcon from '@/material-icons/400-24px/movie.svg?react';
+import MusicNoteIcon from '@/material-icons/400-24px/music_note.svg?react';
+import { Icon } from 'flavours/glitch/components/icon';
 import { languages } from 'flavours/glitch/initial_state';
 
-//  Messages for use with internationalization stuff.
+import { CollapseButton } from './collapse_button';
+import { VisibilityIcon } from './visibility_icon';
+
 const messages = defineMessages({
   collapse: { id: 'status.collapse', defaultMessage: 'Collapse' },
   uncollapse: { id: 'status.uncollapse', defaultMessage: 'Uncollapse' },
@@ -40,7 +48,7 @@ LanguageIcon.propTypes = {
   language: PropTypes.string.isRequired,
 };
 
-class StatusIcons extends React.PureComponent {
+class StatusIcons extends PureComponent {
 
   static propTypes = {
     status: ImmutablePropTypes.map.isRequired,
@@ -61,43 +69,54 @@ class StatusIcons extends React.PureComponent {
     }
   };
 
-  mediaIconTitleText (mediaIcon) {
+  renderIcon (mediaIcon) {
     const { intl } = this.props;
+
+    let title, iconComponent;
 
     switch (mediaIcon) {
     case 'link':
-      return intl.formatMessage(messages.previewCard);
+      title = messages.previewCard;
+      iconComponent = LinkIcon;
+      break;
     case 'picture-o':
-      return intl.formatMessage(messages.pictures);
+      title = messages.pictures;
+      iconComponent = ImageIcon;
+      break;
     case 'tasks':
-      return intl.formatMessage(messages.poll);
+      title = messages.poll;
+      iconComponent = InsertChartIcon;
+      break;
     case 'video-camera':
-      return intl.formatMessage(messages.video);
+      title = messages.video;
+      iconComponent = MovieIcon;
+      break;
     case 'music':
-      return intl.formatMessage(messages.audio);
+      title = messages.audio;
+      iconComponent = MusicNoteIcon;
+      break;
     }
-  }
 
-  renderIcon (mediaIcon) {
     return (
       <Icon
         fixedWidth
         className='status__media-icon'
         key={`media-icon--${mediaIcon}`}
         id={mediaIcon}
+        icon={iconComponent}
         aria-hidden='true'
-        title={this.mediaIconTitleText(mediaIcon)}
+        title={title && intl.formatMessage(title)}
       />
     );
   }
 
-  //  Rendering.
   render () {
     const {
       status,
       mediaIcons,
       collapsible,
       collapsed,
+      setCollapsed,
       settings,
       intl,
     } = this.props;
@@ -108,35 +127,22 @@ class StatusIcons extends React.PureComponent {
         {settings.get('reply') && status.get('in_reply_to_id', null) !== null ? (
           <Icon
             className='status__reply-icon'
-            fixedWidth
             id='comment'
+            icon={ForumIcon}
             aria-hidden='true'
             title={intl.formatMessage(messages.inReplyTo)}
           />
         ) : null}
         {settings.get('local_only') && status.get('local_only') &&
           <Icon
-            fixedWidth
             id='home'
+            icon={HomeIcon}
             aria-hidden='true'
             title={intl.formatMessage(messages.localOnly)}
           />}
         {settings.get('media') && !!mediaIcons && mediaIcons.map(icon => this.renderIcon(icon))}
         {settings.get('visibility') && <VisibilityIcon visibility={status.get('visibility')} />}
-        {collapsible && (
-          <IconButton
-            className='status__collapse-button'
-            animate
-            active={collapsed}
-            title={
-              collapsed ?
-                intl.formatMessage(messages.uncollapse) :
-                intl.formatMessage(messages.collapse)
-            }
-            icon='angle-double-up'
-            onClick={this.handleCollapsedClick}
-          />
-        )}
+        {collapsible && <CollapseButton collapsed={collapsed} setCollapsed={setCollapsed} />}
       </div>
     );
   }

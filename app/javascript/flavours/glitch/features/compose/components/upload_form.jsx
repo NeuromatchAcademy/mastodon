@@ -1,34 +1,56 @@
-import React from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
-import UploadProgressContainer from '../containers/upload_progress_container';
-import ImmutablePureComponent from 'react-immutable-pure-component';
-import UploadContainer from '../containers/upload_container';
-import SensitiveButtonContainer from '../containers/sensitive_button_container';
+import { useRef, useCallback } from 'react';
 
-export default class UploadForm extends ImmutablePureComponent {
+import { useSelector, useDispatch } from 'react-redux';
 
-  static propTypes = {
-    mediaIds: ImmutablePropTypes.list.isRequired,
-  };
+import { changeMediaOrder } from 'flavours/glitch/actions/compose';
 
-  render () {
-    const { mediaIds } = this.props;
+import { SensitiveButton } from './sensitive_button';
+import { Upload } from './upload';
+import { UploadProgress } from './upload_progress';
 
-    return (
-      <div className='compose-form__upload-wrapper'>
-        <UploadProgressContainer />
+export const UploadForm = () => {
+  const dispatch = useDispatch();
+  const mediaIds = useSelector(state => state.getIn(['compose', 'media_attachments']).map(item => item.get('id')));
+  const active = useSelector(state => state.getIn(['compose', 'is_uploading']));
+  const progress = useSelector(state => state.getIn(['compose', 'progress']));
+  const isProcessing = useSelector(state => state.getIn(['compose', 'is_processing']));
 
-        {mediaIds.size > 0 && (
-          <div className='compose-form__uploads-wrapper'>
-            {mediaIds.map(id => (
-              <UploadContainer id={id} key={id} />
-            ))}
-          </div>
-        )}
+  const dragItem = useRef();
+  const dragOverItem = useRef();
 
-        {!mediaIds.isEmpty() && <SensitiveButtonContainer />}
-      </div>
-    );
-  }
+  const handleDragStart = useCallback(id => {
+    dragItem.current = id;
+  }, [dragItem]);
 
-}
+  const handleDragEnter = useCallback(id => {
+    dragOverItem.current = id;
+  }, [dragOverItem]);
+
+  const handleDragEnd = useCallback(() => {
+    dispatch(changeMediaOrder(dragItem.current, dragOverItem.current));
+    dragItem.current = null;
+    dragOverItem.current = null;
+  }, [dispatch, dragItem, dragOverItem]);
+
+  return (
+    <>
+      <UploadProgress active={active} progress={progress} isProcessing={isProcessing} />
+
+      {mediaIds.size > 0 && (
+        <div className='compose-form__uploads'>
+          {mediaIds.map(id => (
+            <Upload
+              key={id}
+              id={id}
+              onDragStart={handleDragStart}
+              onDragEnter={handleDragEnter}
+              onDragEnd={handleDragEnd}
+            />
+          ))}
+        </div>
+      )}
+
+      {!mediaIds.isEmpty() && <SensitiveButton />}
+    </>
+  );
+};

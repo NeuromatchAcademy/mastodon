@@ -1,12 +1,13 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import scheduleIdleTask from '../features/ui/util/schedule_idle_task';
+import { cloneElement, Component } from 'react';
+
 import getRectFromEntry from '../features/ui/util/get_rect_from_entry';
+import scheduleIdleTask from '../features/ui/util/schedule_idle_task';
 
 // Diff these props in the "unrendered" state
 const updateOnPropsForUnrendered = ['id', 'index', 'listLength', 'cachedHeight'];
 
-export default class IntersectionObserverArticle extends React.Component {
+export default class IntersectionObserverArticle extends Component {
 
   static propTypes = {
     intersectionObserverWrapper: PropTypes.object.isRequired,
@@ -37,7 +38,6 @@ export default class IntersectionObserverArticle extends React.Component {
     // Else, assume the children have changed
     return true;
   }
-
 
   componentDidMount () {
     const { intersectionObserverWrapper, id } = this.props;
@@ -106,24 +106,24 @@ export default class IntersectionObserverArticle extends React.Component {
     const { children, id, index, listLength, cachedHeight } = this.props;
     const { isIntersecting, isHidden } = this.state;
 
-    const style = {};
-
     if (!isIntersecting && (isHidden || cachedHeight)) {
-      style.height = `${this.height || cachedHeight || 150}px`;
-      style.opacity = 0;
-      style.overflow = 'hidden';
+      return (
+        <article
+          ref={this.handleRef}
+          aria-posinset={index + 1}
+          aria-setsize={listLength}
+          style={{ height: `${this.height || cachedHeight}px`, opacity: 0, overflow: 'hidden' }}
+          data-id={id}
+          tabIndex={-1}
+        >
+          {children && cloneElement(children, { hidden: true })}
+        </article>
+      );
     }
 
     return (
-      <article
-        ref={this.handleRef}
-        aria-posinset={index + 1}
-        aria-setsize={listLength}
-        data-id={id}
-        tabIndex='0'
-        style={style}
-      >
-        {children && React.cloneElement(children, { hidden: !isIntersecting && (isHidden || !!cachedHeight) })}
+      <article ref={this.handleRef} aria-posinset={index + 1} aria-setsize={listLength} data-id={id} tabIndex={-1}>
+        {children && cloneElement(children, { hidden: false })}
       </article>
     );
   }

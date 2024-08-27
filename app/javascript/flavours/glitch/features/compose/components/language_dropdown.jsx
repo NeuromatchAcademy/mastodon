@@ -1,13 +1,19 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import { PureComponent } from 'react';
+
 import { injectIntl, defineMessages } from 'react-intl';
-import TextIconButton from './text_icon_button';
-import Overlay from 'react-overlays/Overlay';
-import { supportsPassiveEvents } from 'detect-passive-events';
+
 import classNames from 'classnames';
-import { languages as preloadedLanguages } from 'flavours/glitch/initial_state';
-import { loupeIcon, deleteIcon } from 'flavours/glitch/utils/icons';
+
+import { supportsPassiveEvents } from 'detect-passive-events';
 import fuzzysort from 'fuzzysort';
+import Overlay from 'react-overlays/Overlay';
+
+import CancelIcon from '@/material-icons/400-24px/cancel-fill.svg?react';
+import SearchIcon from '@/material-icons/400-24px/search.svg?react';
+import TranslateIcon from '@/material-icons/400-24px/translate.svg?react';
+import { Icon } from 'flavours/glitch/components/icon';
+import { languages as preloadedLanguages } from 'flavours/glitch/initial_state';
 
 const messages = defineMessages({
   changeLanguage: { id: 'compose.language.change', defaultMessage: 'Change language' },
@@ -15,9 +21,9 @@ const messages = defineMessages({
   clear: { id: 'emoji_button.clear', defaultMessage: 'Clear' },
 });
 
-const listenerOptions = supportsPassiveEvents ? { passive: true } : false;
+const listenerOptions = supportsPassiveEvents ? { passive: true, capture: true } : true;
 
-class LanguageDropdownMenu extends React.PureComponent {
+class LanguageDropdownMenu extends PureComponent {
 
   static propTypes = {
     value: PropTypes.string.isRequired,
@@ -39,11 +45,12 @@ class LanguageDropdownMenu extends React.PureComponent {
   handleDocumentClick = e => {
     if (this.node && !this.node.contains(e.target)) {
       this.props.onClose();
+      e.stopPropagation();
     }
   };
 
   componentDidMount () {
-    document.addEventListener('click', this.handleDocumentClick, false);
+    document.addEventListener('click', this.handleDocumentClick, { capture: true });
     document.addEventListener('touchend', this.handleDocumentClick, listenerOptions);
 
     // Because of https://github.com/react-bootstrap/react-bootstrap/issues/2614 we need
@@ -57,7 +64,7 @@ class LanguageDropdownMenu extends React.PureComponent {
   }
 
   componentWillUnmount () {
-    document.removeEventListener('click', this.handleDocumentClick, false);
+    document.removeEventListener('click', this.handleDocumentClick, { capture: true });
     document.removeEventListener('touchend', this.handleDocumentClick, listenerOptions);
   }
 
@@ -103,18 +110,6 @@ class LanguageDropdownMenu extends React.PureComponent {
     }).map(result => result.obj);
   }
 
-  frequentlyUsed () {
-    const { languages, value } = this.props;
-    const current = languages.find(lang => lang[0] === value);
-    const results = [];
-
-    if (current) {
-      results.push(current);
-    }
-
-    return results;
-  }
-
   handleClick = e => {
     const value = e.currentTarget.getAttribute('data-index');
 
@@ -134,6 +129,7 @@ class LanguageDropdownMenu extends React.PureComponent {
     case 'Escape':
       onClose();
       break;
+    case ' ':
     case 'Enter':
       this.handleClick(e);
       break;
@@ -209,7 +205,7 @@ class LanguageDropdownMenu extends React.PureComponent {
     const { value } = this.props;
 
     return (
-      <div key={lang[0]} role='option' tabIndex='0' data-index={lang[0]} className={classNames('language-dropdown__dropdown__results__item', { active: lang[0] === value })} aria-selected={lang[0] === value} onClick={this.handleClick} onKeyDown={this.handleKeyDown}>
+      <div key={lang[0]} role='option' tabIndex={0} data-index={lang[0]} className={classNames('language-dropdown__dropdown__results__item', { active: lang[0] === value })} aria-selected={lang[0] === value} onClick={this.handleClick} onKeyDown={this.handleKeyDown}>
         <span className='language-dropdown__dropdown__results__item__native-name' lang={lang[0]}>{lang[2]}</span> <span className='language-dropdown__dropdown__results__item__common-name'>({lang[1]})</span>
       </div>
     );
@@ -225,7 +221,7 @@ class LanguageDropdownMenu extends React.PureComponent {
       <div ref={this.setRef}>
         <div className='emoji-mart-search'>
           <input type='search' value={searchValue} onChange={this.handleSearchChange} onKeyDown={this.handleSearchKeyDown} placeholder={intl.formatMessage(messages.search)} />
-          <button type='button' className='emoji-mart-search-icon' disabled={!isSearching} aria-label={intl.formatMessage(messages.clear)} onClick={this.handleClear}>{!isSearching ? loupeIcon : deleteIcon}</button>
+          <button type='button' className='emoji-mart-search-icon' disabled={!isSearching} aria-label={intl.formatMessage(messages.clear)} onClick={this.handleClear}><Icon icon={!isSearching ? SearchIcon : CancelIcon} /></button>
         </div>
 
         <div className='language-dropdown__dropdown__results emoji-mart-scroll' role='listbox' ref={this.setListRef}>
@@ -237,7 +233,7 @@ class LanguageDropdownMenu extends React.PureComponent {
 
 }
 
-class LanguageDropdown extends React.PureComponent {
+class LanguageDropdown extends PureComponent {
 
   static propTypes = {
     value: PropTypes.string,
@@ -291,20 +287,24 @@ class LanguageDropdown extends React.PureComponent {
   render () {
     const { value, intl, frequentlyUsedLanguages } = this.props;
     const { open, placement } = this.state;
+    const current = preloadedLanguages.find(lang => lang[0] === value) ?? [];
 
     return (
-      <div className={classNames('privacy-dropdown', placement, { active: open })}>
-        <div className='privacy-dropdown__value' ref={this.setTargetRef} >
-          <TextIconButton
-            className='privacy-dropdown__value-icon'
-            label={value && value.toUpperCase()}
-            title={intl.formatMessage(messages.changeLanguage)}
-            active={open}
-            onClick={this.handleToggle}
-          />
-        </div>
+      <div ref={this.setTargetRef} onKeyDown={this.handleKeyDown}>
+        <button
+          type='button'
+          title={intl.formatMessage(messages.changeLanguage)}
+          aria-expanded={open}
+          onClick={this.handleToggle}
+          onMouseDown={this.handleMouseDown}
+          onKeyDown={this.handleButtonKeyDown}
+          className={classNames('dropdown-button', { active: open })}
+        >
+          <Icon icon={TranslateIcon} />
+          <span className='dropdown-button__label'>{current[2] ?? value}</span>
+        </button>
 
-        <Overlay show={open} placement={'bottom'} flip target={this.findTarget} popperConfig={{ strategy: 'fixed', onFirstUpdate: this.handleOverlayEnter }}>
+        <Overlay show={open} offset={[5, 5]} placement={placement} flip target={this.findTarget} popperConfig={{ strategy: 'fixed', onFirstUpdate: this.handleOverlayEnter }}>
           {({ props, placement }) => (
             <div {...props}>
               <div className={`dropdown-animation language-dropdown__dropdown ${placement}`} >

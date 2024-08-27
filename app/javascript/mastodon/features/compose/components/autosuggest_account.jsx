@@ -1,13 +1,13 @@
-import React from 'react';
-import Avatar from '../../../components/avatar';
-import DisplayName from '../../../components/display_name';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
+
+import { Avatar } from '../../../components/avatar';
+import { DisplayName } from '../../../components/display_name';
 
 export default class AutosuggestAccount extends ImmutablePureComponent {
 
   static propTypes = {
-    account: ImmutablePropTypes.map.isRequired,
+    account: ImmutablePropTypes.record.isRequired,
   };
 
   render () {
@@ -15,7 +15,7 @@ export default class AutosuggestAccount extends ImmutablePureComponent {
 
     return (
       <div className='autosuggest-account' title={account.get('acct')}>
-        <div className='autosuggest-account-icon'><Avatar account={account} size={18} /></div>
+        <Avatar account={account} size={24} />
         <DisplayName account={account} />
       </div>
     );

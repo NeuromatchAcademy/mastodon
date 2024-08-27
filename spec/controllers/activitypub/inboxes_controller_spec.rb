@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe ActivityPub::InboxesController, type: :controller do
+RSpec.describe ActivityPub::InboxesController do
   let(:remote_account) { nil }
 
   before do
@@ -21,7 +21,7 @@ RSpec.describe ActivityPub::InboxesController, type: :controller do
         expect(response).to have_http_status(202)
       end
 
-      context 'for a specific account' do
+      context 'with a specific account' do
         subject(:response) { post :create, params: { account_username: account.username }, body: '{}' }
 
         let(:account) { Fabricate(:account) }
@@ -58,7 +58,7 @@ RSpec.describe ActivityPub::InboxesController, type: :controller do
 
       before do
         allow(ActivityPub::FollowersSynchronizationWorker).to receive(:perform_async).and_return(nil)
-        allow_any_instance_of(Account).to receive(:local_followers_hash).and_return('somehash')
+        allow(remote_account).to receive(:local_followers_hash).and_return('somehash')
 
         request.headers['Collection-Synchronization'] = synchronization_header
         post :create, body: '{}'

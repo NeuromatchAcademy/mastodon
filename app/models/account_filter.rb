@@ -55,7 +55,7 @@ class AccountFilter
     when 'by_domain'
       Account.where(domain: value.to_s.strip)
     when 'username'
-      Account.matches_username(value.to_s.strip)
+      Account.matches_username(value.to_s.strip.delete_prefix('@'))
     when 'display_name'
       Account.matches_display_name(value.to_s.strip)
     when 'email'
@@ -104,15 +104,7 @@ class AccountFilter
   def order_scope(value)
     case value.to_s
     when 'active'
-      accounts_with_users
-        .left_joins(:account_stat)
-        .order(
-          Arel.sql(
-            <<~SQL.squish
-              COALESCE(users.current_sign_in_at, account_stats.last_status_at, to_timestamp(0)) DESC, accounts.id DESC
-            SQL
-          )
-        )
+      Account.by_recent_activity
     when 'recent'
       Account.recent
     else

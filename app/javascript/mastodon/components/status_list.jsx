@@ -1,12 +1,18 @@
-import { debounce } from 'lodash';
-import React from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import PropTypes from 'prop-types';
-import StatusContainer from '../containers/status_container';
+
+import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
-import LoadGap from './load_gap';
-import ScrollableList from './scrollable_list';
+
+import { debounce } from 'lodash';
+
+import { TIMELINE_GAP, TIMELINE_SUGGESTIONS } from 'mastodon/actions/timelines';
 import RegenerationIndicator from 'mastodon/components/regeneration_indicator';
+import { InlineFollowSuggestions } from 'mastodon/features/home_timeline/components/inline_follow_suggestions';
+
+import StatusContainer from '../containers/status_container';
+
+import { LoadGap } from './load_gap';
+import ScrollableList from './scrollable_list';
 
 export default class StatusList extends ImmutablePureComponent {
 
@@ -26,6 +32,8 @@ export default class StatusList extends ImmutablePureComponent {
     alwaysPrepend: PropTypes.bool,
     withCounters: PropTypes.bool,
     timelineId: PropTypes.string,
+    lastId: PropTypes.string,
+    bindToDocument: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -55,7 +63,8 @@ export default class StatusList extends ImmutablePureComponent {
   };
 
   handleLoadOlder = debounce(() => {
-    this.props.onLoadMore(this.props.statusIds.size > 0 ? this.props.statusIds.last() : undefined);
+    const { statusIds, lastId, onLoadMore } = this.props;
+    onLoadMore(lastId || (statusIds.size > 0 ? statusIds.last() : undefined));
   }, 300, { leading: true });
 
   _selectChild (index, align_top) {
@@ -85,25 +94,38 @@ export default class StatusList extends ImmutablePureComponent {
     }
 
     let scrollableContent = (isLoading || statusIds.size > 0) ? (
-      statusIds.map((statusId, index) => statusId === null ? (
-        <LoadGap
-          key={'gap:' + statusIds.get(index + 1)}
-          disabled={isLoading}
-          maxId={index > 0 ? statusIds.get(index - 1) : null}
-          onClick={onLoadMore}
-        />
-      ) : (
-        <StatusContainer
-          key={statusId}
-          id={statusId}
-          onMoveUp={this.handleMoveUp}
-          onMoveDown={this.handleMoveDown}
-          contextType={timelineId}
-          scrollKey={this.props.scrollKey}
-          showThread
-          withCounters={this.props.withCounters}
-        />
-      ))
+      statusIds.map((statusId, index) => {
+        switch(statusId) {
+        case TIMELINE_SUGGESTIONS:
+          return (
+            <InlineFollowSuggestions
+              key='inline-follow-suggestions'
+            />
+          );
+        case TIMELINE_GAP:
+          return (
+            <LoadGap
+              key={'gap:' + statusIds.get(index + 1)}
+              disabled={isLoading}
+              param={index > 0 ? statusIds.get(index - 1) : null}
+              onClick={onLoadMore}
+            />
+          );
+        default:
+          return (
+            <StatusContainer
+              key={statusId}
+              id={statusId}
+              onMoveUp={this.handleMoveUp}
+              onMoveDown={this.handleMoveDown}
+              contextType={timelineId}
+              scrollKey={this.props.scrollKey}
+              showThread
+              withCounters={this.props.withCounters}
+            />
+          );
+        }
+      })
     ) : null;
 
     if (scrollableContent && featuredStatusIds) {

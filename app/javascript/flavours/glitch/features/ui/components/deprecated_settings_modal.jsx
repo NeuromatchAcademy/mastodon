@@ -1,11 +1,17 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
+import { PureComponent } from 'react';
+
 import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
-import { preferenceLink } from 'flavours/glitch/utils/backend_links';
-import Button from 'flavours/glitch/components/button';
-import Icon from 'flavours/glitch/components/icon';
+
+import ImmutablePropTypes from 'react-immutable-proptypes';
+
+
+import ManufacturingIcon from '@/material-icons/400-24px/manufacturing.svg?react';
+import SettingsIcon from '@/material-icons/400-24px/settings-fill.svg?react';
+import { Button } from 'flavours/glitch/components/button';
+import { Icon } from 'flavours/glitch/components/icon';
 import illustration from 'flavours/glitch/images/logo_warn_glitch.svg';
+import { preferenceLink } from 'flavours/glitch/utils/backend_links';
 
 const messages = defineMessages({
   discardChanges: { id: 'confirmations.deprecated_settings.confirm', defaultMessage: 'Use Mastodon preferences' },
@@ -13,7 +19,7 @@ const messages = defineMessages({
   user_setting_disable_swiping: { id: 'settings.swipe_to_change_columns', defaultMessage: 'Allow swiping to change columns (Mobile only)' },
 });
 
-class DeprecatedSettingsModal extends React.PureComponent {
+class DeprecatedSettingsModal extends PureComponent {
 
   static propTypes = {
     settings: ImmutablePropTypes.list.isRequired,
@@ -22,17 +28,9 @@ class DeprecatedSettingsModal extends React.PureComponent {
     intl: PropTypes.object.isRequired,
   };
 
-  componentDidMount() {
-    this.button.focus();
-  }
-
   handleClick = () => {
     this.props.onConfirm();
     this.props.onClose();
-  };
-
-  setRef = (c) => {
-    this.button = c;
   };
 
   render () {
@@ -50,12 +48,12 @@ class DeprecatedSettingsModal extends React.PureComponent {
             values={{
               app_settings: (
                 <strong className='deprecated-settings-label'>
-                  <Icon id='cogs' /> <FormattedMessage id='navigation_bar.app_settings' defaultMessage='App settings' />
+                  <Icon id='cogs' icon={ManufacturingIcon} /> <FormattedMessage id='navigation_bar.app_settings' defaultMessage='App settings' />
                 </strong>
               ),
               preferences: (
                 <strong className='deprecated-settings-label'>
-                  <Icon id='cog' /> <FormattedMessage id='navigation_bar.preferences' defaultMessage='Preferences' />
+                  <Icon id='cog' icon={SettingsIcon} /> <FormattedMessage id='navigation_bar.preferences' defaultMessage='Preferences' />
                 </strong>
               ),
             }}
@@ -64,7 +62,7 @@ class DeprecatedSettingsModal extends React.PureComponent {
           <div className='deprecated-settings-info'>
             <ul>
               { settings.map((setting_name) => (
-                <li>
+                <li key={setting_name}>
                   <a href={preferenceLink(setting_name)}><FormattedMessage {...messages[setting_name]} /></a>
                 </li>
               )) }
@@ -75,7 +73,7 @@ class DeprecatedSettingsModal extends React.PureComponent {
         <div>
           <div className='confirmation-modal__action-bar'>
             <div />
-            <Button text={intl.formatMessage(messages.discardChanges)} onClick={this.handleClick} ref={this.setRef} />
+            <Button text={intl.formatMessage(messages.discardChanges)} onClick={this.handleClick} autoFocus />
           </div>
         </div>
       </div>

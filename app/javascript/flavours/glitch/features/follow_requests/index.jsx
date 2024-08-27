@@ -1,17 +1,23 @@
-import React from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
-import { debounce } from 'lodash';
-import Column from 'flavours/glitch/features/ui/components/column';
-import ColumnBackButtonSlim from 'flavours/glitch/components/column_back_button_slim';
-import AccountAuthorizeContainer from './containers/account_authorize_container';
-import { fetchFollowRequests, expandFollowRequests } from 'flavours/glitch/actions/accounts';
+
 import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
-import ImmutablePureComponent from 'react-immutable-pure-component';
-import ScrollableList from 'flavours/glitch/components/scrollable_list';
-import { me } from 'flavours/glitch/initial_state';
+
 import { Helmet } from 'react-helmet';
+
+import ImmutablePropTypes from 'react-immutable-proptypes';
+import ImmutablePureComponent from 'react-immutable-pure-component';
+import { connect } from 'react-redux';
+
+import { debounce } from 'lodash';
+
+import PersonAddIcon from '@/material-icons/400-24px/person_add.svg?react';
+
+import { fetchFollowRequests, expandFollowRequests } from '../../actions/accounts';
+import ScrollableList from '../../components/scrollable_list';
+import { me } from '../../initial_state';
+import Column from '../ui/components/column';
+
+import AccountAuthorizeContainer from './containers/account_authorize_container';
 
 const messages = defineMessages({
   heading: { id: 'column.follow_requests', defaultMessage: 'Follow requests' },
@@ -39,7 +45,7 @@ class FollowRequests extends ImmutablePureComponent {
     multiColumn: PropTypes.bool,
   };
 
-  componentWillMount () {
+  UNSAFE_componentWillMount () {
     this.props.dispatch(fetchFollowRequests());
   }
 
@@ -62,9 +68,7 @@ class FollowRequests extends ImmutablePureComponent {
     );
 
     return (
-      <Column bindToDocument={!multiColumn} name='follow-requests' icon='user-plus' heading={intl.formatMessage(messages.heading)}>
-        <ColumnBackButtonSlim />
-
+      <Column bindToDocument={!multiColumn} icon='user-plus' iconComponent={PersonAddIcon} heading={intl.formatMessage(messages.heading)}>
         <ScrollableList
           scrollKey='follow_requests'
           onLoadMore={this.handleLoadMore}

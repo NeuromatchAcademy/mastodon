@@ -28,18 +28,6 @@ module ApplicationHelper
     number_to_human(number, **options)
   end
 
-  def active_nav_class(*paths)
-    paths.any? { |path| current_page?(path) } ? 'active' : ''
-  end
-
-  def active_link_to(label, path, **options)
-    link_to label, path, options.merge(class: active_nav_class(path))
-  end
-
-  def show_landing_strip?
-    !user_signed_in? && !single_user_mode?
-  end
-
   def open_registrations?
     Setting.registrations_mode == 'open'
   end
@@ -56,7 +44,7 @@ module ApplicationHelper
     if closed_registrations? || omniauth_only?
       'https://joinmastodon.org/#getting-started'
     else
-      new_user_registration_path
+      ENV.fetch('SSO_ACCOUNT_SIGN_UP', new_user_registration_path)
     end
   end
 
@@ -95,6 +83,14 @@ module ApplicationHelper
     end
   end
 
+  def html_title
+    safe_join(
+      [content_for(:page_title).to_s.chomp, title]
+      .select(&:present?),
+      ' - '
+    )
+  end
+
   def title
     Rails.env.production? ? site_title : "#{site_title} (Dev)"
   end
@@ -106,36 +102,48 @@ module ApplicationHelper
   def can?(action, record)
     return false if record.nil?
 
-    policy(record).public_send("#{action}?")
+    policy(record).public_send(:"#{action}?")
   end
 
   def fa_icon(icon, attributes = {})
-    class_names = attributes[:class]&.split(' ') || []
+    class_names = attributes[:class]&.split || []
     class_names << 'fa'
     class_names += icon.split.map { |cl| "fa-#{cl}" }
 
     content_tag(:i, nil, attributes.merge(class: class_names.join(' ')))
   end
 
+  def material_symbol(icon, attributes = {})
+    inline_svg_tag(
+      "400-24px/#{icon}.svg",
+      class: ['icon', "material-#{icon}"].concat(attributes[:class].to_s.split),
+      role: :img
+    )
+  end
+
+  def check_icon
+    inline_svg_tag 'check.svg'
+  end
+
   def visibility_icon(status)
     if status.public_visibility?
-      fa_icon('globe', title: I18n.t('statuses.visibilities.public'))
+      material_symbol('globe', title: I18n.t('statuses.visibilities.public'))
     elsif status.unlisted_visibility?
-      fa_icon('unlock', title: I18n.t('statuses.visibilities.unlisted'))
+      material_symbol('lock_open', title: I18n.t('statuses.visibilities.unlisted'))
     elsif status.private_visibility? || status.limited_visibility?
-      fa_icon('lock', title: I18n.t('statuses.visibilities.private'))
+      material_symbol('lock', title: I18n.t('statuses.visibilities.private'))
     elsif status.direct_visibility?
-      fa_icon('at', title: I18n.t('statuses.visibilities.direct'))
+      material_symbol('alternate_email', title: I18n.t('statuses.visibilities.direct'))
     end
   end
 
   def interrelationships_icon(relationships, account_id)
     if relationships.following[account_id] && relationships.followed_by[account_id]
-      fa_icon('exchange', title: I18n.t('relationships.mutual'), class: 'fa-fw active passive')
+      material_symbol('sync_alt', title: I18n.t('relationships.mutual'), class: 'active passive')
     elsif relationships.following[account_id]
-      fa_icon(locale_direction == 'ltr' ? 'arrow-right' : 'arrow-left', title: I18n.t('relationships.following'), class: 'fa-fw active')
+      material_symbol(locale_direction == 'ltr' ? 'arrow_right_alt' : 'arrow_left_alt', title: I18n.t('relationships.following'), class: 'active')
     elsif relationships.followed_by[account_id]
-      fa_icon(locale_direction == 'ltr' ? 'arrow-left' : 'arrow-right', title: I18n.t('relationships.followers'), class: 'fa-fw passive')
+      material_symbol(locale_direction == 'ltr' ? 'arrow_left_alt' : 'arrow_right_alt', title: I18n.t('relationships.followers'), class: 'passive')
     end
   end
 
@@ -143,34 +151,22 @@ module ApplicationHelper
     if prefers_autoplay?
       image_tag(custom_emoji.image.url, class: 'emojione', alt: ":#{custom_emoji.shortcode}:")
     else
-      image_tag(custom_emoji.image.url(:static), class: 'emojione custom-emoji', alt: ":#{custom_emoji.shortcode}", 'data-original' => full_asset_url(custom_emoji.image.url), 'data-static' => full_asset_url(custom_emoji.image.url(:static)))
+      image_tag(custom_emoji.image.url(:static), :class => 'emojione custom-emoji', :alt => ":#{custom_emoji.shortcode}", 'data-original' => full_asset_url(custom_emoji.image.url), 'data-static' => full_asset_url(custom_emoji.image.url(:static)))
     end
   end
 
   def opengraph(property, content)
-    tag(:meta, content: content, property: property)
-  end
-
-  def react_component(name, props = {}, &block)
-    if block.nil?
-      content_tag(:div, nil, data: { component: name.to_s.camelcase, props: Oj.dump(props) })
-    else
-      content_tag(:div, data: { component: name.to_s.camelcase, props: Oj.dump(props) }, &block)
-    end
-  end
-
-  def react_admin_component(name, props = {})
-    content_tag(:div, nil, data: { 'admin-component': name.to_s.camelcase, props: Oj.dump({ locale: I18n.locale }.merge(props)) })
+    tag.meta(content: content, property: property)
   end
 
   def body_classes
-    output = (@body_classes || '').split
+    output = body_class_string.split
     output << "flavour-#{current_flavour.parameterize}"
     output << "skin-#{current_skin.parameterize}"
     output << 'system-font' if current_account&.user&.setting_system_font_ui
     output << (current_account&.user&.setting_reduce_motion ? 'reduce-motion' : 'no-reduce-motion')
     output << 'rtl' if locale_direction == 'rtl'
-    output.reject(&:blank?).join(' ')
+    output.compact_blank.join(' ')
   end
 
   def cdn_host
@@ -182,11 +178,11 @@ module ApplicationHelper
   end
 
   def storage_host
-    "https://#{ENV['S3_ALIAS_HOST'].presence || ENV['S3_CLOUDFRONT_HOST']}"
+    "https://#{storage_host_var}"
   end
 
   def storage_host?
-    ENV['S3_ALIAS_HOST'].present? || ENV['S3_CLOUDFRONT_HOST'].present?
+    storage_host_var.present?
   end
 
   def quote_wrap(text, line_width: 80, break_sequence: "\n")
@@ -218,7 +214,7 @@ module ApplicationHelper
       state_params[:moved_to_account] = current_account.moved_to_account
     end
 
-    state_params[:owner] = Account.local.without_suspended.where('id > 0').first if single_user_mode?
+    state_params[:owner] = Account.local.without_suspended.without_internal.first if single_user_mode?
 
     json = ActiveModelSerializers::SerializableResource.new(InitialStatePresenter.new(state_params), serializer: InitialStateSerializer).to_json
     # rubocop:disable Rails/OutputSafety
@@ -243,5 +239,50 @@ module ApplicationHelper
 
   def prerender_custom_emojis(html, custom_emojis, other_options = {})
     EmojiFormatter.new(html, custom_emojis, other_options.merge(animate: prefers_autoplay?)).to_s
+  end
+
+  def mascot_url
+    full_asset_url(instance_presenter.mascot&.file&.url || frontend_asset_path('images/elephant_ui_plane.svg'))
+  end
+
+  def instance_presenter
+    @instance_presenter ||= InstancePresenter.new
+  end
+
+  def favicon_path(size = '48')
+    instance_presenter.favicon&.file&.url(size)
+  end
+
+  def app_icon_path(size = '48')
+    instance_presenter.app_icon&.file&.url(size)
+  end
+
+  def use_mask_icon?
+    instance_presenter.app_icon.blank?
+  end
+
+  # glitch-soc addition to handle the multiple flavors
+  def preload_locale_pack
+    supported_locales = Themes.instance.flavour(current_flavour)['locales']
+    preload_pack_asset "locales/#{current_flavour}/#{I18n.locale}-json.js" if supported_locales.include?(I18n.locale.to_s)
+  end
+
+  def flavoured_javascript_pack_tag(pack_name, **options)
+    javascript_pack_tag("flavours/#{current_flavour}/#{pack_name}", **options)
+  end
+
+  def flavoured_stylesheet_pack_tag(pack_name, **options)
+    stylesheet_pack_tag("flavours/#{current_flavour}/#{pack_name}", **options)
+  end
+
+  def preload_signed_in_js_packs
+    preload_files = Themes.instance.flavour(current_flavour)&.fetch('signed_in_preload', nil) || []
+    safe_join(preload_files.map { |entry| preload_pack_asset entry })
+  end
+
+  private
+
+  def storage_host_var
+    ENV.fetch('S3_ALIAS_HOST', nil) || ENV.fetch('S3_CLOUDFRONT_HOST', nil) || ENV.fetch('AZURE_ALIAS_HOST', nil)
   end
 end

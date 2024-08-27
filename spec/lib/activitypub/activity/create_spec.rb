@@ -23,6 +23,102 @@ RSpec.describe ActivityPub::Activity::Create do
     stub_request(:get, 'http://example.com/emojib.png').to_return(body: attachment_fixture('emojo.png'), headers: { 'Content-Type' => 'application/octet-stream' })
   end
 
+  describe 'processing posts received out of order' do
+    let(:follower) { Fabricate(:account, username: 'bob') }
+
+    let(:object_json) do
+      {
+        id: [ActivityPub::TagManager.instance.uri_for(sender), 'post1'].join('/'),
+        type: 'Note',
+        to: [
+          'https://www.w3.org/ns/activitystreams#Public',
+          ActivityPub::TagManager.instance.uri_for(follower),
+        ],
+        content: '@bob lorem ipsum',
+        published: 1.hour.ago.utc.iso8601,
+        updated: 1.hour.ago.utc.iso8601,
+        tag: {
+          type: 'Mention',
+          href: ActivityPub::TagManager.instance.uri_for(follower),
+        },
+      }
+    end
+
+    let(:reply_json) do
+      {
+        id: [ActivityPub::TagManager.instance.uri_for(sender), 'reply'].join('/'),
+        type: 'Note',
+        inReplyTo: object_json[:id],
+        to: [
+          'https://www.w3.org/ns/activitystreams#Public',
+          ActivityPub::TagManager.instance.uri_for(follower),
+        ],
+        content: '@bob lorem ipsum',
+        published: Time.now.utc.iso8601,
+        updated: Time.now.utc.iso8601,
+        tag: {
+          type: 'Mention',
+          href: ActivityPub::TagManager.instance.uri_for(follower),
+        },
+      }
+    end
+
+    def activity_for_object(json)
+      {
+        '@context': 'https://www.w3.org/ns/activitystreams',
+        id: [json[:id], 'activity'].join('/'),
+        type: 'Create',
+        actor: ActivityPub::TagManager.instance.uri_for(sender),
+        object: json,
+      }.with_indifferent_access
+    end
+
+    before do
+      follower.follow!(sender)
+    end
+
+    it 'correctly processes posts and inserts them in timelines', :aggregate_failures do
+      # Simulate a temporary failure preventing from fetching the parent post
+      stub_request(:get, object_json[:id]).to_return(status: 500)
+
+      # When receiving the reply…
+      described_class.new(activity_for_object(reply_json), sender, delivery: true).perform
+
+      # NOTE: Refering explicitly to the workers is a bit awkward
+      DistributionWorker.drain
+      FeedInsertWorker.drain
+
+      # …it creates a status with an unknown parent
+      reply = Status.find_by(uri: reply_json[:id])
+      expect(reply.reply?).to be true
+      expect(reply.in_reply_to_id).to be_nil
+
+      # …and creates a notification
+      expect(LocalNotificationWorker.jobs.size).to eq 1
+
+      # …but does not insert it into timelines
+      expect(redis.zscore(FeedManager.instance.key(:home, follower.id), reply.id)).to be_nil
+
+      # When receiving the parent…
+      described_class.new(activity_for_object(object_json), sender, delivery: true).perform
+
+      Sidekiq::Worker.drain_all
+
+      # …it creates a status and insert it into timelines
+      parent = Status.find_by(uri: object_json[:id])
+      expect(parent.reply?).to be false
+      expect(parent.in_reply_to_id).to be_nil
+      expect(reply.reload.in_reply_to_id).to eq parent.id
+
+      # Check that the both statuses have been inserted into the home feed
+      expect(redis.zscore(FeedManager.instance.key(:home, follower.id), parent.id)).to be_within(0.1).of(parent.id.to_f)
+      expect(redis.zscore(FeedManager.instance.key(:home, follower.id), reply.id)).to be_within(0.1).of(reply.id.to_f)
+
+      # Creates two notifications
+      expect(Notification.count).to eq 2
+    end
+  end
+
   describe '#perform' do
     context 'when fetching' do
       subject { described_class.new(json, sender) }
@@ -31,7 +127,47 @@ RSpec.describe ActivityPub::Activity::Create do
         subject.perform
       end
 
-      context 'object has been edited' do
+      context 'when object publication date is below ISO8601 range' do
+        let(:object_json) do
+          {
+            id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
+            type: 'Note',
+            content: 'Lorem ipsum',
+            published: '-0977-11-03T08:31:22Z',
+          }
+        end
+
+        it 'creates status with a valid creation date', :aggregate_failures do
+          status = sender.statuses.first
+
+          expect(status).to_not be_nil
+          expect(status.text).to eq 'Lorem ipsum'
+
+          expect(status.created_at).to be_within(30).of(Time.now.utc)
+        end
+      end
+
+      context 'when object publication date is above ISO8601 range' do
+        let(:object_json) do
+          {
+            id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
+            type: 'Note',
+            content: 'Lorem ipsum',
+            published: '10000-11-03T08:31:22Z',
+          }
+        end
+
+        it 'creates status with a valid creation date', :aggregate_failures do
+          status = sender.statuses.first
+
+          expect(status).to_not be_nil
+          expect(status.text).to eq 'Lorem ipsum'
+
+          expect(status.created_at).to be_within(30).of(Time.now.utc)
+        end
+      end
+
+      context 'when object has been edited' do
         let(:object_json) do
           {
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
@@ -42,22 +178,20 @@ RSpec.describe ActivityPub::Activity::Create do
           }
         end
 
-        it 'creates status' do
+        it 'creates status with appropriate creation and edition dates', :aggregate_failures do
           status = sender.statuses.first
 
           expect(status).to_not be_nil
           expect(status.text).to eq 'Lorem ipsum'
-        end
 
-        it 'marks status as edited' do
-          status = sender.statuses.first
+          expect(status.created_at).to eq '2022-01-22T15:00:00Z'.to_datetime
 
-          expect(status).to_not be_nil
           expect(status.edited?).to be true
+          expect(status.edited_at).to eq '2022-01-22T16:00:00Z'.to_datetime
         end
       end
 
-      context 'object has update date equal to creation date' do
+      context 'when object has update date equal to creation date' do
         let(:object_json) do
           {
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
@@ -83,7 +217,7 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
-      context 'unknown object type' do
+      context 'with an unknown object type' do
         let(:object_json) do
           {
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
@@ -97,7 +231,7 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
-      context 'standalone' do
+      context 'with a standalone' do
         let(:object_json) do
           {
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
@@ -121,7 +255,7 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
-      context 'public with explicit public address' do
+      context 'when public with explicit public address' do
         let(:object_json) do
           {
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
@@ -139,7 +273,7 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
-      context 'public with as:Public' do
+      context 'when public with as:Public' do
         let(:object_json) do
           {
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
@@ -157,7 +291,7 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
-      context 'public with Public' do
+      context 'when public with Public' do
         let(:object_json) do
           {
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
@@ -175,7 +309,7 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
-      context 'unlisted with explicit public address' do
+      context 'when unlisted with explicit public address' do
         let(:object_json) do
           {
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
@@ -193,7 +327,7 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
-      context 'unlisted with as:Public' do
+      context 'when unlisted with as:Public' do
         let(:object_json) do
           {
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
@@ -211,7 +345,7 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
-      context 'unlisted with Public' do
+      context 'when unlisted with Public' do
         let(:object_json) do
           {
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
@@ -229,7 +363,7 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
-      context 'private' do
+      context 'when private' do
         let(:object_json) do
           {
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
@@ -247,7 +381,7 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
-      context 'private with inlined Collection in audience' do
+      context 'when private with inlined Collection in audience' do
         let(:object_json) do
           {
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
@@ -269,7 +403,7 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
-      context 'limited' do
+      context 'when limited' do
         let(:recipient) { Fabricate(:account) }
 
         let(:object_json) do
@@ -294,7 +428,7 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
-      context 'limited when direct message assertion is false' do
+      context 'when directMessage attribute is false' do
         let(:recipient) { Fabricate(:account) }
 
         let(:object_json) do
@@ -311,7 +445,7 @@ RSpec.describe ActivityPub::Activity::Create do
           }
         end
 
-        it 'creates status' do
+        it 'creates status with limited visibility' do
           status = sender.statuses.first
 
           expect(status).to_not be_nil
@@ -319,7 +453,7 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
-      context 'direct' do
+      context 'when direct' do
         let(:recipient) { Fabricate(:account) }
 
         let(:object_json) do
@@ -335,7 +469,7 @@ RSpec.describe ActivityPub::Activity::Create do
           }
         end
 
-        it 'creates status' do
+        it 'creates status with direct visibility' do
           status = sender.statuses.first
 
           expect(status).to_not be_nil
@@ -343,7 +477,7 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
-      context 'direct when direct message assertion is true' do
+      context 'when directMessage attribute is true' do
         let(:recipient) { Fabricate(:account) }
 
         let(:object_json) do
@@ -364,7 +498,7 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
-      context 'as a reply' do
+      context 'with a reply' do
         let(:original_status) { Fabricate(:status) }
 
         let(:object_json) do
@@ -444,15 +578,21 @@ RSpec.describe ActivityPub::Activity::Create do
                 mediaType: 'image/png',
                 url: 'http://example.com/attachment.png',
               },
+              {
+                type: 'Document',
+                mediaType: 'image/png',
+                url: 'http://example.com/emoji.png',
+              },
             ],
           }
         end
 
-        it 'creates status' do
+        it 'creates status with correctly-ordered media attachments' do
           status = sender.statuses.first
 
           expect(status).to_not be_nil
-          expect(status.media_attachments.map(&:remote_url)).to include('http://example.com/attachment.png')
+          expect(status.ordered_media_attachments.map(&:remote_url)).to eq ['http://example.com/attachment.png', 'http://example.com/emoji.png']
+          expect(status.ordered_media_attachment_ids).to be_present
         end
       end
 
@@ -799,6 +939,49 @@ RSpec.describe ActivityPub::Activity::Create do
       end
     end
 
+    context 'when object URI uses bearcaps' do
+      subject { described_class.new(json, sender) }
+
+      let(:token) { 'foo' }
+
+      let(:json) do
+        {
+          '@context': 'https://www.w3.org/ns/activitystreams',
+          id: [ActivityPub::TagManager.instance.uri_for(sender), '#foo'].join,
+          type: 'Create',
+          actor: ActivityPub::TagManager.instance.uri_for(sender),
+          object: Addressable::URI.new(scheme: 'bear', query_values: { t: token, u: object_json[:id] }).to_s,
+        }.with_indifferent_access
+      end
+
+      let(:object_json) do
+        {
+          id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
+          type: 'Note',
+          content: 'Lorem ipsum',
+          to: 'https://www.w3.org/ns/activitystreams#Public',
+        }
+      end
+
+      before do
+        stub_request(:get, object_json[:id])
+          .with(headers: { Authorization: "Bearer #{token}" })
+          .to_return(body: Oj.dump(object_json), headers: { 'Content-Type': 'application/activity+json' })
+
+        subject.perform
+      end
+
+      it 'creates status' do
+        status = sender.statuses.first
+
+        expect(status).to_not be_nil
+        expect(status).to have_attributes(
+          visibility: 'public',
+          text: 'Lorem ipsum'
+        )
+      end
+    end
+
     context 'with an encrypted message' do
       subject { described_class.new(json, sender, delivery: true, delivered_to_account_id: recipient.id) }
 
@@ -833,12 +1016,15 @@ RSpec.describe ActivityPub::Activity::Create do
       it 'creates an encrypted message' do
         encrypted_message = target_device.encrypted_messages.reload.first
 
-        expect(encrypted_message).to_not be_nil
-        expect(encrypted_message.from_device_id).to eq '1234'
-        expect(encrypted_message.from_account).to eq sender
-        expect(encrypted_message.type).to eq 1
-        expect(encrypted_message.body).to eq 'Foo'
-        expect(encrypted_message.digest).to eq 'Foo123'
+        expect(encrypted_message)
+          .to be_present
+          .and have_attributes(
+            from_device_id: eq('1234'),
+            from_account: eq(sender),
+            type: eq(1),
+            body: eq('Foo'),
+            digest: eq('Foo123')
+          )
       end
 
       it 'creates a message franking' do

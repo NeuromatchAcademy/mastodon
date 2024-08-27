@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe HomeFeed, type: :model do
+RSpec.describe HomeFeed do
   subject { described_class.new(account) }
 
   let(:account) { Fabricate(:account) }
@@ -27,7 +27,6 @@ RSpec.describe HomeFeed, type: :model do
         results = subject.get(3)
 
         expect(results.map(&:id)).to eq [3, 2]
-        expect(results.first.attributes.keys).to eq %w(id updated_at)
       end
     end
 

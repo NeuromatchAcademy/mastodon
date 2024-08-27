@@ -1,23 +1,26 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
-import IconButton from './icon_button';
-import Overlay from 'react-overlays/Overlay';
-import { supportsPassiveEvents } from 'detect-passive-events';
-import classNames from 'classnames';
-import { CircularProgress } from 'mastodon/components/loading_indicator';
+import { PureComponent, cloneElement, Children } from 'react';
 
-const listenerOptions = supportsPassiveEvents ? { passive: true } : false;
+import classNames from 'classnames';
+import { withRouter } from 'react-router-dom';
+
+import ImmutablePropTypes from 'react-immutable-proptypes';
+
+import { supportsPassiveEvents } from 'detect-passive-events';
+import Overlay from 'react-overlays/Overlay';
+
+import { CircularProgress } from 'mastodon/components/circular_progress';
+import { WithRouterPropTypes } from 'mastodon/utils/react_router';
+
+import { IconButton } from './icon_button';
+
+const listenerOptions = supportsPassiveEvents ? { passive: true, capture: true } : true;
 let id = 0;
 
-class DropdownMenu extends React.PureComponent {
-
-  static contextTypes = {
-    router: PropTypes.object,
-  };
+class DropdownMenu extends PureComponent {
 
   static propTypes = {
-    items: PropTypes.oneOfType([PropTypes.array, ImmutablePropTypes.list]).isRequired,
+    items: PropTypes.array.isRequired,
     loading: PropTypes.bool,
     scrollable: PropTypes.bool,
     onClose: PropTypes.func.isRequired,
@@ -35,12 +38,14 @@ class DropdownMenu extends React.PureComponent {
   handleDocumentClick = e => {
     if (this.node && !this.node.contains(e.target)) {
       this.props.onClose();
+      e.stopPropagation();
+      e.preventDefault();
     }
   };
 
   componentDidMount () {
-    document.addEventListener('click', this.handleDocumentClick, false);
-    document.addEventListener('keydown', this.handleKeyDown, false);
+    document.addEventListener('click', this.handleDocumentClick, { capture: true });
+    document.addEventListener('keydown', this.handleKeyDown, { capture: true });
     document.addEventListener('touchend', this.handleDocumentClick, listenerOptions);
 
     if (this.focusedItem && this.props.openedViaKeyboard) {
@@ -49,8 +54,8 @@ class DropdownMenu extends React.PureComponent {
   }
 
   componentWillUnmount () {
-    document.removeEventListener('click', this.handleDocumentClick, false);
-    document.removeEventListener('keydown', this.handleKeyDown, false);
+    document.removeEventListener('click', this.handleDocumentClick, { capture: true });
+    document.removeEventListener('keydown', this.handleKeyDown, { capture: true });
     document.removeEventListener('touchend', this.handleDocumentClick, listenerOptions);
   }
 
@@ -115,11 +120,11 @@ class DropdownMenu extends React.PureComponent {
       return <li key={`sep-${i}`} className='dropdown-menu__separator' />;
     }
 
-    const { text, href = '#', target = '_blank', method } = option;
+    const { text, href = '#', target = '_blank', method, dangerous } = option;
 
     return (
-      <li className='dropdown-menu__item' key={`${text}-${i}`}>
-        <a href={href} target={target} data-method={method} rel='noopener noreferrer' role='button' tabIndex='0' ref={i === 0 ? this.setFocusRef : null} onClick={this.handleClick} onKeyPress={this.handleItemKeyPress} data-index={i}>
+      <li className={classNames('dropdown-menu__item', { 'dropdown-menu__item--dangerous': dangerous })} key={`${text}-${i}`}>
+        <a href={href} target={target} data-method={method} rel='noopener noreferrer' role='button' tabIndex={0} ref={i === 0 ? this.setFocusRef : null} onClick={this.handleClick} onKeyPress={this.handleItemKeyPress} data-index={i}>
           {text}
         </a>
       </li>
@@ -154,16 +159,13 @@ class DropdownMenu extends React.PureComponent {
 
 }
 
-export default class Dropdown extends React.PureComponent {
-
-  static contextTypes = {
-    router: PropTypes.object,
-  };
+class Dropdown extends PureComponent {
 
   static propTypes = {
     children: PropTypes.node,
     icon: PropTypes.string,
-    items: PropTypes.oneOfType([PropTypes.array, ImmutablePropTypes.list]).isRequired,
+    iconComponent: PropTypes.func,
+    items: PropTypes.array.isRequired,
     loading: PropTypes.bool,
     size: PropTypes.number,
     title: PropTypes.string,
@@ -178,6 +180,7 @@ export default class Dropdown extends React.PureComponent {
     renderItem: PropTypes.func,
     renderHeader: PropTypes.func,
     onItemClick: PropTypes.func,
+    ...WithRouterPropTypes
   };
 
   static defaultProps = {
@@ -245,7 +248,7 @@ export default class Dropdown extends React.PureComponent {
       item.action();
     } else if (item && item.to) {
       e.preventDefault();
-      this.context.router.history.push(item.to);
+      this.props.history.push(item.to);
     }
   };
 
@@ -254,7 +257,7 @@ export default class Dropdown extends React.PureComponent {
   };
 
   findTarget = () => {
-    return this.target;
+    return this.target?.buttonRef?.current ?? this.target;
   };
 
   componentWillUnmount = () => {
@@ -270,6 +273,7 @@ export default class Dropdown extends React.PureComponent {
   render () {
     const {
       icon,
+      iconComponent,
       items,
       size,
       title,
@@ -285,14 +289,16 @@ export default class Dropdown extends React.PureComponent {
 
     const open = this.state.id === openDropdownId;
 
-    const button = children ? React.cloneElement(React.Children.only(children), {
+    const button = children ? cloneElement(Children.only(children), {
       onClick: this.handleClick,
       onMouseDown: this.handleMouseDown,
       onKeyDown: this.handleButtonKeyDown,
       onKeyPress: this.handleKeyPress,
+      ref: this.setTargetRef,
     }) : (
       <IconButton
-        icon={icon}
+        icon={!open ? icon : 'close'}
+        iconComponent={iconComponent}
         title={title}
         active={open}
         disabled={disabled}
@@ -301,14 +307,14 @@ export default class Dropdown extends React.PureComponent {
         onMouseDown={this.handleMouseDown}
         onKeyDown={this.handleButtonKeyDown}
         onKeyPress={this.handleKeyPress}
+        ref={this.setTargetRef}
       />
     );
 
     return (
-      <React.Fragment>
-        <span ref={this.setTargetRef}>
-          {button}
-        </span>
+      <>
+        {button}
+
         <Overlay show={open} offset={[5, 5]} placement={'bottom'} flip target={this.findTarget} popperConfig={{ strategy: 'fixed' }}>
           {({ props, arrowProps, placement }) => (
             <div {...props}>
@@ -328,8 +334,10 @@ export default class Dropdown extends React.PureComponent {
             </div>
           )}
         </Overlay>
-      </React.Fragment>
+      </>
     );
   }
 
 }
+
+export default withRouter(Dropdown);

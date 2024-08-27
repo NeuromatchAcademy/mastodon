@@ -31,7 +31,6 @@ hy:
       created_msg: Մոդերացիոն նոթը բարեյաջող ստեղծուեց
       destroyed_msg: Մոդերացիոն նոթը բարեյաջող վերացուեց
     accounts:
-      add_email_domain_block: Արգելափակել էլ․ փոստի տիրոյթը
       approve: Ընդունել
       approved_msg: Յաջողութեամբ հաստատուեց %{username}֊ի գրանցման յայտը
       are_you_sure: Վստա՞հ ես
@@ -84,6 +83,7 @@ hy:
         active: Ակտիվ
         all: Բոլորը
         pending: Սպասում
+        silenced: Սահմանափակ
         suspended: Կասեցուած
         title: Մոդերացիա
       moderation_notes: Մոդերացիայի նշումներ
@@ -108,13 +108,10 @@ hy:
       removed_header_msg: Յաջողութեամբ հեռացուեց %{username}֊ի գլխանկարը
       resend_confirmation:
         already_confirmed: Օգտատէրն արդէն հաստատուած է
-        send: Հաստատման իմակն ուղարկել կրկին
-        success: Հաստատման իմակը բարեյաջող ուղարկուեց
       reset: Վերականգնել
       reset_password: Վերականգնել գաղտանաբառը
       resubscribe: Կրկին բաժանորդագրուել
       search: Որոնել
-      search_same_email_domain: Այլ օգտատէրեր նոյն էլ․ փոստի դոմէյնով
       search_same_ip: Այլ օգտատէրեր նոյն IP֊ով
       security_measures:
         only_password: Միայն ծածկագիր
@@ -148,21 +145,18 @@ hy:
     action_logs:
       action_types:
         assigned_to_self_report: Բողոքել
-        change_email_user: Փոխել օգտատիրոջ էլ․ հասցէն
         confirm_user: Հաստատել օգտատիրոջը
         create_account_warning: Ստեղծել զգուշացում
         create_announcement: Ստեղծել յայտարարութիւն
         create_custom_emoji: Ստեղծել սեփական էմոջիները
         create_domain_allow: Ստեղծել տիրոյթի թոյլտուութիւն
         create_domain_block: Ստեղծել տիրոյթի արգելափակում
-        create_email_domain_block: Ստեղծել էլ․ հասցէի դոմէյնի արգելափակում
         create_ip_block: Ստեղծել IP կանոն
         demote_user: Աստիճանազրկել օգտատիրոջը
         destroy_announcement: Ջնջել յայտարարութիւնը
         destroy_custom_emoji: Ջնջել էմոջին
         destroy_domain_allow: Ջնջել դոմէնի թոյլտուութիւնը
         destroy_domain_block: Ապաարգելափակել դոմէնը
-        destroy_email_domain_block: Ապաարգելափակել էլ․ հասցէի դոմէնը
         destroy_ip_block: Ջնջել IP կանոնը
         destroy_status: Ջնջել գրառումը
         disable_2fa_user: Անջատել 2FA
@@ -275,13 +269,10 @@ hy:
       view: Տեսնել տիրոյթի արգելափակումը
     email_domain_blocks:
       add_new: Ավելացնել նորը
-      created_msg: Բարեյաջող արգելափակուեց էլ․ փոստի տիրոյթ
       delete: Ջնջել
       domain: Դոմեն
       new:
         create: Ավելացնել դոմեն
-        title: Արգելափակել էլ․ փոստի նոր տիրոյթ
-      title: էլ․ փոստի արգելափակուած տիրոյթներ
     follow_recommendations:
       language: Լեզուի համար
       status: Կարգավիճակ
@@ -434,7 +425,6 @@ hy:
         not_usable: Չի կարող օգտագործուել
         title: Թրենդային պիտակներ
         usable: Կարող է օգտագործուել
-      title: Թրենդներ
     warning_presets:
       add_new: Ավելացնել նորը
       delete: Ջնջել
@@ -455,7 +445,6 @@ hy:
       guide_link_text: Աջակցել կարող են բոլորը։
     sensitive_content: Զգայուն բովանդակութիւն
   application_mailer:
-    notification_preferences: Փոխել փոստային կարգաւորումները
     salutation: "%{name}"
     view: Նայել․
     view_profile: Նայել անձնական էջը
@@ -464,39 +453,42 @@ hy:
     regenerate_token: Ստեղծել նոր հասանելիութեան կտրոն
     your_token: Քո մուտքի բանալին
   auth:
-    change_password: Գաղտնաբառ
+    apply_for_account: Ուղարկել
     delete_account: Ջնջել հաշիվը
     description:
       prefix_sign_up: Գրանցուի՛ր Մաստոդոնում հենց այսօր
-    didnt_get_confirmation: Չե՞ս ստացել հաստատման ուղեցոյց։
+    didnt_get_confirmation: Չե՞ս ստացել հաստատման յղում
     dont_have_your_security_key: Չունե՞ս անվտանգութեան բանալի։
     forgot_password: Մոռացե՞լ ես գաղտնաբառդ
     login: Մտնել
     logout: Դուրս գալ
     migrate_account: Տեղափոխուել այլ հաշիւ
     or_log_in_with: Կամ մուտք գործել օգտագործելով՝
+    privacy_policy_agreement_html: Ես կարդացել եւ ընդունել եմ <a href="%{privacy_policy_path}" target="_blank">գաղնիութեան քաղաքականութիւնը</a>
+    progress:
+      details: Ձեր տուեալները
+      review: Վաւերացում
+      rules: Ընդունել կանոները
     register: Գրանցվել
     registration_closed: "%{instance}ը չի ընդունում նոր անդամներ"
     reset_password: Վերականգնել գաղտանաբառը
+    rules:
+      accept: Հաստատել
+      back: Վերադառնալ
+      preamble: Կանոնները սահմանում եւ կիրառում են %{domain}-ի մոդերատորները։
+      title: Մի քանի հիմանական կանոններ։
     security: Անվտանգություն
     set_new_password: Սահմանել նոր գաղտնաբառ
-    setup:
-      title: Կարգավորում
+    sign_in:
+      preamble_html: Մուտքագրէք <strong>%{domain}</strong>-ի ձեր տուեալները։ Եթե ձեր հաշիւը ուրիշ սպասարկիչի վրայ է, այտեղ մտնել չի ստացուի։
+      title: Մտնել %{domain}
+    sign_up:
+      manual_review: Գրանցումները %{domain}-ում վաւերացնում են մոդերատորնրը։ Մեզ օգնելու համար մի փոքր պատմէք ձեր մասին եւ թե ինչու էք ուզում գրանցուել։
+      preamble: Այս հանգոյցում հաշիւ ունենալով դուք կարող էք հերտեւել դաշնեզերքի ցանկացած օգտատիրոջ, անկախ նրանից թե որտեղ է նրա հաշիւը տեղակայուած։
+      title: Ստեղծի՜ր հաշիւ %{domain}-ում
     status:
       account_status: Հաշուի կարգավիճակ
-      pending: Դիմումը պէտք է քննուի մեր անձնակազմի կողմից, ինչը կարող է մի փոքր ժամանակ խլել։ Դիմումի հաստատուելու դէպքում, կտեղեկացնենք նամակով։
     use_security_key: Օգտագործել անվտանգութեան բանալի
-  authorize_follow:
-    already_following: Դու արդէն հետեւում ես այս հաշուին
-    already_requested: Դու արդէն ուղարկել ես հետեւմանն յայտ այս հաշուին
-    follow: Հետևել
-    follow_request: Դու ուղարկել ես հետեւելու հայց՝
-    following: Յաջողութի՜ւն։ Դու այժմ հետեւում ես․
-    post_follow:
-      close: Կամ, կարող ես պարզապէս փակել այս պատուհանը։
-      return: Ցուցադրել օգտատիրոջ էջը
-      web: Անցնել վէբին
-    title: Հետեւել %{acct}
   challenge:
     confirm: Շարունակել
     invalid_password: Անվաւեր ծածկագիր
@@ -534,15 +526,10 @@ hy:
   domain_validator:
     invalid_domain: անվաւէր տիրոյթի անուն
   errors:
-    '400': The request you submitted was invalid or malformed.
-    '403': You don't have permission to view this page.
     '404': Էջը, որը փնտրում ես գոյութիւն չունի։
-    '406': This page is not available in the requested format.
-    '410': The page you were looking for doesn't exist here anymore.
     '429': Չափազանց շատ հարցումներ
     '500':
       title: Էջը ճիշտ չէ
-    '503': The page could not be served due to a temporary server failure.
   existing_username_validator:
     not_found: չյաջողուեց գտնել այս ծածկագրով լոկալ օգտատիրոջ
     not_found_multiple: չյաջողուեց գտնել %{usernames}
@@ -572,6 +559,7 @@ hy:
     index:
       delete: Ջնջել
       empty: Դու ֆիլտրեր չունես։
+      expires_on: Լրանում է %{date}-ին
       title: Ֆիլտրեր
     new:
       title: Ավելացնել ֆիլտր
@@ -672,7 +660,6 @@ hy:
       subject: "%{name}-ը փոխել է գրառումը"
   notifications:
     email_events_hint: Ընտրիր իրադարձութիւնները, որոնց վերաբերեալ ցանկանում ես ստանալ ծանուցումներ․
-    other_settings: Ծանուցումների այլ կարգաւորումներ
   number:
     human:
       decimal_units:
@@ -705,6 +692,10 @@ hy:
     other: Այլ
     posting_defaults: Կանխադիր կարգաւորումներ
     public_timelines: Հանրային հոսք
+  privacy:
+    search: Որոնել
+  privacy_policy:
+    title: Գաղտնիութեան քաղաքականութիւն
   reactions:
     errors:
       unrecognized_emoji: ճանաչուած էմոջի չէ
@@ -775,7 +766,6 @@ hy:
     import: Ներմուծել
     import_and_export: Ներմուծել և արտահանել
     migrate: Հաշուի տեղափոխում
-    notifications: Ծանուցումներ
     preferences: Կարգավորումներ
     profile: Հաշիւ
     relationships: Հետեւումներ և հետեւորդներ
@@ -805,10 +795,7 @@ hy:
         other: "%{count} ձայներ"
       vote: Քուէարկել
     show_more: Աւելին
-    show_newer: Ցուցադրել նորերը
-    show_older: Ցուցադրել հները
     show_thread: Բացել շղթան
-    sign_in_to_participate: Մուտք գործէք՝ զրոյցին միանալու համար
     title: '%{name}: "%{quote}"'
     visibilities:
       direct: Հասցէագրուած
@@ -830,8 +817,6 @@ hy:
       '63113904': 2 տարի
       '7889238': 3 ամիս
   stream_entries:
-    pinned: Ամրացուած գրառում
-    reblogged: տարածուած
     sensitive_content: Կասկածելի բովանդակութիւն
   themes:
     contrast: Mastodon (բարձր կոնտրաստով)
@@ -873,15 +858,12 @@ hy:
         silence: Հաշիւը սահմանափակուած է
         suspend: Հաշիւը արգելափակուած է
     welcome:
-      edit_profile_action: Կարգաւորել հաշիւը
-      final_action: Սկսել գրել
       subject: Բարի գալուստ Մաստոդոն
       title: Բարի գալուստ նաւամատոյց, %{name}
   users:
     invalid_otp_token: Անվաւեր 2F կոդ
     signed_in_as: Մոտք գործել որպէս․
   verification:
-    explanation_html: Պիտակների յղումների հեղինակութիւնը կարելի է վաւերացնել։ Անհրաժեշտ է որ յղուած կայքը պարունակի յետադարձ յղում ձեր մաստադոնի էջին, որը <strong>պէտք է</strong> ունենայ <code>rel="me"</code> նիշքը։ Յղման բովանդակութիւնը կարևոր չէ։ Օրինակ՝
     verification: Ստուգում
   webauthn_credentials:
     delete: Ջնջել

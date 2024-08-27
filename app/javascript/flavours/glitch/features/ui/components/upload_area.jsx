@@ -1,10 +1,13 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import Motion from '../../ui/util/optional_motion';
-import spring from 'react-motion/lib/spring';
+import { PureComponent } from 'react';
+
 import { FormattedMessage } from 'react-intl';
 
-export default class UploadArea extends React.PureComponent {
+import spring from 'react-motion/lib/spring';
+
+import Motion from '../util/optional_motion';
+
+export default class UploadArea extends PureComponent {
 
   static propTypes = {
     active: PropTypes.bool,
@@ -37,14 +40,14 @@ export default class UploadArea extends React.PureComponent {
 
     return (
       <Motion defaultStyle={{ backgroundOpacity: 0, backgroundScale: 0.95 }} style={{ backgroundOpacity: spring(active ? 1 : 0, { stiffness: 150, damping: 15 }), backgroundScale: spring(active ? 1 : 0.95, { stiffness: 200, damping: 3 }) }}>
-        {({ backgroundOpacity, backgroundScale }) =>
-          (<div className='upload-area' style={{ visibility: active ? 'visible' : 'hidden', opacity: backgroundOpacity }}>
+        {({ backgroundOpacity, backgroundScale }) => (
+          <div className='upload-area' style={{ visibility: active ? 'visible' : 'hidden', opacity: backgroundOpacity }}>
             <div className='upload-area__drop'>
               <div className='upload-area__background' style={{ transform: `scale(${backgroundScale})` }} />
               <div className='upload-area__content'><FormattedMessage id='upload_area.title' defaultMessage='Drag & drop to upload' /></div>
             </div>
-          </div>)
-        }
+          </div>
+        )}
       </Motion>
     );
   }

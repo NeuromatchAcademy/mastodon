@@ -1,18 +1,26 @@
-import React from 'react';
-import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import { PureComponent } from 'react';
+
+import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
+
+import { Helmet } from 'react-helmet';
+import { NavLink, Switch, Route } from 'react-router-dom';
+
+import { connect } from 'react-redux';
+
+import ExploreIcon from '@/material-icons/400-24px/explore.svg?react';
+import SearchIcon from '@/material-icons/400-24px/search.svg?react';
 import Column from 'mastodon/components/column';
 import ColumnHeader from 'mastodon/components/column_header';
-import { NavLink, Switch, Route } from 'react-router-dom';
+import Search from 'mastodon/features/compose/containers/search_container';
+import { identityContextPropShape, withIdentity } from 'mastodon/identity_context';
+import { trendsEnabled } from 'mastodon/initial_state';
+
 import Links from './links';
-import Tags from './tags';
+import SearchResults from './results';
 import Statuses from './statuses';
 import Suggestions from './suggestions';
-import Search from 'mastodon/features/compose/containers/search_container';
-import SearchResults from './results';
-import { Helmet } from 'react-helmet';
-import { showTrends } from 'mastodon/initial_state';
+import Tags from './tags';
 
 const messages = defineMessages({
   title: { id: 'explore.title', defaultMessage: 'Explore' },
@@ -21,17 +29,12 @@ const messages = defineMessages({
 
 const mapStateToProps = state => ({
   layout: state.getIn(['meta', 'layout']),
-  isSearching: state.getIn(['search', 'submitted']) || !showTrends,
+  isSearching: state.getIn(['search', 'submitted']) || !trendsEnabled,
 });
 
-class Explore extends React.PureComponent {
-
-  static contextTypes = {
-    router: PropTypes.object,
-    identity: PropTypes.object,
-  };
-
+class Explore extends PureComponent {
   static propTypes = {
+    identity: identityContextPropShape,
     intl: PropTypes.object.isRequired,
     multiColumn: PropTypes.bool,
     isSearching: PropTypes.bool,
@@ -47,12 +50,13 @@ class Explore extends React.PureComponent {
 
   render() {
     const { intl, multiColumn, isSearching } = this.props;
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
 
     return (
       <Column bindToDocument={!multiColumn} ref={this.setRef} label={intl.formatMessage(messages.title)}>
         <ColumnHeader
-          icon={isSearching ? 'search' : 'hashtag'}
+          icon={isSearching ? 'search' : 'explore'}
+          iconComponent={isSearching ? SearchIcon : ExploreIcon}
           title={intl.formatMessage(isSearching ? messages.searchResults : messages.title)}
           onClick={this.handleHeaderClick}
           multiColumn={multiColumn}
@@ -62,46 +66,49 @@ class Explore extends React.PureComponent {
           <Search />
         </div>
 
-        <div className='scrollable scrollable--flex'>
-          {isSearching ? (
-            <SearchResults />
-          ) : (
-            <>
-              <div className='account__section-headline'>
-                <NavLink exact to='/explore'>
-                  <FormattedMessage tagName='div' id='explore.trending_statuses' defaultMessage='Posts' />
-                </NavLink>
-                <NavLink exact to='/explore/tags'>
-                  <FormattedMessage tagName='div' id='explore.trending_tags' defaultMessage='Hashtags' />
-                </NavLink>
-                <NavLink exact to='/explore/links'>
-                  <FormattedMessage tagName='div' id='explore.trending_links' defaultMessage='News' />
-                </NavLink>
-                {signedIn && (
-                  <NavLink exact to='/explore/suggestions'>
-                    <FormattedMessage tagName='div' id='explore.suggested_follows' defaultMessage='For you' />
-                  </NavLink>
-                )}
-              </div>
+        {isSearching ? (
+          <SearchResults />
+        ) : (
+          <>
+            <div className='account__section-headline'>
+              <NavLink exact to='/explore'>
+                <FormattedMessage tagName='div' id='explore.trending_statuses' defaultMessage='Posts' />
+              </NavLink>
 
-              <Switch>
-                <Route path='/explore/tags' component={Tags} />
-                <Route path='/explore/links' component={Links} />
-                <Route path='/explore/suggestions' component={Suggestions} />
-                <Route exact path={['/explore', '/explore/posts', '/search']} component={Statuses} componentParams={{ multiColumn }} />
-              </Switch>
+              <NavLink exact to='/explore/tags'>
+                <FormattedMessage tagName='div' id='explore.trending_tags' defaultMessage='Hashtags' />
+              </NavLink>
 
-              <Helmet>
-                <title>{intl.formatMessage(messages.title)}</title>
-                <meta name='robots' content={isSearching ? 'noindex' : 'all'} />
-              </Helmet>
-            </>
-          )}
-        </div>
+              {signedIn && (
+                <NavLink exact to='/explore/suggestions'>
+                  <FormattedMessage tagName='div' id='explore.suggested_follows' defaultMessage='People' />
+                </NavLink>
+              )}
+
+              <NavLink exact to='/explore/links'>
+                <FormattedMessage tagName='div' id='explore.trending_links' defaultMessage='News' />
+              </NavLink>
+            </div>
+
+            <Switch>
+              <Route path='/explore/tags' component={Tags} />
+              <Route path='/explore/links' component={Links} />
+              <Route path='/explore/suggestions' component={Suggestions} />
+              <Route exact path={['/explore', '/explore/posts', '/search']}>
+                <Statuses multiColumn={multiColumn} />
+              </Route>
+            </Switch>
+
+            <Helmet>
+              <title>{intl.formatMessage(messages.title)}</title>
+              <meta name='robots' content={isSearching ? 'noindex' : 'all'} />
+            </Helmet>
+          </>
+        )}
       </Column>
     );
   }
 
 }
 
-export default connect(mapStateToProps)(injectIntl(Explore));
+export default withIdentity(connect(mapStateToProps)(injectIntl(Explore)));

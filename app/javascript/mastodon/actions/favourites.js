@@ -1,4 +1,5 @@
 import api, { getLinks } from '../api';
+
 import { importFetchedStatuses } from './importer';
 
 export const FAVOURITED_STATUSES_FETCH_REQUEST = 'FAVOURITED_STATUSES_FETCH_REQUEST';
@@ -17,7 +18,7 @@ export function fetchFavouritedStatuses() {
 
     dispatch(fetchFavouritedStatusesRequest());
 
-    api(getState).get('/api/v1/favourites').then(response => {
+    api().get('/api/v1/favourites').then(response => {
       const next = getLinks(response).refs.find(link => link.rel === 'next');
       dispatch(importFetchedStatuses(response.data));
       dispatch(fetchFavouritedStatusesSuccess(response.data, next ? next.uri : null));
@@ -61,7 +62,7 @@ export function expandFavouritedStatuses() {
 
     dispatch(expandFavouritedStatusesRequest());
 
-    api(getState).get(url).then(response => {
+    api().get(url).then(response => {
       const next = getLinks(response).refs.find(link => link.rel === 'next');
       dispatch(importFetchedStatuses(response.data));
       dispatch(expandFavouritedStatusesSuccess(response.data, next ? next.uri : null));

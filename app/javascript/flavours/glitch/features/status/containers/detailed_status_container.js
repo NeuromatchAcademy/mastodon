@@ -1,43 +1,31 @@
+import { injectIntl } from 'react-intl';
+
 import { connect } from 'react-redux';
-import DetailedStatus from '../components/detailed_status';
-import { makeGetStatus } from 'flavours/glitch/selectors';
+
+import { showAlertForError } from '../../../actions/alerts';
+import { initBlockModal } from '../../../actions/blocks';
 import {
   replyCompose,
   mentionCompose,
   directCompose,
-} from 'flavours/glitch/actions/compose';
+} from '../../../actions/compose';
 import {
-  reblog,
-  favourite,
-  unreblog,
-  unfavourite,
+  toggleReblog,
+  toggleFavourite,
   pin,
   unpin,
-} from 'flavours/glitch/actions/interactions';
+} from '../../../actions/interactions';
+import { openModal } from '../../../actions/modal';
+import { initMuteModal } from '../../../actions/mutes';
+import { initReport } from '../../../actions/reports';
 import {
   muteStatus,
   unmuteStatus,
   deleteStatus,
-  hideStatus,
-  revealStatus,
-} from 'flavours/glitch/actions/statuses';
-import { initMuteModal } from 'flavours/glitch/actions/mutes';
-import { initBlockModal } from 'flavours/glitch/actions/blocks';
-import { initReport } from 'flavours/glitch/actions/reports';
-import { initBoostModal } from 'flavours/glitch/actions/boosts';
-import { openModal } from 'flavours/glitch/actions/modal';
-import { defineMessages, injectIntl } from 'react-intl';
-import { boostModal, deleteModal } from 'flavours/glitch/initial_state';
-import { showAlertForError } from 'flavours/glitch/actions/alerts';
-
-const messages = defineMessages({
-  deleteConfirm: { id: 'confirmations.delete.confirm', defaultMessage: 'Delete' },
-  deleteMessage: { id: 'confirmations.delete.message', defaultMessage: 'Are you sure you want to delete this status?' },
-  redraftConfirm: { id: 'confirmations.redraft.confirm', defaultMessage: 'Delete & redraft' },
-  redraftMessage: { id: 'confirmations.redraft.message', defaultMessage: 'Are you sure you want to delete this status and re-draft it? Favourites and boosts will be lost, and replies to the original post will be orphaned.' },
-  replyConfirm: { id: 'confirmations.reply.confirm', defaultMessage: 'Reply' },
-  replyMessage: { id: 'confirmations.reply.message', defaultMessage: 'Replying now will overwrite the message you are currently composing. Are you sure you want to proceed?' },
-});
+} from '../../../actions/statuses';
+import { deleteModal } from '../../../initial_state';
+import { makeGetStatus } from '../../../selectors';
+import DetailedStatus from '../components/detailed_status';
 
 const makeMapStateToProps = () => {
   const getStatus = makeGetStatus();
@@ -51,45 +39,25 @@ const makeMapStateToProps = () => {
   return mapStateToProps;
 };
 
-const mapDispatchToProps = (dispatch, { intl }) => ({
+const mapDispatchToProps = (dispatch) => ({
 
-  onReply (status, router) {
+  onReply (status) {
     dispatch((_, getState) => {
       let state = getState();
       if (state.getIn(['compose', 'text']).trim().length !== 0) {
-        dispatch(openModal('CONFIRM', {
-          message: intl.formatMessage(messages.replyMessage),
-          confirm: intl.formatMessage(messages.replyConfirm),
-          onConfirm: () => dispatch(replyCompose(status, router)),
-        }));
+        dispatch(openModal({ modalType: 'CONFIRM_REPLY', modalProps: { status } }));
       } else {
-        dispatch(replyCompose(status, router));
+        dispatch(replyCompose(status));
       }
     });
   },
 
-  onModalReblog (status, privacy) {
-    dispatch(reblog(status, privacy));
-  },
-
   onReblog (status, e) {
-    if (status.get('reblogged')) {
-      dispatch(unreblog(status));
-    } else {
-      if (e.shiftKey || !boostModal) {
-        this.onModalReblog(status);
-      } else {
-        dispatch(initBoostModal({ status, onReblog: this.onModalReblog }));
-      }
-    }
+    dispatch(toggleReblog(status.get('id'), e.shiftKey));
   },
 
-  onFavourite (status) {
-    if (status.get('favourited')) {
-      dispatch(unfavourite(status));
-    } else {
-      dispatch(favourite(status));
-    }
+  onFavourite (status, e) {
+    dispatch(toggleFavourite(status.get('id'), e.shiftKey));
   },
 
   onPin (status) {
@@ -101,38 +69,43 @@ const mapDispatchToProps = (dispatch, { intl }) => ({
   },
 
   onEmbed (status) {
-    dispatch(openModal('EMBED', {
-      url: status.get('url'),
-      onError: error => dispatch(showAlertForError(error)),
+    dispatch(openModal({
+      modalType: 'EMBED',
+      modalProps: {
+        id: status.get('id'),
+        onError: error => dispatch(showAlertForError(error)),
+      },
     }));
   },
 
-  onDelete (status, history, withRedraft = false) {
+  onDelete (status, withRedraft = false) {
     if (!deleteModal) {
-      dispatch(deleteStatus(status.get('id'), history, withRedraft));
+      dispatch(deleteStatus(status.get('id'), withRedraft));
     } else {
-      dispatch(openModal('CONFIRM', {
-        message: intl.formatMessage(withRedraft ? messages.redraftMessage : messages.deleteMessage),
-        confirm: intl.formatMessage(withRedraft ? messages.redraftConfirm : messages.deleteConfirm),
-        onConfirm: () => dispatch(deleteStatus(status.get('id'), history, withRedraft)),
-      }));
+      dispatch(openModal({ modalType: 'CONFIRM_DELETE_STATUS', modalProps: { statusId: status.get('id'), withRedraft } }));
     }
   },
 
-  onDirect (account, router) {
-    dispatch(directCompose(account, router));
+  onDirect (account) {
+    dispatch(directCompose(account));
   },
 
-  onMention (account, router) {
-    dispatch(mentionCompose(account, router));
+  onMention (account) {
+    dispatch(mentionCompose(account));
   },
 
-  onOpenMedia (media, index) {
-    dispatch(openModal('MEDIA', { media, index }));
+  onOpenMedia (media, index, lang) {
+    dispatch(openModal({
+      modalType: 'MEDIA',
+      modalProps: { media, index, lang },
+    }));
   },
 
-  onOpenVideo (media, options) {
-    dispatch(openModal('VIDEO', { media, options }));
+  onOpenVideo (media, lang, options) {
+    dispatch(openModal({
+      modalType: 'VIDEO',
+      modalProps: { media, lang, options },
+    }));
   },
 
   onBlock (status) {

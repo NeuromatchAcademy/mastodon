@@ -27,6 +27,11 @@ describe Oauth::AuthorizedApplicationsController do
         expect(response).to have_http_status(200)
       end
 
+      it 'returns private cache control headers' do
+        subject
+        expect(response.headers['Cache-Control']).to include('private, no-store')
+      end
+
       include_examples 'stores location for user'
     end
 
@@ -45,9 +50,11 @@ describe Oauth::AuthorizedApplicationsController do
     let!(:application) { Fabricate(:application) }
     let!(:access_token) { Fabricate(:accessible_access_token, application: application, resource_owner_id: user.id) }
     let!(:web_push_subscription) { Fabricate(:web_push_subscription, user: user, access_token: access_token) }
+    let(:redis_pipeline_stub) { instance_double(Redis::Namespace, publish: nil) }
 
     before do
       sign_in user, scope: :user
+      allow(redis).to receive(:pipelined).and_yield(redis_pipeline_stub)
       post :destroy, params: { id: application.id }
     end
 
@@ -57,6 +64,14 @@ describe Oauth::AuthorizedApplicationsController do
 
     it 'removes subscriptions for the application\'s access tokens' do
       expect(Web::PushSubscription.where(user: user).count).to eq 0
+    end
+
+    it 'removes the web_push_subscription' do
+      expect { web_push_subscription.reload }.to raise_error(ActiveRecord::RecordNotFound)
+    end
+
+    it 'sends a session kill payload to the streaming server' do
+      expect(redis_pipeline_stub).to have_received(:publish).with("timeline:access_token:#{access_token.id}", '{"event":"kill"}')
     end
   end
 end

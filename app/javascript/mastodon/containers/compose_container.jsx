@@ -1,18 +1,12 @@
-import React from 'react';
 import { Provider } from 'react-redux';
-import PropTypes from 'prop-types';
-import configureStore from '../store/configureStore';
-import { hydrateStore } from '../actions/store';
-import { IntlProvider, addLocaleData } from 'react-intl';
-import { getLocale } from '../locales';
-import Compose from '../features/standalone/compose';
-import initialState from '../initial_state';
-import { fetchCustomEmojis } from '../actions/custom_emojis';
 
-const { localeData, messages } = getLocale();
-addLocaleData(localeData);
-
-const store = configureStore();
+import { fetchCustomEmojis } from 'mastodon/actions/custom_emojis';
+import { hydrateStore } from 'mastodon/actions/store';
+import { Router } from 'mastodon/components/router';
+import Compose from 'mastodon/features/standalone/compose';
+import initialState from 'mastodon/initial_state';
+import { IntlProvider } from 'mastodon/locales';
+import { store } from 'mastodon/store';
 
 if (initialState) {
   store.dispatch(hydrateStore(initialState));
@@ -20,22 +14,14 @@ if (initialState) {
 
 store.dispatch(fetchCustomEmojis());
 
-export default class TimelineContainer extends React.PureComponent {
+const ComposeContainer = () => (
+  <IntlProvider>
+    <Provider store={store}>
+      <Router>
+        <Compose />
+      </Router>
+    </Provider>
+  </IntlProvider>
+);
 
-  static propTypes = {
-    locale: PropTypes.string.isRequired,
-  };
-
-  render () {
-    const { locale } = this.props;
-
-    return (
-      <IntlProvider locale={locale} messages={messages}>
-        <Provider store={store}>
-          <Compose />
-        </Provider>
-      </IntlProvider>
-    );
-  }
-
-}
+export default ComposeContainer;

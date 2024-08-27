@@ -2,13 +2,11 @@
 import { Map as ImmutableMap } from 'immutable';
 
 //  Our imports.
-import { STORE_HYDRATE } from 'flavours/glitch/actions/store';
 import { LOCAL_SETTING_CHANGE, LOCAL_SETTING_DELETE } from 'flavours/glitch/actions/local_settings';
+import { STORE_HYDRATE } from 'flavours/glitch/actions/store';
 
 const initialState = ImmutableMap({
-  layout    : 'auto',
   stretch   : true,
-  navbar_under : false,
   side_arm  : 'none',
   side_arm_reply_mode : 'keep',
   show_reply_count : false,
@@ -63,6 +61,7 @@ const initialState = ImmutableMap({
     media:      true,
     visibility: true,
   }),
+  show_published_toast: true,
 });
 
 const hydrate = (state, localSettings) => state.mergeDeep(localSettings);

@@ -1,6 +1,8 @@
 import { Iterable, fromJS } from 'immutable';
+
 import { hydrateCompose } from './compose';
 import { importFetchedAccounts } from './importer';
+import { hydrateSearch } from './search';
 import { saveSettings } from './settings';
 
 export const STORE_HYDRATE = 'STORE_HYDRATE';
@@ -23,6 +25,7 @@ const applyMigrations = (state) => {
   });
 };
 
+
 export function hydrateStore(rawState) {
   return dispatch => {
     const state = applyMigrations(convertState(rawState));
@@ -33,6 +36,7 @@ export function hydrateStore(rawState) {
     });
 
     dispatch(hydrateCompose());
+    dispatch(hydrateSearch());
     dispatch(importFetchedAccounts(Object.values(rawState.accounts)));
     dispatch(saveSettings());
   };

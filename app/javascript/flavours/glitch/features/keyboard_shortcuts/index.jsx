@@ -1,11 +1,15 @@
-import React from 'react';
-import Column from 'flavours/glitch/components/column';
-import { connect } from 'react-redux';
-import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
 import PropTypes from 'prop-types';
-import ImmutablePureComponent from 'react-immutable-pure-component';
-import ColumnHeader from 'flavours/glitch/components/column_header';
+
+import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
+
 import { Helmet } from 'react-helmet';
+
+import ImmutablePureComponent from 'react-immutable-pure-component';
+import { connect } from 'react-redux';
+
+import InfoIcon from '@/material-icons/400-24px/info.svg?react';
+import Column from 'flavours/glitch/components/column';
+import ColumnHeader from 'flavours/glitch/components/column_header';
 
 const messages = defineMessages({
   heading: { id: 'keyboard_shortcuts.heading', defaultMessage: 'Keyboard Shortcuts' },
@@ -30,7 +34,8 @@ class KeyboardShortcuts extends ImmutablePureComponent {
       <Column>
         <ColumnHeader
           title={intl.formatMessage(messages.heading)}
-          icon='question'
+          icon='info-circle'
+          iconComponent={InfoIcon}
           multiColumn={multiColumn}
         />
 
@@ -57,7 +62,7 @@ class KeyboardShortcuts extends ImmutablePureComponent {
               </tr>
               <tr>
                 <td><kbd>f</kbd></td>
-                <td><FormattedMessage id='keyboard_shortcuts.favourite' defaultMessage='to favourite' /></td>
+                <td><FormattedMessage id='keyboard_shortcuts.favourite' defaultMessage='to favorite' /></td>
               </tr>
               <tr>
                 <td><kbd>b</kbd></td>
@@ -118,7 +123,7 @@ class KeyboardShortcuts extends ImmutablePureComponent {
                 <td><FormattedMessage id='keyboard_shortcuts.back' defaultMessage='to navigate back' /></td>
               </tr>
               <tr>
-                <td><kbd>s</kbd></td>
+                <td><kbd>s</kbd>, <kbd>/</kbd></td>
                 <td><FormattedMessage id='keyboard_shortcuts.search' defaultMessage='to focus search' /></td>
               </tr>
               <tr>

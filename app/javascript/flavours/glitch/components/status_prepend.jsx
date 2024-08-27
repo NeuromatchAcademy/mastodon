@@ -1,18 +1,29 @@
 //  Package imports  //
-import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
+import { PureComponent } from 'react';
+
 import { FormattedMessage } from 'react-intl';
-import Icon from 'flavours/glitch/components/icon';
+
+import ImmutablePropTypes from 'react-immutable-proptypes';
+
+import EditIcon from '@/material-icons/400-24px/edit.svg?react';
+import HomeIcon from '@/material-icons/400-24px/home-fill.svg?react';
+import InsertChartIcon from '@/material-icons/400-24px/insert_chart.svg?react';
+import PushPinIcon from '@/material-icons/400-24px/push_pin.svg?react';
+import RepeatIcon from '@/material-icons/400-24px/repeat.svg?react';
+import StarIcon from '@/material-icons/400-24px/star-fill.svg?react';
+import { Icon } from 'flavours/glitch/components/icon';
 import { me } from 'flavours/glitch/initial_state';
 
-export default class StatusPrepend extends React.PureComponent {
+
+export default class StatusPrepend extends PureComponent {
 
   static propTypes = {
     type: PropTypes.string.isRequired,
     account: ImmutablePropTypes.map.isRequired,
     parseClick: PropTypes.func.isRequired,
     notificationId: PropTypes.number,
+    children: PropTypes.node,
   };
 
   handleClick = (e) => {
@@ -27,12 +38,15 @@ export default class StatusPrepend extends React.PureComponent {
         onClick={this.handleClick}
         href={account.get('url')}
         className='status__display-name'
+        data-hover-card-account={account.get('id')}
       >
-        <b
-          dangerouslySetInnerHTML={{
-            __html : account.get('display_name_html') || account.get('username'),
-          }}
-        />
+        <bdi>
+          <strong
+            dangerouslySetInnerHTML={{
+              __html : account.get('display_name_html') || account.get('username'),
+            }}
+          />
+        </bdi>
       </a>
     );
     switch (type) {
@@ -52,7 +66,7 @@ export default class StatusPrepend extends React.PureComponent {
       return (
         <FormattedMessage
           id='notification.favourite'
-          defaultMessage='{name} favourited your status'
+          defaultMessage='{name} favorited your status'
           values={{ name : link }}
         />
       );
@@ -84,7 +98,7 @@ export default class StatusPrepend extends React.PureComponent {
         return (
           <FormattedMessage
             id='notification.poll'
-            defaultMessage='A poll you have voted in has ended'
+            defaultMessage='A poll you voted in has ended'
           />
         );
       }
@@ -102,41 +116,47 @@ export default class StatusPrepend extends React.PureComponent {
 
   render () {
     const { Message } = this;
-    const { type } = this.props;
+    const { type, children } = this.props;
 
-    let iconId;
+    let iconId, iconComponent;
 
     switch(type) {
     case 'favourite':
       iconId = 'star';
+      iconComponent = StarIcon;
       break;
     case 'featured':
       iconId = 'thumb-tack';
+      iconComponent = PushPinIcon;
       break;
     case 'poll':
       iconId = 'tasks';
+      iconComponent = InsertChartIcon;
       break;
     case 'reblog':
     case 'reblogged_by':
       iconId = 'retweet';
+      iconComponent = RepeatIcon;
       break;
     case 'status':
       iconId = 'bell';
+      iconComponent = HomeIcon;
       break;
     case 'update':
       iconId = 'pencil';
+      iconComponent = EditIcon;
       break;
     }
 
     return !type ? null : (
       <aside className={type === 'reblogged_by' || type === 'featured' ? 'status__prepend' : 'notification__message'}>
-        <div className={type === 'reblogged_by' || type === 'featured' ? 'status__prepend-icon-wrapper' : 'notification__favourite-icon-wrapper'}>
-          <Icon
-            className={`status__prepend-icon ${type === 'favourite' ? 'star-icon' : ''}`}
-            id={iconId}
-          />
-        </div>
+        <Icon
+          className={`status__prepend-icon ${type === 'favourite' ? 'star-icon' : ''}`}
+          id={iconId}
+          icon={iconComponent}
+        />
         <Message />
+        {children}
       </aside>
     );
   }

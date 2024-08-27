@@ -2,10 +2,10 @@
 
 require 'rails_helper'
 
-RSpec.describe ActivityPub::ProcessAccountService, type: :service do
+RSpec.describe ActivityPub::ProcessAccountService do
   subject { described_class.new }
 
-  context 'property values' do
+  context 'with property values, an avatar, and a profile header' do
     let(:payload) do
       {
         id: 'https://foo.test',
@@ -16,24 +16,55 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
           { type: 'PropertyValue', name: 'Occupation', value: 'Unit test' },
           { type: 'PropertyValue', name: 'non-string', value: %w(foo bar) },
         ],
+        image: {
+          type: 'Image',
+          mediaType: 'image/png',
+          url: 'https://foo.test/image.png',
+        },
+        icon: {
+          type: 'Image',
+          url: [
+            {
+              mediaType: 'image/png',
+              href: 'https://foo.test/icon.png',
+            },
+          ],
+        },
       }.with_indifferent_access
     end
 
-    it 'parses out of attachment' do
+    before do
+      stub_request(:get, 'https://foo.test/image.png').to_return(request_fixture('avatar.txt'))
+      stub_request(:get, 'https://foo.test/icon.png').to_return(request_fixture('avatar.txt'))
+    end
+
+    it 'parses property values, avatar and profile header as expected' do
       account = subject.call('alice', 'example.com', payload)
-      expect(account.fields).to be_a Array
-      expect(account.fields.size).to eq 2
-      expect(account.fields[0]).to be_a Account::Field
-      expect(account.fields[0].name).to eq 'Pronouns'
-      expect(account.fields[0].value).to eq 'They/them'
-      expect(account.fields[1]).to be_a Account::Field
-      expect(account.fields[1].name).to eq 'Occupation'
-      expect(account.fields[1].value).to eq 'Unit test'
+
+      expect(account.fields)
+        .to be_an(Array)
+        .and have_attributes(size: 2)
+      expect(account.fields.first)
+        .to be_an(Account::Field)
+        .and have_attributes(
+          name: eq('Pronouns'),
+          value: eq('They/them')
+        )
+      expect(account.fields.last)
+        .to be_an(Account::Field)
+        .and have_attributes(
+          name: eq('Occupation'),
+          value: eq('Unit test')
+        )
+      expect(account).to have_attributes(
+        avatar_remote_url: 'https://foo.test/icon.png',
+        header_remote_url: 'https://foo.test/image.png'
+      )
     end
   end
 
   context 'when account is not suspended' do
-    subject { described_class.new.call('alice', 'example.com', payload) }
+    subject { described_class.new.call(account.username, account.domain, payload) }
 
     let!(:account) { Fabricate(:account, username: 'alice', domain: 'example.com') }
 
@@ -82,7 +113,7 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
       account.suspend!(origin: suspension_origin)
     end
 
-    context 'locally' do
+    context 'when locally' do
       let(:suspension_origin) { :local }
 
       it 'does not unsuspend it' do
@@ -94,7 +125,7 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
       end
     end
 
-    context 'remotely' do
+    context 'when remotely' do
       let(:suspension_origin) { :remote }
 
       it 'unsuspends it' do
@@ -112,12 +143,8 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
     end
   end
 
-  context 'discovering many subdomains in a short timeframe' do
-    before do
-      stub_const 'ActivityPub::ProcessAccountService::SUBDOMAINS_RATELIMIT', 5
-    end
-
-    let(:subject) do
+  context 'when discovering many subdomains in a short timeframe' do
+    subject do
       8.times do |i|
         domain = "test#{i}.testdomain.com"
         json = {
@@ -129,20 +156,18 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
       end
     end
 
-    it 'creates at least some accounts' do
-      expect { subject }.to change { Account.remote.count }.by_at_least(2)
+    before do
+      stub_const 'ActivityPub::ProcessAccountService::SUBDOMAINS_RATELIMIT', 5
     end
 
-    it 'creates no more account than the limit allows' do
-      expect { subject }.to change { Account.remote.count }.by_at_most(5)
+    it 'creates accounts without exceeding rate limit' do
+      expect { subject }
+        .to create_some_remote_accounts
+        .and create_fewer_than_rate_limit_accounts
     end
   end
 
-  context 'accounts referencing other accounts' do
-    before do
-      stub_const 'ActivityPub::ProcessAccountService::DISCOVERIES_PER_REQUEST', 5
-    end
-
+  context 'when Accounts referencing other accounts' do
     let(:payload) do
       {
         '@context': ['https://www.w3.org/ns/activitystreams'],
@@ -155,6 +180,8 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
     end
 
     before do
+      stub_const 'ActivityPub::ProcessAccountService::DISCOVERIES_PER_REQUEST', 5
+
       8.times do |i|
         actor_json = {
           '@context': ['https://www.w3.org/ns/activitystreams'],
@@ -183,12 +210,12 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
           '@context': ['https://www.w3.org/ns/activitystreams'],
           id: "https://foo.test/users/#{i}/featured",
           type: 'OrderedCollection',
-          totelItems: 1,
+          totalItems: 1,
           orderedItems: [status_json],
         }.with_indifferent_access
         webfinger = {
           subject: "acct:user#{i}@foo.test",
-          links: [{ rel: 'self', href: "https://foo.test/users/#{i}" }],
+          links: [{ rel: 'self', href: "https://foo.test/users/#{i}", type: 'application/activity+json' }],
         }.with_indifferent_access
         stub_request(:get, "https://foo.test/users/#{i}").to_return(status: 200, body: actor_json.to_json, headers: { 'Content-Type': 'application/activity+json' })
         stub_request(:get, "https://foo.test/users/#{i}/featured").to_return(status: 200, body: featured_json.to_json, headers: { 'Content-Type': 'application/activity+json' })
@@ -197,12 +224,20 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
       end
     end
 
-    it 'creates at least some accounts' do
-      expect { subject.call('user1', 'foo.test', payload) }.to change { Account.remote.count }.by_at_least(2)
+    it 'creates accounts without exceeding rate limit', :inline_jobs do
+      expect { subject.call('user1', 'foo.test', payload) }
+        .to create_some_remote_accounts
+        .and create_fewer_than_rate_limit_accounts
     end
+  end
 
-    it 'creates no more account than the limit allows' do
-      expect { subject.call('user1', 'foo.test', payload) }.to change { Account.remote.count }.by_at_most(5)
-    end
+  private
+
+  def create_some_remote_accounts
+    change(Account.remote, :count).by_at_least(2)
+  end
+
+  def create_fewer_than_rate_limit_accounts
+    change(Account.remote, :count).by_at_most(5)
   end
 end

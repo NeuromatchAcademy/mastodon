@@ -1,38 +1,27 @@
-import React from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import PropTypes from 'prop-types';
-import { is } from 'immutable';
-import IconButton from './icon_button';
+import { PureComponent } from 'react';
+
 import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
+
 import classNames from 'classnames';
-import { autoPlayGif, displayMedia, useBlurhash } from 'flavours/glitch/initial_state';
+
+import { is } from 'immutable';
+import ImmutablePropTypes from 'react-immutable-proptypes';
+
 import { debounce } from 'lodash';
-import Blurhash from 'flavours/glitch/components/blurhash';
+
+import VisibilityOffIcon from '@/material-icons/400-24px/visibility_off.svg?react';
+import { Blurhash } from 'flavours/glitch/components/blurhash';
+
+import { autoPlayGif, displayMedia, useBlurhash } from '../initial_state';
+
+import { IconButton } from './icon_button';
 
 const messages = defineMessages({
-  hidden: {
-    defaultMessage: 'Media hidden',
-    id: 'status.media_hidden',
-  },
-  sensitive: {
-    defaultMessage: 'Sensitive',
-    id: 'media_gallery.sensitive',
-  },
-  toggle: {
-    defaultMessage: 'Click to view',
-    id: 'status.sensitive_toggle',
-  },
-  toggle_visible: {
-    defaultMessage: '{number, plural, one {Hide image} other {Hide images}}',
-    id: 'media_gallery.toggle_visible',
-  },
-  warning: {
-    defaultMessage: 'Sensitive content',
-    id: 'status.sensitive_warning',
-  },
+  toggle_visible: { id: 'media_gallery.toggle_visible', defaultMessage: '{number, plural, one {Hide image} other {Hide images}}' },
 });
 
-class Item extends React.PureComponent {
+class Item extends PureComponent {
 
   static propTypes = {
     attachment: ImmutablePropTypes.map.isRequired,
@@ -101,12 +90,10 @@ class Item extends React.PureComponent {
   render () {
     const { attachment, lang, index, size, standalone, letterbox, displayWidth, visible } = this.props;
 
+    let badges = [], thumbnail;
+
     let width  = 50;
     let height = 100;
-    let top    = 'auto';
-    let left   = 'auto';
-    let bottom = 'auto';
-    let right  = 'auto';
 
     if (size === 1) {
       width = 100;
@@ -116,46 +103,16 @@ class Item extends React.PureComponent {
       height = 50;
     }
 
-    if (size === 2) {
-      if (index === 0) {
-        right = '2px';
-      } else {
-        left = '2px';
-      }
-    } else if (size === 3) {
-      if (index === 0) {
-        right = '2px';
-      } else if (index > 0) {
-        left = '2px';
-      }
-
-      if (index === 1) {
-        bottom = '2px';
-      } else if (index > 1) {
-        top = '2px';
-      }
-    } else if (size === 4) {
-      if (index === 0 || index === 2) {
-        right = '2px';
-      }
-
-      if (index === 1 || index === 3) {
-        left = '2px';
-      }
-
-      if (index < 2) {
-        bottom = '2px';
-      } else {
-        top = '2px';
-      }
+    if (attachment.get('description')?.length > 0) {
+      badges.push(<span key='alt' className='media-gallery__alt__label'>ALT</span>);
     }
 
-    let thumbnail = '';
+    const description = attachment.getIn(['translation', 'description']) || attachment.get('description');
 
     if (attachment.get('type') === 'unknown') {
       return (
-        <div className={classNames('media-gallery__item', { standalone })} key={attachment.get('id')} style={{ left: left, top: top, right: right, bottom: bottom, width: `${width}%`, height: `${height}%` }}>
-          <a className='media-gallery__item-thumbnail' href={attachment.get('remote_url') || attachment.get('url')} style={{ cursor: 'pointer' }} title={attachment.get('description')} lang={lang} target='_blank' rel='noopener noreferrer'>
+        <div className={classNames('media-gallery__item', { standalone, 'media-gallery__item--tall': height === 100, 'media-gallery__item--wide': width === 100 })} key={attachment.get('id')}>
+          <a className='media-gallery__item-thumbnail' href={attachment.get('remote_url') || attachment.get('url')} style={{ cursor: 'pointer' }} title={description} lang={lang} target='_blank' rel='noopener noreferrer'>
             <Blurhash
               hash={attachment.get('blurhash')}
               className='media-gallery__preview'
@@ -194,8 +151,8 @@ class Item extends React.PureComponent {
             src={previewUrl}
             srcSet={srcSet}
             sizes={sizes}
-            alt={attachment.get('description')}
-            title={attachment.get('description')}
+            alt={description}
+            title={description}
             lang={lang}
             style={{ objectPosition: letterbox ? null : `${x}% ${y}%` }}
             onLoad={this.handleImageLoad}
@@ -205,12 +162,14 @@ class Item extends React.PureComponent {
     } else if (attachment.get('type') === 'gifv') {
       const autoPlay = this.getAutoPlay();
 
+      badges.push(<span key='gif' className='media-gallery__gifv__label'>GIF</span>);
+
       thumbnail = (
         <div className={classNames('media-gallery__gifv', { autoplay: autoPlay })}>
           <video
             className={`media-gallery__item-gifv-thumbnail${letterbox ? ' letterbox' : ''}`}
-            aria-label={attachment.get('description')}
-            title={attachment.get('description')}
+            aria-label={description}
+            title={description}
             lang={lang}
             role='application'
             src={attachment.get('url')}
@@ -222,14 +181,12 @@ class Item extends React.PureComponent {
             loop
             muted
           />
-
-          <span className='media-gallery__gifv__label'>GIF</span>
         </div>
       );
     }
 
     return (
-      <div className={classNames('media-gallery__item', { standalone, letterbox })} key={attachment.get('id')} style={{ left: left, top: top, right: right, bottom: bottom, width: `${width}%`, height: `${height}%` }}>
+      <div className={classNames('media-gallery__item', { standalone, letterbox, 'media-gallery__item--tall': height === 100, 'media-gallery__item--wide': width === 100 })} key={attachment.get('id')}>
         <Blurhash
           hash={attachment.get('blurhash')}
           dummy={!useBlurhash}
@@ -237,14 +194,21 @@ class Item extends React.PureComponent {
             'media-gallery__preview--hidden': visible && this.state.loaded,
           })}
         />
+
         {visible && thumbnail}
+
+        {badges && (
+          <div className='media-gallery__item__badges'>
+            {badges}
+          </div>
+        )}
       </div>
     );
   }
 
 }
 
-class MediaGallery extends React.PureComponent {
+class MediaGallery extends PureComponent {
 
   static propTypes = {
     sensitive: PropTypes.bool,
@@ -281,7 +245,7 @@ class MediaGallery extends React.PureComponent {
     window.removeEventListener('resize', this.handleResize);
   }
 
-  componentWillReceiveProps (nextProps) {
+  UNSAFE_componentWillReceiveProps (nextProps) {
     if (!is(nextProps.media, this.props.media) && nextProps.visible === undefined) {
       this.setState({ visible: displayMedia !== 'hide_all' && !nextProps.sensitive || displayMedia === 'show_all' });
     } else if (!is(nextProps.visible, this.props.visible) && nextProps.visible !== undefined) {
@@ -289,7 +253,7 @@ class MediaGallery extends React.PureComponent {
     }
   }
 
-  componentDidUpdate (prevProps) {
+  componentDidUpdate () {
     if (this.node) {
       this.handleResize();
     }
@@ -313,11 +277,11 @@ class MediaGallery extends React.PureComponent {
   };
 
   handleClick = (index) => {
-    this.props.onOpenMedia(this.props.media, index);
+    this.props.onOpenMedia(this.props.media, index, this.props.lang);
   };
 
-  handleRef = (node) => {
-    this.node = node;
+  handleRef = c => {
+    this.node = c;
 
     if (this.node) {
       this._setDimensions();
@@ -327,7 +291,7 @@ class MediaGallery extends React.PureComponent {
   _setDimensions () {
     const width = this.node.offsetWidth;
 
-    if (width && width != this.state.width) {
+    if (width && width !== this.state.width) {
       // offsetWidth triggers a layout, so only calculate when we need to
       if (this.props.cacheWidth) {
         this.props.cacheWidth(width);
@@ -347,7 +311,7 @@ class MediaGallery extends React.PureComponent {
   render () {
     const { media, lang, intl, sensitive, letterbox, fullwidth, defaultWidth, autoplay } = this.props;
     const { visible } = this.state;
-    const size     = media.take(4).size;
+    const size     = media.size;
     const uncached = media.every(attachment => attachment.get('type') === 'unknown');
 
     const width = this.state.width || defaultWidth;
@@ -358,32 +322,36 @@ class MediaGallery extends React.PureComponent {
 
     const computedClass = classNames('media-gallery', { 'full-width': fullwidth });
 
-    if (this.isStandaloneEligible() && width) {
-      style.height = width / this.props.media.getIn([0, 'meta', 'small', 'aspect']);
-    } else if (width) {
-      style.height = width / (16/9);
+    if (this.isStandaloneEligible()) { // TODO: cropImages setting
+      style.aspectRatio = `${this.props.media.getIn([0, 'meta', 'small', 'aspect'])}`;
     } else {
-      return (<div className={computedClass} ref={this.handleRef} />);
+      style.aspectRatio = '16 / 9';
     }
 
     if (this.isStandaloneEligible()) {
       children = <Item standalone autoplay={autoplay} onClick={this.handleClick} attachment={media.get(0)} lang={lang} displayWidth={width} visible={visible} />;
     } else {
-      children = media.take(4).map((attachment, i) => <Item key={attachment.get('id')} autoplay={autoplay} onClick={this.handleClick} attachment={attachment} index={i} lang={lang} size={size} letterbox={letterbox} displayWidth={width} visible={visible || uncached} />);
+      children = media.map((attachment, i) => <Item key={attachment.get('id')} autoplay={autoplay} onClick={this.handleClick} attachment={attachment} index={i} lang={lang} size={size} letterbox={letterbox} displayWidth={width} visible={visible || uncached} />);
     }
 
     if (uncached) {
       spoilerButton = (
         <button type='button' disabled className='spoiler-button__overlay'>
-          <span className='spoiler-button__overlay__label'><FormattedMessage id='status.uncached_media_warning' defaultMessage='Not available' /></span>
+          <span className='spoiler-button__overlay__label'>
+            <FormattedMessage id='status.uncached_media_warning' defaultMessage='Preview not available' />
+            <span className='spoiler-button__overlay__action'><FormattedMessage id='status.media.open' defaultMessage='Click to open' /></span>
+          </span>
         </button>
       );
     } else if (visible) {
-      spoilerButton = <IconButton title={intl.formatMessage(messages.toggle_visible, { number: size })} icon='eye-slash' overlay onClick={this.handleOpen} ariaHidden />;
+      spoilerButton = <IconButton title={intl.formatMessage(messages.toggle_visible, { number: size })} icon='eye-slash' iconComponent={VisibilityOffIcon} overlay onClick={this.handleOpen} ariaHidden />;
     } else {
       spoilerButton = (
         <button type='button' onClick={this.handleOpen} className='spoiler-button__overlay'>
-          <span className='spoiler-button__overlay__label'>{sensitive ? <FormattedMessage id='status.sensitive_warning' defaultMessage='Sensitive content' /> : <FormattedMessage id='status.media_hidden' defaultMessage='Media hidden' />}</span>
+          <span className='spoiler-button__overlay__label'>
+            {sensitive ? <FormattedMessage id='status.sensitive_warning' defaultMessage='Sensitive content' /> : <FormattedMessage id='status.media_hidden' defaultMessage='Media hidden' />}
+            <span className='spoiler-button__overlay__action'><FormattedMessage id='status.media.show' defaultMessage='Click to show' /></span>
+          </span>
         </button>
       );
     }
@@ -392,11 +360,6 @@ class MediaGallery extends React.PureComponent {
       <div className={computedClass} style={style} ref={this.handleRef}>
         <div className={classNames('spoiler-button', { 'spoiler-button--minified': visible && !uncached, 'spoiler-button--click-thru': uncached })}>
           {spoilerButton}
-          {visible && sensitive && (
-            <span className='sensitive-marker'>
-              <FormattedMessage {...messages.sensitive} />
-            </span>
-          )}
         </div>
 
         {children}

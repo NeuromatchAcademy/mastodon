@@ -1,36 +1,28 @@
-import { connect } from 'react-redux';
-import React from 'react';
 import PropTypes from 'prop-types';
-import { FormattedMessage, defineMessages, injectIntl } from 'react-intl';
+import { PureComponent } from 'react';
+
+import { FormattedMessage, injectIntl } from 'react-intl';
+
 import { Link } from 'react-router-dom';
-import { domain, version, source_url, statusPageUrl, profile_directory as profileDirectory } from 'flavours/glitch/initial_state';
-import { logOut } from 'flavours/glitch/utils/log_out';
+
+import { connect } from 'react-redux';
+
 import { openModal } from 'flavours/glitch/actions/modal';
+import { identityContextPropShape, withIdentity } from 'flavours/glitch/identity_context';
+import { domain, version, source_url, statusPageUrl, profile_directory as profileDirectory } from 'flavours/glitch/initial_state';
 import { PERMISSION_INVITE_USERS } from 'flavours/glitch/permissions';
 
-const messages = defineMessages({
-  logoutMessage: { id: 'confirmations.logout.message', defaultMessage: 'Are you sure you want to log out?' },
-  logoutConfirm: { id: 'confirmations.logout.confirm', defaultMessage: 'Log out' },
-});
-
-const mapDispatchToProps = (dispatch, { intl }) => ({
+const mapDispatchToProps = (dispatch) => ({
   onLogout () {
-    dispatch(openModal('CONFIRM', {
-      message: intl.formatMessage(messages.logoutMessage),
-      confirm: intl.formatMessage(messages.logoutConfirm),
-      closeWhenConfirm: false,
-      onConfirm: () => logOut(),
-    }));
+    dispatch(openModal({ modalType: 'CONFIRM_LOG_OUT' }));
+
   },
 });
 
-class LinkFooter extends React.PureComponent {
-
-  static contextTypes = {
-    identity: PropTypes.object,
-  };
-
+class LinkFooter extends PureComponent {
   static propTypes = {
+    identity: identityContextPropShape,
+    multiColumn: PropTypes.bool,
     onLogout: PropTypes.func.isRequired,
     intl: PropTypes.object.isRequired,
   };
@@ -45,7 +37,8 @@ class LinkFooter extends React.PureComponent {
   };
 
   render () {
-    const { signedIn, permissions } = this.context.identity;
+    const { signedIn, permissions } = this.props.identity;
+    const { multiColumn } = this.props;
 
     const canInvite = signedIn && ((permissions & PERMISSION_INVITE_USERS) === PERMISSION_INVITE_USERS);
     const canProfileDirectory = profileDirectory;
@@ -57,7 +50,7 @@ class LinkFooter extends React.PureComponent {
         <p>
           <strong>{domain}</strong>:
           {' '}
-          <Link to='/about'><FormattedMessage id='footer.about' defaultMessage='About' /></Link>
+          <Link to='/about' target={multiColumn ? '_blank' : undefined}><FormattedMessage id='footer.about' defaultMessage='About' /></Link>
           {statusPageUrl && (
             <>
               {DividingCircle}
@@ -77,7 +70,7 @@ class LinkFooter extends React.PureComponent {
             </>
           )}
           {DividingCircle}
-          <Link to='/privacy-policy'><FormattedMessage id='footer.privacy_policy' defaultMessage='Privacy policy' /></Link>
+          <Link to='/privacy-policy' target={multiColumn ? '_blank' : undefined}><FormattedMessage id='footer.privacy_policy' defaultMessage='Privacy policy' /></Link>
         </p>
 
         <p>
@@ -91,7 +84,7 @@ class LinkFooter extends React.PureComponent {
           {DividingCircle}
           <a href={source_url} rel='noopener noreferrer' target='_blank'><FormattedMessage id='footer.source_code' defaultMessage='View source code' /></a>
           {DividingCircle}
-          v{version}
+          <span className='version'>v{version}</span>
         </p>
       </div>
     );
@@ -99,4 +92,4 @@ class LinkFooter extends React.PureComponent {
 
 }
 
-export default injectIntl(connect(null, mapDispatchToProps)(LinkFooter));
+export default injectIntl(withIdentity(connect(null, mapDispatchToProps)(LinkFooter)));

@@ -1,7 +1,11 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import IconButton from 'mastodon/components/icon_button';
+import { PureComponent } from 'react';
+
 import { defineMessages, injectIntl } from 'react-intl';
+
+import FullscreenExitIcon from '@/material-icons/400-24px/fullscreen_exit.svg?react';
+import RectangleIcon from '@/material-icons/400-24px/rectangle.svg?react';
+import { IconButton } from 'mastodon/components/icon_button';
 
 const messages = defineMessages({
   compress: { id: 'lightbox.compress', defaultMessage: 'Compress image view box' },
@@ -91,7 +95,7 @@ const normalizeWheel = event => {
   };
 };
 
-class ZoomableImage extends React.PureComponent {
+class ZoomableImage extends PureComponent {
 
   static propTypes = {
     alt: PropTypes.string,
@@ -411,11 +415,12 @@ class ZoomableImage extends React.PureComponent {
     const zoomButtonTitle = this.state.zoomState === 'compress' ? intl.formatMessage(messages.compress) : intl.formatMessage(messages.expand);
 
     return (
-      <React.Fragment>
+      <>
         <IconButton
           className={`media-modal__zoom-button ${zoomButtonShouldHide}`}
           title={zoomButtonTitle}
           icon={this.state.zoomState}
+          iconComponent={this.state.zoomState === 'compress' ? FullscreenExitIcon : RectangleIcon}
           onClick={this.handleZoomClick}
           size={40}
           style={{
@@ -445,7 +450,7 @@ class ZoomableImage extends React.PureComponent {
             onMouseDown={this.handleMouseDown}
           />
         </div>
-      </React.Fragment>
+      </>
     );
   }
 

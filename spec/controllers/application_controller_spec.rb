@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe ApplicationController, type: :controller do
+describe ApplicationController do
   controller do
     def success
       head 200
@@ -22,17 +22,14 @@ describe ApplicationController, type: :controller do
   end
 
   shared_examples 'respond_with_error' do |code|
-    it "returns http #{code} for http" do
-      subject
-      expect(response).to have_http_status(code)
-    end
-
-    it 'renders template for http' do
+    it "returns http #{code} for http and renders template" do
       expect(subject).to render_template("errors/#{code}", layout: 'error')
+
+      expect(response).to have_http_status(code)
     end
   end
 
-  context 'forgery' do
+  context 'with a forgery' do
     subject do
       ActionController::Base.allow_forgery_protection = true
       routes.draw { post 'success' => 'anonymous#success' }
@@ -75,8 +72,8 @@ describe ApplicationController, type: :controller do
 
   describe 'helper_method :current_flavour' do
     it 'returns "glitch" when theme wasn\'t changed in admin settings' do
-      allow(Setting).to receive(:default_settings).and_return({'skin' => 'default'})
-      allow(Setting).to receive(:default_settings).and_return({'flavour' => 'glitch'})
+      allow(Setting).to receive(:default_settings).and_return({ 'skin' => 'default' })
+      allow(Setting).to receive(:default_settings).and_return({ 'flavour' => 'glitch' })
 
       expect(controller.view_context.current_flavour).to eq 'glitch'
     end
@@ -101,7 +98,8 @@ describe ApplicationController, type: :controller do
 
     it 'returns user\'s flavour when it is set' do
       current_user = Fabricate(:user)
-      current_user.settings['flavour'] = 'glitch'
+      current_user.settings.update(flavour: 'glitch')
+      current_user.save
       sign_in current_user
 
       allow(Setting).to receive(:[]).with('skin').and_return 'default'
@@ -111,7 +109,7 @@ describe ApplicationController, type: :controller do
     end
   end
 
-  context 'ActionController::RoutingError' do
+  context 'with ActionController::RoutingError' do
     subject do
       routes.draw { get 'routing_error' => 'anonymous#routing_error' }
       get 'routing_error'
@@ -120,7 +118,7 @@ describe ApplicationController, type: :controller do
     include_examples 'respond_with_error', 404
   end
 
-  context 'ActiveRecord::RecordNotFound' do
+  context 'with ActiveRecord::RecordNotFound' do
     subject do
       routes.draw { get 'record_not_found' => 'anonymous#record_not_found' }
       get 'record_not_found'
@@ -129,32 +127,13 @@ describe ApplicationController, type: :controller do
     include_examples 'respond_with_error', 404
   end
 
-  context 'ActionController::InvalidAuthenticityToken' do
+  context 'with ActionController::InvalidAuthenticityToken' do
     subject do
       routes.draw { get 'invalid_authenticity_token' => 'anonymous#invalid_authenticity_token' }
       get 'invalid_authenticity_token'
     end
 
     include_examples 'respond_with_error', 422
-  end
-
-  describe 'before_action :store_current_location' do
-    it 'stores location for user if it is not devise controller' do
-      routes.draw { get 'success' => 'anonymous#success' }
-      get 'success'
-      expect(controller.stored_location_for(:user)).to eq '/success'
-    end
-
-    context do
-      controller Devise::SessionsController do
-      end
-
-      it 'does not store location for user if it is devise controller' do
-        @request.env['devise.mapping'] = Devise.mappings[:user]
-        get 'create'
-        expect(controller.stored_location_for(:user)).to be_nil
-      end
-    end
   end
 
   describe 'before_action :check_suspension' do
@@ -245,38 +224,5 @@ describe ApplicationController, type: :controller do
     end
 
     include_examples 'respond_with_error', 422
-  end
-
-  describe 'cache_collection' do
-    class C < ApplicationController
-      public :cache_collection
-    end
-
-    shared_examples 'receives :with_includes' do |fabricator, klass|
-      it 'uses raw if it is not an ActiveRecord::Relation' do
-        record = Fabricate(fabricator)
-        expect(C.new.cache_collection([record], klass)).to eq [record]
-      end
-    end
-
-    shared_examples 'cacheable' do |fabricator, klass|
-      include_examples 'receives :with_includes', fabricator, klass
-
-      it 'calls cache_ids of raw if it is an ActiveRecord::Relation' do
-        record = Fabricate(fabricator)
-        relation = klass.none
-        allow(relation).to receive(:cache_ids).and_return([record])
-        expect(C.new.cache_collection(relation, klass)).to eq [record]
-      end
-    end
-
-    it 'returns raw unless class responds to :with_includes' do
-      raw = Object.new
-      expect(C.new.cache_collection(raw, Object)).to eq raw
-    end
-
-    context 'Status' do
-      include_examples 'cacheable', :status, Status
-    end
   end
 end

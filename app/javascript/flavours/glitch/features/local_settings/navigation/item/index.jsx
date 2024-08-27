@@ -1,20 +1,19 @@
 //  Package imports
-import React from 'react';
 import PropTypes from 'prop-types';
+import { PureComponent } from 'react';
+
 import classNames from 'classnames';
 
-import Icon from 'flavours/glitch/components/icon';
+import { Icon } from 'flavours/glitch/components/icon';
 
-//  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
-export default class LocalSettingsPage extends React.PureComponent {
+export default class LocalSettingsPage extends PureComponent {
 
   static propTypes = {
     active: PropTypes.bool,
     className: PropTypes.string,
     href: PropTypes.string,
     icon: PropTypes.string,
-    textIcon: PropTypes.string,
+    iconComponent: PropTypes.func,
     index: PropTypes.number.isRequired,
     onNavigate: PropTypes.func,
     title: PropTypes.string,
@@ -35,7 +34,7 @@ export default class LocalSettingsPage extends React.PureComponent {
       className,
       href,
       icon,
-      textIcon,
+      iconComponent,
       onNavigate,
       title,
     } = this.props;
@@ -44,7 +43,7 @@ export default class LocalSettingsPage extends React.PureComponent {
       active,
     }, className);
 
-    const iconElem = icon ? <Icon fixedWidth id={icon} /> : (textIcon ? <span className='text-icon-button'>{textIcon}</span> : null);
+    const iconElem = icon ? <Icon id={icon} icon={iconComponent} /> : null;
 
     if (href) return (
       <a
@@ -57,16 +56,14 @@ export default class LocalSettingsPage extends React.PureComponent {
       </a>
     );
     else if (onNavigate) return (
-      <a
+      <button
         onClick={handleClick}
-        role='button'
-        tabIndex='0'
         className={finalClassName}
         title={title}
         aria-label={title}
       >
         {iconElem} <span>{title}</span>
-      </a>
+      </button>
     );
     else return null;
   }

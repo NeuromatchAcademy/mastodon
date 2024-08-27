@@ -1,27 +1,31 @@
-import React from 'react';
-import { connect } from 'react-redux';
-import ImmutablePureComponent from 'react-immutable-pure-component';
 import PropTypes from 'prop-types';
+
+import { FormattedMessage } from 'react-intl';
+
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import ImmutablePureComponent from 'react-immutable-pure-component';
+import { connect } from 'react-redux';
+
 import { debounce } from 'lodash';
-import LoadingIndicator from '../../components/loading_indicator';
+
+import { TimelineHint } from 'mastodon/components/timeline_hint';
+import BundleColumnError from 'mastodon/features/ui/components/bundle_column_error';
+import { normalizeForLookup } from 'mastodon/reducers/accounts_map';
+import { getAccountHidden } from 'mastodon/selectors';
+
 import {
   lookupAccount,
   fetchAccount,
   fetchFollowing,
   expandFollowing,
 } from '../../actions/accounts';
-import { FormattedMessage } from 'react-intl';
-import AccountContainer from '../../containers/account_container';
-import Column from '../ui/components/column';
-import HeaderContainer from '../account_timeline/containers/header_container';
-import ColumnBackButton from '../../components/column_back_button';
+import { ColumnBackButton } from '../../components/column_back_button';
+import { LoadingIndicator } from '../../components/loading_indicator';
 import ScrollableList from '../../components/scrollable_list';
-import MissingIndicator from 'mastodon/components/missing_indicator';
-import TimelineHint from 'mastodon/components/timeline_hint';
-import LimitedAccountHint from '../account_timeline/components/limited_account_hint';
-import { getAccountHidden } from 'mastodon/selectors';
-import { normalizeForLookup } from 'mastodon/reducers/accounts_map';
+import AccountContainer from '../../containers/account_container';
+import { LimitedAccountHint } from '../account_timeline/components/limited_account_hint';
+import HeaderContainer from '../account_timeline/containers/header_container';
+import Column from '../ui/components/column';
 
 const mapStateToProps = (state, { params: { acct, id } }) => {
   const accountId = id || state.getIn(['accounts_map', normalizeForLookup(acct)]);
@@ -41,6 +45,7 @@ const mapStateToProps = (state, { params: { acct, id } }) => {
     hasMore: !!state.getIn(['user_lists', 'following', accountId, 'next']),
     isLoading: state.getIn(['user_lists', 'following', accountId, 'isLoading'], true),
     suspended: state.getIn(['accounts', accountId, 'suspended'], false),
+    hideCollections: state.getIn(['accounts', accountId, 'hide_collections'], false),
     hidden: getAccountHidden(state, accountId),
     blockedBy: state.getIn(['relationships', accountId, 'blocked_by'], false),
   };
@@ -107,13 +112,11 @@ class Following extends ImmutablePureComponent {
   }, 300, { leading: true });
 
   render () {
-    const { accountId, accountIds, hasMore, blockedBy, isAccount, multiColumn, isLoading, suspended, hidden, remote, remoteUrl } = this.props;
+    const { accountId, accountIds, hasMore, blockedBy, isAccount, multiColumn, isLoading, suspended, hidden, remote, remoteUrl, hideCollections } = this.props;
 
     if (!isAccount) {
       return (
-        <Column>
-          <MissingIndicator />
-        </Column>
+        <BundleColumnError multiColumn={multiColumn} errorType='routing' />
       );
     }
 
@@ -135,6 +138,8 @@ class Following extends ImmutablePureComponent {
       emptyMessage = <LimitedAccountHint accountId={accountId} />;
     } else if (blockedBy) {
       emptyMessage = <FormattedMessage id='empty_column.account_unavailable' defaultMessage='Profile unavailable' />;
+    } else if (hideCollections && accountIds.isEmpty()) {
+      emptyMessage = <FormattedMessage id='empty_column.account_hides_collections' defaultMessage='This user has chosen to not make this information available' />;
     } else if (remote && accountIds.isEmpty()) {
       emptyMessage = <RemoteHint url={remoteUrl} />;
     } else {
@@ -145,7 +150,7 @@ class Following extends ImmutablePureComponent {
 
     return (
       <Column>
-        <ColumnBackButton multiColumn={multiColumn} />
+        <ColumnBackButton />
 
         <ScrollableList
           scrollKey='following'

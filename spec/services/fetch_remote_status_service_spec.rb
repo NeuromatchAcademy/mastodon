@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe FetchRemoteStatusService, type: :service do
+RSpec.describe FetchRemoteStatusService do
   let(:account) { Fabricate(:account, domain: 'example.org', uri: 'https://example.org/foo') }
   let(:prefetched_body) { nil }
 
@@ -16,7 +16,7 @@ RSpec.describe FetchRemoteStatusService, type: :service do
     }
   end
 
-  context 'protocol is :activitypub' do
+  context 'when protocol is :activitypub' do
     subject { described_class.new.call(note[:id], prefetched_body: prefetched_body) }
 
     let(:prefetched_body) { Oj.dump(note) }

@@ -1,28 +1,34 @@
-import React from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import PropTypes from 'prop-types';
+import { PureComponent } from 'react';
+
+import { FormattedMessage, defineMessages, injectIntl } from 'react-intl';
+
+import classNames from 'classnames';
+
+import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 import { connect } from 'react-redux';
-import classNames from 'classnames';
-import { changeUploadCompose, uploadThumbnail, onChangeMediaDescription, onChangeMediaFocus } from '../../../actions/compose';
-import { getPointerPosition } from '../../video';
-import { FormattedMessage, defineMessages, injectIntl } from 'react-intl';
-import IconButton from 'mastodon/components/icon_button';
-import Button from 'mastodon/components/button';
-import Video from 'mastodon/features/video';
-import Audio from 'mastodon/features/audio';
+
 import Textarea from 'react-textarea-autosize';
-import UploadProgress from 'mastodon/features/compose/components/upload_progress';
-import CharacterCounter from 'mastodon/features/compose/components/character_counter';
 import { length } from 'stringz';
-import { Tesseract as fetchTesseract } from 'mastodon/features/ui/util/async-components';
-import GIFV from 'mastodon/components/gifv';
-import { me } from 'mastodon/initial_state';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import tesseractCorePath from 'tesseract.js-core/tesseract-core.wasm.js';
 // eslint-disable-next-line import/extensions
 import tesseractWorkerPath from 'tesseract.js/dist/worker.min.js';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import tesseractCorePath from 'tesseract.js-core/tesseract-core.wasm.js';
+
+import CloseIcon from '@/material-icons/400-24px/close.svg?react';
+import { Button } from 'mastodon/components/button';
+import { GIFV } from 'mastodon/components/gifv';
+import { IconButton } from 'mastodon/components/icon_button';
+import Audio from 'mastodon/features/audio';
+import { CharacterCounter } from 'mastodon/features/compose/components/character_counter';
+import { UploadProgress } from 'mastodon/features/compose/components/upload_progress';
+import { Tesseract as fetchTesseract } from 'mastodon/features/ui/util/async-components';
+import { me } from 'mastodon/initial_state';
 import { assetHost } from 'mastodon/utils/config';
+
+import { changeUploadCompose, uploadThumbnail, onChangeMediaDescription, onChangeMediaFocus } from '../../../actions/compose';
+import Video, { getPointerPosition } from '../../video';
 
 const messages = defineMessages({
   close: { id: 'lightbox.close', defaultMessage: 'Close' },
@@ -70,7 +76,7 @@ const removeExtraLineBreaks = str => str.replace(/\n\n/g, '******')
   .replace(/\n/g, ' ')
   .replace(/\*\*\*\*\*\*/g, '\n\n');
 
-class ImageLoader extends React.PureComponent {
+class ImageLoader extends PureComponent {
 
   static propTypes = {
     src: PropTypes.string.isRequired,
@@ -104,7 +110,7 @@ class FocalPointModal extends ImmutablePureComponent {
 
   static propTypes = {
     media: ImmutablePropTypes.map.isRequired,
-    account: ImmutablePropTypes.map.isRequired,
+    account: ImmutablePropTypes.record.isRequired,
     isUploadingThumbnail: PropTypes.bool,
     onSave: PropTypes.func.isRequired,
     onChangeDescription: PropTypes.func.isRequired,
@@ -216,7 +222,7 @@ class FocalPointModal extends ImmutablePureComponent {
       const worker = createWorker({
         workerPath: tesseractWorkerPath,
         corePath: tesseractCorePath,
-        langPath: `${assetHost}/ocr/lang-data/`,
+        langPath: `${assetHost}/ocr/lang-data`,
         logger: ({ status, progress }) => {
           if (status === 'recognizing text') {
             this.setState({ ocrStatus: 'detecting', progress });
@@ -307,7 +313,7 @@ class FocalPointModal extends ImmutablePureComponent {
     return (
       <div className='modal-root__modal report-modal' style={{ maxWidth: 960 }}>
         <div className='report-modal__target'>
-          <IconButton className='report-modal__close' title={intl.formatMessage(messages.close)} icon='times' onClick={onClose} size={20} />
+          <IconButton className='report-modal__close' title={intl.formatMessage(messages.close)} icon='times' iconComponent={CloseIcon} onClick={onClose} size={20} />
           <FormattedMessage id='upload_modal.edit_media' defaultMessage='Edit media' />
         </div>
 
@@ -316,7 +322,7 @@ class FocalPointModal extends ImmutablePureComponent {
             {focals && <p><FormattedMessage id='upload_modal.hint' defaultMessage='Click or drag the circle on the preview to choose the focal point which will always be in view on all thumbnails.' /></p>}
 
             {thumbnailable && (
-              <React.Fragment>
+              <>
                 <label className='setting-text-label' htmlFor='upload-modal__thumbnail'><FormattedMessage id='upload_form.thumbnail' defaultMessage='Change thumbnail' /></label>
 
                 <Button disabled={isUploadingThumbnail || !media.get('unattached')} text={intl.formatMessage(messages.chooseImage)} onClick={this.handleFileInputClick} />
@@ -336,7 +342,7 @@ class FocalPointModal extends ImmutablePureComponent {
                 </label>
 
                 <hr className='setting-divider' />
-              </React.Fragment>
+              </>
             )}
 
             <label className='setting-text-label' htmlFor='upload-modal__description'>
@@ -383,7 +389,7 @@ class FocalPointModal extends ImmutablePureComponent {
             {focals && (
               <div className={classNames('focal-point', { dragging })} ref={this.setRef} onMouseDown={this.handleMouseDown} onTouchStart={this.handleTouchStart}>
                 {media.get('type') === 'image' && <ImageLoader src={media.get('url')} width={width} height={height} alt='' />}
-                {media.get('type') === 'gifv' && <GIFV src={media.get('url')} width={width} height={height} />}
+                {media.get('type') === 'gifv' && <GIFV src={media.get('url')} key={media.get('url')} width={width} height={height} />}
 
                 <div className='focal-point__preview'>
                   <strong><FormattedMessage id='upload_modal.preview_label' defaultMessage='Preview ({ratio})' values={{ ratio: '16:9' }} /></strong>
@@ -429,4 +435,4 @@ class FocalPointModal extends ImmutablePureComponent {
 
 export default connect(mapStateToProps, mapDispatchToProps, null, {
   forwardRef: true,
-})(injectIntl(FocalPointModal, { withRef: true }));
+})(injectIntl(FocalPointModal, { forwardRef: true }));

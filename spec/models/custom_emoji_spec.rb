@@ -2,13 +2,13 @@
 
 require 'rails_helper'
 
-RSpec.describe CustomEmoji, type: :model do
+RSpec.describe CustomEmoji, :attachment_processing do
   describe '#search' do
     subject { described_class.search(search_term) }
 
     let(:custom_emoji) { Fabricate(:custom_emoji, shortcode: shortcode) }
 
-    context 'shortcode is exact' do
+    context 'when shortcode is exact' do
       let(:shortcode) { 'blobpats' }
       let(:search_term) { 'blobpats' }
 
@@ -17,7 +17,7 @@ RSpec.describe CustomEmoji, type: :model do
       end
     end
 
-    context 'shortcode is partial' do
+    context 'when shortcode is partial' do
       let(:shortcode) { 'blobpats' }
       let(:search_term) { 'blob' }
 
@@ -32,7 +32,7 @@ RSpec.describe CustomEmoji, type: :model do
 
     let(:custom_emoji) { Fabricate(:custom_emoji, domain: domain) }
 
-    context 'domain is nil' do
+    context 'when domain is nil' do
       let(:domain) { nil }
 
       it 'returns true' do
@@ -40,7 +40,7 @@ RSpec.describe CustomEmoji, type: :model do
       end
     end
 
-    context 'domain is present' do
+    context 'when domain is present' do
       let(:domain) { 'example.com' }
 
       it 'returns false' do
@@ -59,7 +59,7 @@ RSpec.describe CustomEmoji, type: :model do
   describe '.from_text' do
     subject { described_class.from_text(text, nil) }
 
-    let!(:emojo) { Fabricate(:custom_emoji) }
+    let!(:emojo) { Fabricate(:custom_emoji, shortcode: 'coolcat') }
 
     context 'with plain text' do
       let(:text) { 'Hello :coolcat:' }
@@ -78,12 +78,23 @@ RSpec.describe CustomEmoji, type: :model do
     end
   end
 
-  describe 'pre_validation' do
-    let(:custom_emoji) { Fabricate(:custom_emoji, domain: 'wWw.MaStOdOn.CoM') }
+  describe 'Normalizations' do
+    describe 'downcase domain value' do
+      context 'with a mixed case domain value' do
+        it 'normalizes the value to downcased' do
+          custom_emoji = Fabricate.build(:custom_emoji, domain: 'wWw.MaStOdOn.CoM')
 
-    it 'downcases' do
-      custom_emoji.valid?
-      expect(custom_emoji.domain).to eq('www.mastodon.com')
+          expect(custom_emoji.domain).to eq('www.mastodon.com')
+        end
+      end
+
+      context 'with a nil domain value' do
+        it 'leaves the value as nil' do
+          custom_emoji = Fabricate.build(:custom_emoji, domain: nil)
+
+          expect(custom_emoji.domain).to be_nil
+        end
+      end
     end
   end
 end

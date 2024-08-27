@@ -1,47 +1,45 @@
-import React from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import StatusListContainer from 'flavours/glitch/features/ui/containers/status_list_container';
-import Column from 'flavours/glitch/components/column';
-import ColumnHeader from 'flavours/glitch/components/column_header';
-import ImmutablePropTypes from 'react-immutable-proptypes';
-import ColumnSettingsContainer from './containers/column_settings_container';
-import { expandHashtagTimeline, clearTimeline } from 'flavours/glitch/actions/timelines';
-import { addColumn, removeColumn, moveColumn } from 'flavours/glitch/actions/columns';
-import { connectHashtagStream } from 'flavours/glitch/actions/streaming';
-import { injectIntl, FormattedMessage, defineMessages } from 'react-intl';
-import { isEqual } from 'lodash';
-import { fetchHashtag, followHashtag, unfollowHashtag } from 'flavours/glitch/actions/tags';
-import Icon from 'flavours/glitch/components/icon';
-import classNames from 'classnames';
+import { PureComponent } from 'react';
+
+import { FormattedMessage } from 'react-intl';
+
 import { Helmet } from 'react-helmet';
 
-const messages = defineMessages({
-  followHashtag: { id: 'hashtag.follow', defaultMessage: 'Follow hashtag' },
-  unfollowHashtag: { id: 'hashtag.unfollow', defaultMessage: 'Unfollow hashtag' },
-});
+import ImmutablePropTypes from 'react-immutable-proptypes';
+import { connect } from 'react-redux';
+
+import { isEqual } from 'lodash';
+
+import TagIcon from '@/material-icons/400-24px/tag.svg?react';
+import { addColumn, removeColumn, moveColumn } from 'flavours/glitch/actions/columns';
+import { connectHashtagStream } from 'flavours/glitch/actions/streaming';
+import { fetchHashtag, followHashtag, unfollowHashtag } from 'flavours/glitch/actions/tags';
+import { expandHashtagTimeline, clearTimeline } from 'flavours/glitch/actions/timelines';
+import Column from 'flavours/glitch/components/column';
+import ColumnHeader from 'flavours/glitch/components/column_header';
+import { identityContextPropShape, withIdentity } from 'flavours/glitch/identity_context';
+
+import StatusListContainer from '../ui/containers/status_list_container';
+
+import { HashtagHeader } from './components/hashtag_header';
+import ColumnSettingsContainer from './containers/column_settings_container';
 
 const mapStateToProps = (state, props) => ({
   hasUnread: state.getIn(['timelines', `hashtag:${props.params.id}${props.params.local ? ':local' : ''}`, 'unread']) > 0,
   tag: state.getIn(['tags', props.params.id]),
 });
 
-class HashtagTimeline extends React.PureComponent {
-
+class HashtagTimeline extends PureComponent {
   disconnects = [];
 
-  static contextTypes = {
-    identity: PropTypes.object,
-  };
-
   static propTypes = {
+    identity: identityContextPropShape,
     params: PropTypes.object.isRequired,
     columnId: PropTypes.string,
     dispatch: PropTypes.func.isRequired,
     hasUnread: PropTypes.bool,
     tag: ImmutablePropTypes.map,
     multiColumn: PropTypes.bool,
-    intl: PropTypes.object,
   };
 
   handlePin = () => {
@@ -93,7 +91,7 @@ class HashtagTimeline extends React.PureComponent {
   };
 
   _subscribe (dispatch, id, tags = {}, local) {
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
 
     if (!signedIn) {
       return;
@@ -167,7 +165,7 @@ class HashtagTimeline extends React.PureComponent {
   handleFollow = () => {
     const { dispatch, params, tag } = this.props;
     const { id } = params;
-    const { signedIn } = this.context.identity;
+    const { signedIn } = this.props.identity;
 
     if (!signedIn) {
       return;
@@ -181,27 +179,16 @@ class HashtagTimeline extends React.PureComponent {
   };
 
   render () {
-    const { hasUnread, columnId, multiColumn, tag, intl } = this.props;
+    const { hasUnread, columnId, multiColumn, tag } = this.props;
     const { id, local } = this.props.params;
     const pinned = !!columnId;
-    const { signedIn } = this.context.identity;
-
-    let followButton;
-
-    if (tag) {
-      const following = tag.get('following');
-
-      followButton = (
-        <button className={classNames('column-header__button')} onClick={this.handleFollow} disabled={!signedIn} active={following} title={intl.formatMessage(following ? messages.unfollowHashtag : messages.followHashtag)} aria-label={intl.formatMessage(following ? messages.unfollowHashtag : messages.followHashtag)}>
-          <Icon id={following ? 'user-times' : 'user-plus'} fixedWidth className='column-header__icon' />
-        </button>
-      );
-    }
+    const { signedIn } = this.props.identity;
 
     return (
       <Column bindToDocument={!multiColumn} ref={this.setRef} label={`#${id}`}>
         <ColumnHeader
           icon='hashtag'
+          iconComponent={TagIcon}
           active={hasUnread}
           title={this.title()}
           onPin={this.handlePin}
@@ -209,13 +196,14 @@ class HashtagTimeline extends React.PureComponent {
           onClick={this.handleHeaderClick}
           pinned={pinned}
           multiColumn={multiColumn}
-          extraButton={followButton}
           showBackButton
         >
           {columnId && <ColumnSettingsContainer columnId={columnId} />}
         </ColumnHeader>
 
         <StatusListContainer
+          prepend={pinned ? null : <HashtagHeader tag={tag} disabled={!signedIn} onClick={this.handleFollow} />}
+          alwaysPrepend
           trackScroll={!pinned}
           scrollKey={`hashtag_timeline-${columnId}`}
           timelineId={`hashtag:${id}${local ? ':local' : ''}`}
@@ -234,4 +222,4 @@ class HashtagTimeline extends React.PureComponent {
 
 }
 
-export default connect(mapStateToProps)(injectIntl(HashtagTimeline));
+export default connect(mapStateToProps)(withIdentity(HashtagTimeline));
