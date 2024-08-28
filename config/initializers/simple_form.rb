@@ -38,10 +38,20 @@ module GlitchOnlyComponent
   end
 end
 
+module NeuromatchstodonOnlyComponent
+  def neuromatchstodon_only(_wrapper_options = nil)
+    return unless options[:neuromatchstodon_only]
+
+    options[:label_text] = ->(raw_label_text, _required_label_text, _label_present) { safe_join([raw_label_text, ' ', content_tag(:span, I18n.t('simple_form.neuromatchstodon_only'), class: 'glitch_only')]) }
+    nil
+  end
+end
+
 SimpleForm.include_component(AppendComponent)
 SimpleForm.include_component(RecommendedComponent)
 SimpleForm.include_component(WarningHintComponent)
 SimpleForm.include_component(GlitchOnlyComponent)
+SimpleForm.include_component(NeuromatchstodonOnlyComponent)
 
 SimpleForm.setup do |config|
   # Wrappers are used by the form builder to generate a

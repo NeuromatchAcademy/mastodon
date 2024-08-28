@@ -11,6 +11,9 @@
   - @account.fields.select(&:verifiable?).each do |field|
     %link{ rel: 'me', type: 'text/html', href: field.value }/
 
+  -# - if @account.user_setting_account_css?
+  %meta{ name: 'account_css', content: @account.user_setting_account_css }
+
   = opengraph 'og:type', 'profile'
   = render 'og', account: @account, url: short_account_url(@account, only_path: false)
 

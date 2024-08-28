@@ -1060,6 +1060,7 @@ en:
       guide_link: https://crowdin.com/project/mastodon
       guide_link_text: Everyone can contribute.
     sensitive_content: Sensitive content
+    myspace_mode: "MySpace Mode"
   application_mailer:
     notification_preferences: Change email preferences
     salutation: "%{name},"

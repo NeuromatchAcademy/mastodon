@@ -123,6 +123,10 @@ module User::HasSettings
     settings['hide_followers_count']
   end
 
+  def setting_account_css
+    settings['neuromatchstodon.account_css']
+  end
+
   def allows_report_emails?
     settings['notification_emails.report']
   end

@@ -63,6 +63,7 @@ en:
         setting_use_pending_items: Hide timeline updates behind a click instead of automatically scrolling the feed
         username: You can use letters, numbers, and underscores
         whole_word: When the keyword or phrase is alphanumeric only, it will only be applied if it matches the whole word
+        setting_myspace_account_css: Custom CSS that is applied to your account page
       domain_allow:
         domain: This domain will be able to fetch data from this server and incoming data from it will be processed and stored
       email_domain_block:
@@ -233,6 +234,7 @@ en:
         username: Username
         username_or_email: Username or Email
         whole_word: Whole word
+        setting_myspace_account_css: Account CSS
       email_domain_block:
         with_dns_records: Include MX records and IPs of the domain
       featured_tag:
@@ -339,3 +341,4 @@ en:
       sessions:
         webauthn: Use one of your security keys to sign in
     'yes': 'Yes'
+    neuromatchstodon_only: "Neuromatchstodon Only"
