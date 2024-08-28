@@ -45,12 +45,13 @@
 #  avatar_storage_schema_version :integer
 #  header_storage_schema_version :integer
 #  devices_url                   :string
-#  suspension_origin             :integer
 #  sensitized_at                 :datetime
+#  suspension_origin             :integer
 #  trendable                     :boolean
 #  reviewed_at                   :datetime
 #  requested_review_at           :datetime
 #  indexable                     :boolean          default(FALSE), not null
+#  account_css                   :text
 #
 
 class Account < ApplicationRecord

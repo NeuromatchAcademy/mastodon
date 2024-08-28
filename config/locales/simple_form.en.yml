@@ -10,6 +10,7 @@ en:
         note: 'You can @mention other people or #hashtags.'
         show_collections: People will be able to browse through your follows and followers. People that you follow will see that you follow them regardless.
         unlocked: People will be able to follow you without requesting approval. Uncheck if you want to review follow requests and chose whether to accept or reject new followers.
+        account_css: Custom CSS that is applied to your account page
       account_alias:
         acct: Specify the username@domain of the account you want to move from
       account_migration:
@@ -63,7 +64,6 @@ en:
         setting_use_pending_items: Hide timeline updates behind a click instead of automatically scrolling the feed
         username: You can use letters, numbers, and underscores
         whole_word: When the keyword or phrase is alphanumeric only, it will only be applied if it matches the whole word
-        setting_myspace_account_css: Custom CSS that is applied to your account page
       domain_allow:
         domain: This domain will be able to fetch data from this server and incoming data from it will be processed and stored
       email_domain_block:
@@ -151,6 +151,7 @@ en:
         indexable: Include public posts in search results
         show_collections: Show follows and followers on profile
         unlocked: Automatically accept new followers
+        account_css: Account CSS
       account_alias:
         acct: Handle of the old account
       account_migration:
@@ -234,7 +235,6 @@ en:
         username: Username
         username_or_email: Username or Email
         whole_word: Whole word
-        setting_myspace_account_css: Account CSS
       email_domain_block:
         with_dns_records: Include MX records and IPs of the domain
       featured_tag:

@@ -61,10 +61,6 @@ class UserSettings
     setting :must_be_following_dm, default: false
   end
 
-  namespace :neuromatchstodon do
-    setting :account_css, default: nil
-  end
-
   def initialize(original_hash)
     @original_hash = original_hash || {}
   end

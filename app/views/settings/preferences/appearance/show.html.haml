@@ -86,10 +86,5 @@
     .fields-group
       = ff.input :'web.expand_content_warnings', wrapper: :with_label, label: I18n.t('simple_form.labels.defaults.setting_expand_spoilers')
 
-    %h4= t 'appearance.myspace_mode'
-
-    .fields-group
-      = ff.input :'neuromatchstodon.account_css', as: :text, wrapper: :with_block_label, label: I18n.t('simple_form.labels.defaults.setting_myspace_account_css'), hint: I18n.t('simple_form.hints.defaults.setting_myspace_account_css'), neuromatchstodon_only: true
-
   .actions
     = f.button :button, t('generic.save_changes'), type: :submit
