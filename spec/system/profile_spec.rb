@@ -32,7 +32,7 @@ describe 'Profile' do
     expect(subject).to have_content 'Changes successfully saved!'
   end
 
-  it 'Can have custom account_css set' do
+  it 'Can have custom account_css set', :js do
     visit account_path('chupacabra')
     expect(subject).to have_content('background-color: red !important')
     expect(subject).to have_xpath('//*[@id="account-css"]')
