@@ -58,8 +58,8 @@ RSpec.describe Settings::ProfilesController do
             a { text-decoration: none; }
 
             a:hover {
-              left: expression(alert('xss!'));
-              text-decoration: underline;
+            left: expression(alert('xss!'));
+            text-decoration: underline;
             }
           CSS
         },
@@ -70,7 +70,7 @@ RSpec.describe Settings::ProfilesController do
 
         a:hover {
 
-          text-decoration: underline;
+        text-decoration: underline;
         }
       CSS
     end
