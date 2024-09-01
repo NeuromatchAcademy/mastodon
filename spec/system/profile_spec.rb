@@ -34,11 +34,11 @@ describe 'Profile' do
 
   it 'Can have custom account_css set' do
     visit account_path('chupacabra')
-    expect(subject).to include('background-color: red !important')
+    expect(subject).to have_content('background-color: red !important')
     expect(subject).to have_xpath('//*[@id="account-css"]')
 
     visit account_path('alice')
-    expect(subject).to_not include('background-color: red !important')
+    expect(subject).to have_no_content('background-color: red !important')
     expect(subject).to have_no_xpath('//*[@id="account-css"]')
   end
 end
