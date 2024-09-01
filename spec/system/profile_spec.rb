@@ -12,7 +12,6 @@ describe 'Profile' do
   before do
     as_a_logged_in_user
     with_alice_as_local_user
-    with_chupacabras_fancy_profile
   end
 
   it 'I can view Annes public account' do
@@ -33,12 +32,12 @@ describe 'Profile' do
   end
 
   it 'Can have custom account_css set', :js do
-    visit account_path('chupacabra')
-    expect(subject).to have_content('background-color: red !important')
+    visit account_path('alice')
+    expect(subject.html).to have_content('background-color: red !important')
     expect(subject).to have_xpath('//*[@id="account-css"]')
 
-    visit account_path('alice')
-    expect(subject).to have_no_content('background-color: red !important')
+    visit account_path('bob')
+    expect(subject.html).to have_no_content('background-color: red !important')
     expect(subject).to have_no_xpath('//*[@id="account-css"]')
   end
 end
