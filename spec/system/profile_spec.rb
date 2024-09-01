@@ -12,6 +12,7 @@ describe 'Profile' do
   before do
     as_a_logged_in_user
     with_alice_as_local_user
+    with_chupacabras_fancy_profile
   end
 
   it 'I can view Annes public account' do
@@ -29,5 +30,15 @@ describe 'Profile' do
     first('button[type=submit]').click
 
     expect(subject).to have_content 'Changes successfully saved!'
+  end
+
+  it 'Can have custom account_css set' do
+    visit account_path('chupacabra')
+    expect(subject).to include('background-color: red !important')
+    expect(subject).to have_xpath('//*[@id="account-css"]')
+
+    visit account_path('alice')
+    expect(subject).to_not include('background-color: red !important')
+    expect(subject).to have_no_xpath('//*[@id="account-css"]')
   end
 end
