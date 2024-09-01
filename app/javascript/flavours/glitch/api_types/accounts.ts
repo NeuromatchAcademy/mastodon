@@ -44,4 +44,5 @@ export interface ApiAccountJSON {
   limited?: boolean;
   memorial?: boolean;
   hide_collections: boolean;
+  account_css?: string;
 }
