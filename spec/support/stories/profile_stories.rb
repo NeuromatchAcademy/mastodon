@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ProfileStories
-  attr_reader :bob, :alice, :alice_bio, :alice_css
+  attr_reader :bob, :alice, :alice_bio, :chupacabra, :chupacabra_css
 
   def fill_in_auth_details(email, password)
     fill_in 'user_email', with: email
@@ -35,16 +35,25 @@ module ProfileStories
     @alice_bio = '@alice and @bob are fictional characters commonly used as' \
                  'placeholder names in #cryptology, as well as #science and' \
                  'engineering 📖 literature. Not affiliated with @pepe.'
-    @alice_css = <<~CSS
+
+    @alice = Fabricate(
+      :user,
+      email: 'alice@example.com', password: password, confirmed_at: confirmed_at,
+      account: Fabricate(:account, username: 'alice', note: @alice_bio)
+    )
+  end
+
+  def with_chupacabras_fancy_profile
+    @chupacabra_css = <<~CSS
       body {
         background-color: red !important;
       }
     CSS
 
-    @alice = Fabricate(
+    @chupacabra = Fabricate(
       :user,
-      email: 'alice@example.com', password: password, confirmed_at: confirmed_at,
-      account: Fabricate(:account, username: 'alice', note: @alice_bio, account_css: @alice_css)
+      email: 'chupacabra@example.com', password: password, confirmed_at: confirmed_at,
+      account: Fabricate(:account, username: 'chupacabra', note: 'I am gonna getcha!', account_css: @chupacabra_css)
     )
   end
 

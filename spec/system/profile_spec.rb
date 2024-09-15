@@ -33,12 +33,11 @@ describe 'Profile' do
 
   describe 'with JS', :js do
     before do
-      as_a_logged_in_user
-      with_alice_as_local_user
+      with_chupacabras_fancy_profile
     end
 
     it 'Can have custom account_css set' do
-      visit account_path('alice')
+      visit account_path('chupacabra')
       expect(subject.html).to have_content('background-color: red !important')
       expect(subject).to have_xpath('//*[@id="account-css"]')
 
