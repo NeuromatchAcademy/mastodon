@@ -31,13 +31,20 @@ describe 'Profile' do
     expect(subject).to have_content 'Changes successfully saved!'
   end
 
-  it 'Can have custom account_css set', :js do
-    visit account_path('alice')
-    expect(subject.html).to have_content('background-color: red !important')
-    expect(subject).to have_xpath('//*[@id="account-css"]')
+  describe 'with JS', :js do
+    before do
+      as_a_logged_in_user
+      with_alice_as_local_user
+    end
 
-    visit account_path('bob')
-    expect(subject.html).to have_no_content('background-color: red !important')
-    expect(subject).to have_no_xpath('//*[@id="account-css"]')
+    it 'Can have custom account_css set' do
+      visit account_path('alice')
+      expect(subject.html).to have_content('background-color: red !important')
+      expect(subject).to have_xpath('//*[@id="account-css"]')
+
+      visit account_path('bob')
+      expect(subject.html).to have_no_content('background-color: red !important')
+      expect(subject).to have_no_xpath('//*[@id="account-css"]')
+    end
   end
 end
