@@ -60,43 +60,7 @@ export interface AccountShape
 
 export type Account = RecordOf<AccountShape>;
 
-export const accountDefaultValues: {
-  note: string;
-  hidden: boolean;
-  bot: boolean;
-  roles: Immutable.List<AccountRole>;
-  moved: null;
-  indexable: boolean;
-  created_at: string;
-  header_static: string;
-  account_css: string;
-  hide_collections: boolean;
-  id: string;
-  memorial: boolean;
-  locked: boolean;
-  display_name_html: string;
-  group: boolean;
-  emojis: Immutable.List<CustomEmoji>;
-  noindex: boolean;
-  limited: boolean;
-  avatar: string;
-  display_name: string;
-  note_plain: string;
-  uri: string;
-  url: string;
-  suspended: boolean;
-  following_count: number;
-  discoverable: boolean;
-  last_status_at: string;
-  statuses_count: number;
-  followers_count: number;
-  note_emojified: string;
-  header: string;
-  avatar_static: string;
-  fields: Immutable.List<AccountField>;
-  acct: string;
-  username: string;
-} = {
+export const accountDefaultValues: AccountShape = {
   acct: '',
   avatar: '',
   avatar_static: '',
