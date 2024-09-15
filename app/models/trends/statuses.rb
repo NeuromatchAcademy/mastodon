@@ -8,8 +8,13 @@ class Trends::Statuses < Trends::Base
   self.default_options = {
     threshold: 5,
     review_threshold: 3,
-    score_halflife: 1.hour.freeze,
+    score_halflife: 12.hours.freeze,
     decay_threshold: 0.3,
+    local_weight: 1.5,
+    favorites_value: 1,
+    reblogs_value: 1.5,
+    replies_value: 2,
+    interactions_exponent: 1.5,
   }
 
   class Query < Trends::Query
@@ -59,7 +64,7 @@ class Trends::Statuses < Trends::Base
     Query.new(key_prefix, klass)
   end
 
-  def refresh(at_time = Time.now.utc)
+  def refresh(at_time = Time.now.utc, since_time = Time.now.days_ago(3).utc)
     # First, recalculate scores for statuses that were trending previously. We split the queries
     # to avoid having to load all of the IDs into Ruby just to send them back into Postgres
     Status.where(id: StatusTrend.select(:status_id)).includes(:status_stat, :account).reorder(nil).find_in_batches(batch_size: BATCH_SIZE) do |statuses|
@@ -68,7 +73,7 @@ class Trends::Statuses < Trends::Base
 
     # Then, calculate scores for statuses that were used today. There are potentially some
     # duplicate items here that we might process one more time, but that should be fine
-    Status.where(id: recently_used_ids(at_time)).includes(:status_stat, :account).reorder(nil).find_in_batches(batch_size: BATCH_SIZE) do |statuses|
+    Status.where(id: recently_used_ids(since_time)).includes(:status_stat, :account).reorder(nil).find_in_batches(batch_size: BATCH_SIZE) do |statuses|
       calculate_scores(statuses, at_time)
     end
 
@@ -106,19 +111,29 @@ class Trends::Statuses < Trends::Base
   private
 
   def eligible?(status)
-    status.public_visibility? && status.account.discoverable? && !status.account.silenced? && !status.account.sensitized? && (status.spoiler_text.blank? || Setting.trending_status_cw) && !status.sensitive? && !status.reply? && valid_locale?(status.language)
+    status.public_visibility? && status.account.discoverable? && !status.account.silenced? && !status.account.sensitized? && (status.spoiler_text.blank? || Setting.trending_status_cw) && !status.sensitive? && valid_locale?(status.language)
   end
 
   def calculate_scores(statuses, at_time)
     items = statuses.map do |status|
-      expected  = 1.0
-      observed  = (status.reblogs_count + status.favourites_count).to_f
+      expected = 1.0
+      observed = if eligible?(status)
+                   (
+                     (status.reblogs_count * options[:reblogs_value]) +
+                       (status.favourites_count * options[:favorites_value]) +
+                       (status.descendants_count * options[:replies_value])
+                   ).to_f
+                 else
+                   0
+                 end
 
       score = if expected > observed || observed < options[:threshold]
                 0
               else
-                ((observed - expected)**2) / expected
+                ((observed - expected)**options[:interactions_exponent]) / expected
               end
+
+      score *= options[:local_weight] if status.local?
 
       decaying_score = if score.zero? || !eligible?(status)
                          0

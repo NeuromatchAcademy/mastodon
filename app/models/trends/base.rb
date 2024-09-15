@@ -88,7 +88,7 @@ class Trends::Base
   private
 
   def used_key(at_time)
-    "#{key_prefix}:used:#{at_time.beginning_of_day.to_i}"
+    "#{key_prefix}:used:#{at_time.days_ago(1).to_i}"
   end
 
   def rename_set(pipeline, from_key, to_key, set_items)
