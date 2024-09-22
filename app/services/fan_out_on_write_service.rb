@@ -38,7 +38,6 @@ class FanOutOnWriteService < BaseService
 
   def fan_out_to_local_recipients!
     deliver_to_self!
-    deliver_to_thread_stream!
 
     unless @options[:skip_notifications]
       notify_mentioned_accounts!
@@ -70,12 +69,6 @@ class FanOutOnWriteService < BaseService
   def deliver_to_self!
     FeedManager.instance.push_to_home(@account, @status, update: update?) if @account.local?
     FeedManager.instance.push_to_direct(@account, @status, update: update?) if @account.local? && @status.direct_visibility?
-  end
-
-  def deliver_to_thread_stream
-    return unless subscribed_to_thread_stream?
-
-    redis.publish("timeline:thread:#{@status.thread_root}", anonymous_payload)
   end
 
   def notify_mentioned_accounts!
@@ -189,9 +182,5 @@ class FanOutOnWriteService < BaseService
 
   def subscribed_to_streaming_api?(account_id)
     redis.exists?("subscribed:timeline:#{account_id}") || redis.exists?("subscribed:timeline:#{account_id}:notifications")
-  end
-
-  def subscribed_to_thread_stream?
-    redis.exists?("subscribed:timeline:thread:#{@status.thread_root}")
   end
 end
