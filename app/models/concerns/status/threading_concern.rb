@@ -32,6 +32,11 @@ module Status::ThreadingConcern
     account.statuses.distributable_visibility.where(in_reply_to_id: id).reorder(id: :asc).limit(limit)
   end
 
+  def thread_root
+    maybe_ancestors = ancestor_ids(Api::V1::StatusesController::CONTEXT_LIMIT)
+    maybe_ancestors.none? ? id : maybe_ancestors[0]
+  end
+
   private
 
   def ancestor_ids(limit)
