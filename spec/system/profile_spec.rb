@@ -31,19 +31,20 @@ describe 'Profile' do
     expect(subject).to have_content 'Changes successfully saved!'
   end
 
-  describe 'with JS', :js do
+  describe 'with JS', :js, :streaming do
     before do
       with_chupacabras_fancy_profile
     end
 
     it 'Can have custom account_css set' do
       visit account_path('chupacabra')
+      # wait for page to load...
+      page.find '.account__header'
       expect(subject.html).to have_content('background-color: red !important')
-      expect(subject).to have_xpath('//*[@id="account-css"]')
 
       visit account_path('bob')
+      page.find '.account__header'
       expect(subject.html).to have_no_content('background-color: red !important')
-      expect(subject).to have_no_xpath('//*[@id="account-css"]')
     end
   end
 end

@@ -55,6 +55,7 @@ module ProfileStories
       email: 'chupacabra@example.com', password: password, confirmed_at: confirmed_at,
       account: Fabricate(:account, username: 'chupacabra', note: 'I am gonna getcha!', account_css: @chupacabra_css)
     )
+    Web::Setting.where(user: chupacabra).first_or_initialize(user: chupacabra).update!(data: { introductionVersion: 2018_12_16_044202 })
   end
 
   def confirmed_at
