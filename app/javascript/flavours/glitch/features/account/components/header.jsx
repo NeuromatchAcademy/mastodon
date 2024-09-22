@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
 
 import classNames from 'classnames';
-import { Helmet } from 'react-helmet';
-import { withRouter } from 'react-router-dom';
+import {Helmet} from 'react-helmet';
+import {withRouter} from 'react-router-dom';
 
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
@@ -405,6 +405,11 @@ class Header extends ImmutablePureComponent {
           <title>{titleFromAccount(account)}</title>
           <meta name='robots' content={(isLocal && isIndexable) ? 'all' : 'noindex'} />
           <link rel='canonical' href={account.get('url')} />
+          {account.account_css && (
+            <style id={"account-css"} nonce={document.querySelector('meta[name=style-nonce]').content}>
+              {account.account_css}
+            </style>
+          )}
         </Helmet>
       </div>
     );

@@ -45,12 +45,13 @@
 #  avatar_storage_schema_version :integer
 #  header_storage_schema_version :integer
 #  devices_url                   :string
-#  suspension_origin             :integer
 #  sensitized_at                 :datetime
+#  suspension_origin             :integer
 #  trendable                     :boolean
 #  reviewed_at                   :datetime
 #  requested_review_at           :datetime
 #  indexable                     :boolean          default(FALSE), not null
+#  account_css                   :text
 #
 
 class Account < ApplicationRecord
@@ -114,6 +115,7 @@ class Account < ApplicationRecord
   validates :followers_url, absence: true, if: :local?, on: :create
 
   normalizes :username, with: ->(username) { username.squish }
+  normalizes :account_css, with: ->(account_css) { Sanitize::CSS.stylesheet(account_css, Sanitize::Config::RELAXED) }
 
   scope :without_internal, -> { where(id: 1...) }
   scope :remote, -> { where.not(domain: nil) }

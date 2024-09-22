@@ -48,4 +48,31 @@ RSpec.describe Settings::ProfilesController do
       expect(ActivityPub::UpdateDistributionWorker).to have_received(:perform_async).with(account.id)
     end
   end
+
+  describe 'PUT #account_css with custom css' do
+    it 'hopefully removes malicious css' do
+      put :update, params: {
+        account: {
+          account_css: <<~CSS,
+            @import url(swear_words.css);
+            a { text-decoration: none; }
+
+            a:hover {
+            left: expression(alert('xss!'));
+            text-decoration: underline;
+            }
+          CSS
+        },
+      }
+      expect(account.reload.account_css).to eq <<~CSS
+
+        a { text-decoration: none; }
+
+        a:hover {
+
+        text-decoration: underline;
+        }
+      CSS
+    end
+  end
 end
