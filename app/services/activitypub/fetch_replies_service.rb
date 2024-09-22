@@ -8,11 +8,10 @@ class ActivityPub::FetchRepliesService < BaseService
   # limit of fetched replies used when fetching all replies
   MAX_REPLIES_HIGH = 500
 
-  def call(parent_status, collection_or_uri, allow_synchronous_requests: true, request_id: nil, all_replies: false, current_account_id: nil)
+  def call(parent_status, collection_or_uri, allow_synchronous_requests: true, request_id: nil, all_replies: false)
     # Whether we are getting replies from more than the originating server,
     # and don't limit ourselves to getting at most `MAX_REPLIES_LOW`
     @all_replies = all_replies
-    @current_account_id = current_account_id
     # store the status and whether we should fetch replies for it to avoid
     # race conditions if something else updates us in the meantime
     @status = parent_status
@@ -24,16 +23,7 @@ class ActivityPub::FetchRepliesService < BaseService
     @items = collection_items(collection_or_uri)
     return if @items.nil?
 
-    FetchReplyWorker.push_bulk(filtered_replies) do |reply_uri|
-      [
-        reply_uri,
-        {
-          request_id: request_id,
-          all_replies: @all_replies,
-          current_account_id: @current_account_id,
-        },
-      ]
-    end
+    FetchReplyWorker.push_bulk(filtered_replies) { |reply_uri| [reply_uri, { 'request_id' => request_id, 'all_replies' => @all_replies }] }
     # Store last fetched all to debounce
     @status.touch(:fetched_replies_at)
 
