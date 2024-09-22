@@ -48,22 +48,6 @@ class Api::V1::StatusesController < Api::BaseController
       ancestors_limit         = ANCESTORS_LIMIT
       descendants_limit       = DESCENDANTS_LIMIT
       descendants_depth_limit = DESCENDANTS_DEPTH_LIMIT
-    else
-      unless @status.local? && !@status.should_fetch_replies?
-        json_status = fetch_resource(@status.uri, true, current_account)
-
-        # rescue this whole block on failure, don't want to fail the whole context request if we can't do this
-        collection = json_status['replies']
-
-        unless collection.nil?
-          ActivityPub::FetchRepliesService.new.call(
-            @status,
-            collection,
-            allow_synchronous_requests: true,
-            all_replies: true
-          )
-        end
-      end
     end
 
     ancestors_results   = @status.in_reply_to_id.nil? ? [] : @status.ancestors(ancestors_limit, current_account)
@@ -75,6 +59,18 @@ class Api::V1::StatusesController < Api::BaseController
     statuses = [@status] + @context.ancestors + @context.descendants
 
     render json: @context, serializer: REST::ContextSerializer, relationships: StatusRelationshipsPresenter.new(statuses, current_user&.account_id)
+
+    unless @status.local? && !@status.should_fetch_replies?
+      ActivityPub::FetchRepliesWorker.perform_async(
+        @status.id,
+        nil,
+        {
+          allow_synchronous_requests: true,
+          all_replies: true,
+          current_account_id: current_account.id,
+        }
+      )
+    end
   end
 
   def create

@@ -195,4 +195,11 @@ export const connectDirectStream = () =>
  * @returns {function(): void}
  */
 export const connectListStream = listId =>
-  connectTimelineStream(`list:${listId}`, 'list', { list: listId }, { fillGaps: () => fillListTimelineGaps(listId) });
+  connectTimelineStream(`list:${listId}`, 'list', {list: listId}, {fillGaps: () => fillListTimelineGaps(listId)});
+
+/**
+ * @param {string} rootURI
+ * @returns {function(): void}
+ */
+export const connectThreadStream = rootURI =>
+  connectTimelineStream(`thread:${rootURI}`, 'thread', {rootURI: rootURI});
