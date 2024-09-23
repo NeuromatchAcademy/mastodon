@@ -23,13 +23,15 @@ RSpec.describe 'Reports' do
       subject
 
       expect(response).to have_http_status(200)
+      expect(response.content_type)
+        .to start_with('application/json')
     end
 
     context 'when there are no reports' do
       it 'returns an empty list' do
         subject
 
-        expect(body_as_json).to be_empty
+        expect(response.parsed_body).to be_empty
       end
     end
 
@@ -64,7 +66,7 @@ RSpec.describe 'Reports' do
       it 'returns all unresolved reports' do
         subject
 
-        expect(body_as_json).to match_array(expected_response)
+        expect(response.parsed_body).to match_array(expected_response)
       end
 
       context 'with resolved param' do
@@ -74,7 +76,7 @@ RSpec.describe 'Reports' do
         it 'returns only the resolved reports' do
           subject
 
-          expect(body_as_json).to match_array(expected_response)
+          expect(response.parsed_body).to match_array(expected_response)
         end
       end
 
@@ -85,7 +87,7 @@ RSpec.describe 'Reports' do
         it 'returns all unresolved reports filed by the specified account' do
           subject
 
-          expect(body_as_json).to match_array(expected_response)
+          expect(response.parsed_body).to match_array(expected_response)
         end
       end
 
@@ -96,7 +98,7 @@ RSpec.describe 'Reports' do
         it 'returns all unresolved reports targeting the specified account' do
           subject
 
-          expect(body_as_json).to match_array(expected_response)
+          expect(response.parsed_body).to match_array(expected_response)
         end
       end
 
@@ -106,7 +108,7 @@ RSpec.describe 'Reports' do
         it 'returns only the requested number of reports' do
           subject
 
-          expect(body_as_json.size).to eq(1)
+          expect(response.parsed_body.size).to eq(1)
         end
       end
     end
@@ -126,7 +128,9 @@ RSpec.describe 'Reports' do
       subject
 
       expect(response).to have_http_status(200)
-      expect(body_as_json).to include(
+      expect(response.content_type)
+        .to start_with('application/json')
+      expect(response.parsed_body).to include(
         {
           id: report.id.to_s,
           action_taken: report.action_taken?,
@@ -156,10 +160,12 @@ RSpec.describe 'Reports' do
         .and create_an_action_log
 
       expect(response).to have_http_status(200)
+      expect(response.content_type)
+        .to start_with('application/json')
 
       report.reload
 
-      expect(body_as_json).to include(
+      expect(response.parsed_body).to include(
         {
           id: report.id.to_s,
           action_taken: report.action_taken?,
@@ -190,6 +196,8 @@ RSpec.describe 'Reports' do
         .to change { report.reload.unresolved? }.from(true).to(false)
         .and create_an_action_log
       expect(response).to have_http_status(200)
+      expect(response.content_type)
+        .to start_with('application/json')
     end
   end
 
@@ -208,6 +216,8 @@ RSpec.describe 'Reports' do
         .to change { report.reload.unresolved? }.from(false).to(true)
         .and create_an_action_log
       expect(response).to have_http_status(200)
+      expect(response.content_type)
+        .to start_with('application/json')
     end
   end
 
@@ -226,6 +236,8 @@ RSpec.describe 'Reports' do
         .to change { report.reload.assigned_account_id }.from(nil).to(user.account.id)
         .and create_an_action_log
       expect(response).to have_http_status(200)
+      expect(response.content_type)
+        .to start_with('application/json')
     end
   end
 
@@ -244,6 +256,8 @@ RSpec.describe 'Reports' do
         .to change { report.reload.assigned_account_id }.from(user.account.id).to(nil)
         .and create_an_action_log
       expect(response).to have_http_status(200)
+      expect(response.content_type)
+        .to start_with('application/json')
     end
   end
 
