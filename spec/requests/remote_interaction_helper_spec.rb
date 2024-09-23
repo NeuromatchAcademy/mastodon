@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe 'Remote Interaction Helper' do
+RSpec.describe 'Remote Interaction Helper' do
   describe 'GET /remote_interaction_helper' do
     it 'returns http success' do
       allow(SecureRandom).to receive(:base64).with(16).and_return('ZbA+JmE7+bK8F5qvADZHuQ==')

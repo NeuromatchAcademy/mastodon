@@ -7,14 +7,21 @@ import { Helmet } from 'react-helmet';
 
 import { useSelector, useDispatch } from 'react-redux';
 
+import ArrowDropDownIcon from '@/material-icons/400-24px/arrow_drop_down.svg?react';
 import InventoryIcon from '@/material-icons/400-24px/inventory_2.svg?react';
 import MoreHorizIcon from '@/material-icons/400-24px/more_horiz.svg?react';
 import { openModal } from 'mastodon/actions/modal';
-import { fetchNotificationRequests, expandNotificationRequests, acceptNotificationRequests, dismissNotificationRequests } from 'mastodon/actions/notifications';
+import {
+  fetchNotificationRequests,
+  expandNotificationRequests,
+  acceptNotificationRequests,
+  dismissNotificationRequests,
+} from 'mastodon/actions/notification_requests';
 import { changeSetting } from 'mastodon/actions/settings';
 import { CheckBox } from 'mastodon/components/check_box';
 import Column from 'mastodon/components/column';
 import ColumnHeader from 'mastodon/components/column_header';
+import { Icon } from 'mastodon/components/icon';
 import ScrollableList from 'mastodon/components/scrollable_list';
 import DropdownMenuContainer from 'mastodon/containers/dropdown_menu_container';
 
@@ -26,16 +33,14 @@ const messages = defineMessages({
   title: { id: 'notification_requests.title', defaultMessage: 'Filtered notifications' },
   maximize: { id: 'notification_requests.maximize', defaultMessage: 'Maximize' },
   more: { id: 'status.more', defaultMessage: 'More' },
-  acceptAll: { id: 'notification_requests.accept_all', defaultMessage: 'Accept all' },
-  dismissAll: { id: 'notification_requests.dismiss_all', defaultMessage: 'Dismiss all' },
-  acceptMultiple: { id: 'notification_requests.accept_multiple', defaultMessage: '{count, plural, one {Accept # request} other {Accept # requests}}' },
-  dismissMultiple: { id: 'notification_requests.dismiss_multiple', defaultMessage: '{count, plural, one {Dismiss # request} other {Dismiss # requests}}' },
-  confirmAcceptAllTitle: { id: 'notification_requests.confirm_accept_all.title', defaultMessage: 'Accept notification requests?' },
-  confirmAcceptAllMessage: { id: 'notification_requests.confirm_accept_all.message', defaultMessage: 'You are about to accept {count, plural, one {one notification request} other {# notification requests}}. Are you sure you want to proceed?' },
-  confirmAcceptAllButton: { id: 'notification_requests.confirm_accept_all.button', defaultMessage: 'Accept all' },
-  confirmDismissAllTitle: { id: 'notification_requests.confirm_dismiss_all.title', defaultMessage: 'Dismiss notification requests?' },
-  confirmDismissAllMessage: { id: 'notification_requests.confirm_dismiss_all.message', defaultMessage: "You are about to dismiss {count, plural, one {one notification request} other {# notification requests}}. You won't be able to easily access {count, plural, one {it} other {them}} again. Are you sure you want to proceed?" },
-  confirmDismissAllButton: { id: 'notification_requests.confirm_dismiss_all.button', defaultMessage: 'Dismiss all' },
+  acceptMultiple: { id: 'notification_requests.accept_multiple', defaultMessage: '{count, plural, one {Accept # request…} other {Accept # requests…}}' },
+  dismissMultiple: { id: 'notification_requests.dismiss_multiple', defaultMessage: '{count, plural, one {Dismiss # request…} other {Dismiss # requests…}}' },
+  confirmAcceptMultipleTitle: { id: 'notification_requests.confirm_accept_multiple.title', defaultMessage: 'Accept notification requests?' },
+  confirmAcceptMultipleMessage: { id: 'notification_requests.confirm_accept_multiple.message', defaultMessage: 'You are about to accept {count, plural, one {one notification request} other {# notification requests}}. Are you sure you want to proceed?' },
+  confirmAcceptMultipleButton: { id: 'notification_requests.confirm_accept_multiple.button', defaultMessage: '{count, plural, one {Accept request} other {Accept requests}}' },
+  confirmDismissMultipleTitle: { id: 'notification_requests.confirm_dismiss_multiple.title', defaultMessage: 'Dismiss notification requests?' },
+  confirmDismissMultipleMessage: { id: 'notification_requests.confirm_dismiss_multiple.message', defaultMessage: "You are about to dismiss {count, plural, one {one notification request} other {# notification requests}}. You won't be able to easily access {count, plural, one {it} other {them}} again. Are you sure you want to proceed?" },
+  confirmDismissMultipleButton: { id: 'notification_requests.confirm_dismiss_multiple.button', defaultMessage: '{count, plural, one {Dismiss request} other {Dismiss requests}}' },
 });
 
 const ColumnSettings = () => {
@@ -74,47 +79,17 @@ const SelectRow = ({selectAllChecked, toggleSelectAll, selectedItems, selectionM
   const intl = useIntl();
   const dispatch = useDispatch();
 
-  const notificationRequests = useSelector(state => state.getIn(['notificationRequests', 'items']));
-
   const selectedCount = selectedItems.length;
-
-  const handleAcceptAll = useCallback(() => {
-    const items = notificationRequests.map(request => request.get('id')).toArray();
-    dispatch(openModal({
-      modalType: 'CONFIRM',
-      modalProps: {
-        title: intl.formatMessage(messages.confirmAcceptAllTitle),
-        message: intl.formatMessage(messages.confirmAcceptAllMessage, { count: items.length }),
-        confirm: intl.formatMessage(messages.confirmAcceptAllButton),
-        onConfirm: () =>
-          dispatch(acceptNotificationRequests(items)),
-      },
-    }));
-  }, [dispatch, intl, notificationRequests]);
-
-  const handleDismissAll = useCallback(() => {
-    const items = notificationRequests.map(request => request.get('id')).toArray();
-    dispatch(openModal({
-      modalType: 'CONFIRM',
-      modalProps: {
-        title: intl.formatMessage(messages.confirmDismissAllTitle),
-        message: intl.formatMessage(messages.confirmDismissAllMessage, { count: items.length }),
-        confirm: intl.formatMessage(messages.confirmDismissAllButton),
-        onConfirm: () =>
-          dispatch(dismissNotificationRequests(items)),
-      },
-    }));
-  }, [dispatch, intl, notificationRequests]);
 
   const handleAcceptMultiple = useCallback(() => {
     dispatch(openModal({
       modalType: 'CONFIRM',
       modalProps: {
-        title: intl.formatMessage(messages.confirmAcceptAllTitle),
-        message: intl.formatMessage(messages.confirmAcceptAllMessage, { count: selectedItems.length }),
-        confirm: intl.formatMessage(messages.confirmAcceptAllButton),
+        title: intl.formatMessage(messages.confirmAcceptMultipleTitle),
+        message: intl.formatMessage(messages.confirmAcceptMultipleMessage, { count: selectedItems.length }),
+        confirm: intl.formatMessage(messages.confirmAcceptMultipleButton, { count: selectedItems.length}),
         onConfirm: () =>
-          dispatch(acceptNotificationRequests(selectedItems)),
+          dispatch(acceptNotificationRequests({ ids: selectedItems })),
       },
     }));
   }, [dispatch, intl, selectedItems]);
@@ -123,11 +98,11 @@ const SelectRow = ({selectAllChecked, toggleSelectAll, selectedItems, selectionM
     dispatch(openModal({
       modalType: 'CONFIRM',
       modalProps: {
-        title: intl.formatMessage(messages.confirmDismissAllTitle),
-        message: intl.formatMessage(messages.confirmDismissAllMessage, { count: selectedItems.length }),
-        confirm: intl.formatMessage(messages.confirmDismissAllButton),
+        title: intl.formatMessage(messages.confirmDismissMultipleTitle),
+        message: intl.formatMessage(messages.confirmDismissMultipleMessage, { count: selectedItems.length }),
+        confirm: intl.formatMessage(messages.confirmDismissMultipleButton, { count: selectedItems.length}),
         onConfirm: () =>
-          dispatch(dismissNotificationRequests(selectedItems)),
+          dispatch(dismissNotificationRequests({ ids: selectedItems })),
       },
     }));
   }, [dispatch, intl, selectedItems]);
@@ -136,45 +111,44 @@ const SelectRow = ({selectAllChecked, toggleSelectAll, selectedItems, selectionM
     setSelectionMode((mode) => !mode);
   }, [setSelectionMode]);
 
-  const menu = selectedCount === 0 ?
-    [
-      { text: intl.formatMessage(messages.acceptAll), action: handleAcceptAll },
-      { text: intl.formatMessage(messages.dismissAll), action: handleDismissAll },
-    ] : [
-      { text: intl.formatMessage(messages.acceptMultiple, { count: selectedCount }), action: handleAcceptMultiple },
-      { text: intl.formatMessage(messages.dismissMultiple, { count: selectedCount }), action: handleDismissMultiple },
-    ];
+  const menu = [
+    { text: intl.formatMessage(messages.acceptMultiple, { count: selectedCount }), action: handleAcceptMultiple },
+    { text: intl.formatMessage(messages.dismissMultiple, { count: selectedCount }), action: handleDismissMultiple },
+  ];
+
+  const handleSelectAll = useCallback(() => {
+    setSelectionMode(true);
+    toggleSelectAll();
+  }, [setSelectionMode, toggleSelectAll]);
 
   return (
     <div className='column-header__select-row'>
-      {selectionMode && (
-        <div className='column-header__select-row__checkbox'>
-          <CheckBox checked={selectAllChecked} indeterminate={selectedCount > 0 && !selectAllChecked} onChange={toggleSelectAll} />
-        </div>
-      )}
-      <div className='column-header__select-row__selection-mode'>
+      <div className='column-header__select-row__checkbox'>
+        <CheckBox checked={selectAllChecked} indeterminate={selectedCount > 0 && !selectAllChecked} onChange={handleSelectAll} />
+      </div>
+      <DropdownMenuContainer
+        items={menu}
+        icons='ellipsis-h'
+        iconComponent={MoreHorizIcon}
+        direction='right'
+        title={intl.formatMessage(messages.more)}
+      >
+        <button className='dropdown-button column-header__select-row__select-menu' disabled={selectedItems.length === 0}>
+          <span className='dropdown-button__label'>
+            {selectedCount} selected
+          </span>
+          <Icon id='down' icon={ArrowDropDownIcon} />
+        </button>
+      </DropdownMenuContainer>
+      <div className='column-header__select-row__mode-button'>
         <button className='text-btn' tabIndex={0} onClick={handleToggleSelectionMode}>
           {selectionMode ? (
-            <FormattedMessage id='notification_requests.exit_selection_mode' defaultMessage='Cancel' />
+            <FormattedMessage id='notification_requests.exit_selection' defaultMessage='Done' />
           ) :
             (
-              <FormattedMessage id='notification_requests.enter_selection_mode' defaultMessage='Select' />
+              <FormattedMessage id='notification_requests.edit_selection' defaultMessage='Edit' />
             )}
         </button>
-      </div>
-      {selectedCount > 0 &&
-        <div className='column-header__select-row__selected-count'>
-          {selectedCount} selected
-        </div>
-      }
-      <div className='column-header__select-row__actions'>
-        <DropdownMenuContainer
-          items={menu}
-          icons='ellipsis-h'
-          iconComponent={MoreHorizIcon}
-          direction='right'
-          title={intl.formatMessage(messages.more)}
-        />
       </div>
     </div>
   );
@@ -192,9 +166,9 @@ export const NotificationRequests = ({ multiColumn }) => {
   const columnRef = useRef();
   const intl = useIntl();
   const dispatch = useDispatch();
-  const isLoading = useSelector(state => state.getIn(['notificationRequests', 'isLoading']));
-  const notificationRequests = useSelector(state => state.getIn(['notificationRequests', 'items']));
-  const hasMore = useSelector(state => !!state.getIn(['notificationRequests', 'next']));
+  const isLoading = useSelector(state => state.notificationRequests.isLoading);
+  const notificationRequests = useSelector(state => state.notificationRequests.items);
+  const hasMore = useSelector(state => !!state.notificationRequests.next);
 
   const [selectionMode, setSelectionMode] = useState(false);
   const [checkedRequestIds, setCheckedRequestIds] = useState([]);
@@ -213,7 +187,7 @@ export const NotificationRequests = ({ multiColumn }) => {
       else
         ids.push(id);
 
-      setSelectAllChecked(ids.length === notificationRequests.size);
+      setSelectAllChecked(ids.length === notificationRequests.length);
 
       return [...ids];
     });
@@ -224,7 +198,7 @@ export const NotificationRequests = ({ multiColumn }) => {
       if(checked)
         setCheckedRequestIds([]);
       else
-        setCheckedRequestIds(notificationRequests.map(request => request.get('id')).toArray());
+        setCheckedRequestIds(notificationRequests.map(request => request.id));
 
       return !checked;
     });
@@ -248,7 +222,9 @@ export const NotificationRequests = ({ multiColumn }) => {
         multiColumn={multiColumn}
         showBackButton
         appendContent={
-          <SelectRow selectionMode={selectionMode} setSelectionMode={setSelectionMode} selectAllChecked={selectAllChecked} toggleSelectAll={toggleSelectAll} selectedItems={checkedRequestIds} />}
+          notificationRequests.length > 0 && (
+            <SelectRow selectionMode={selectionMode} setSelectionMode={setSelectionMode} selectAllChecked={selectAllChecked} toggleSelectAll={toggleSelectAll} selectedItems={checkedRequestIds} />
+          )}
       >
         <ColumnSettings />
       </ColumnHeader>
@@ -265,12 +241,12 @@ export const NotificationRequests = ({ multiColumn }) => {
       >
         {notificationRequests.map(request => (
           <NotificationRequest
-            key={request.get('id')}
-            id={request.get('id')}
-            accountId={request.get('account')}
-            notificationsCount={request.get('notifications_count')}
+            key={request.id}
+            id={request.id}
+            accountId={request.account_id}
+            notificationsCount={request.notifications_count}
             showCheckbox={selectionMode}
-            checked={checkedRequestIds.includes(request.get('id'))}
+            checked={checkedRequestIds.includes(request.id)}
             toggleCheck={handleCheck}
           />
         ))}

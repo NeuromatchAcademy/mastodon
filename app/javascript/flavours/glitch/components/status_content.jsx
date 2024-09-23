@@ -9,12 +9,18 @@ import { withRouter } from 'react-router-dom';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
+import ImageIcon from '@/material-icons/400-24px/image.svg?react';
+import InsertChartIcon from '@/material-icons/400-24px/insert_chart.svg?react';
+import LinkIcon from '@/material-icons/400-24px/link.svg?react';
+import MovieIcon from '@/material-icons/400-24px/movie.svg?react';
+import MusicNoteIcon from '@/material-icons/400-24px/music_note.svg?react';
+import { ContentWarning } from 'flavours/glitch/components/content_warning';
+import { Icon } from 'flavours/glitch/components/icon';
 import { identityContextPropShape, withIdentity } from 'flavours/glitch/identity_context';
 import { autoPlayGif, languages as preloadedLanguages } from 'flavours/glitch/initial_state';
 import { decode as decodeIDNA } from 'flavours/glitch/utils/idna';
 
 import { Permalink } from './permalink';
-import StatusExpandButton from './status_expand_button';
 
 const textMatchesTarget = (text, origin, host) => {
   return (text === origin || text === host
@@ -363,7 +369,7 @@ class StatusContent extends PureComponent {
     const renderTranslate = this.props.onTranslate && this.props.identity.signedIn && ['public', 'unlisted'].includes(status.get('visibility')) && status.get('search_index').trim().length > 0 && targetLanguages?.includes(contentLocale);
 
     const content = { __html: statusContent ?? getStatusContent(status) };
-    const spoilerContent = { __html: status.getIn(['translation', 'spoilerHtml']) || status.get('spoilerHtml') };
+    const spoilerHtml = status.getIn(['translation', 'spoilerHtml']) || status.get('spoilerHtml');
     const language = status.getIn(['translation', 'language']) || status.get('language');
     const classNames = classnames('status__content', {
       'status__content--with-action': parseClick && !disabled,
@@ -388,23 +394,35 @@ class StatusContent extends PureComponent {
         </Permalink>
       )).reduce((aggregate, item) => [...aggregate, item, ' '], []);
 
+      let spoilerIcons = [];
+      if (hidden && mediaIcons) {
+        const mediaComponents = {
+          'link': LinkIcon,
+          'picture-o': ImageIcon,
+          'tasks': InsertChartIcon,
+          'video-camera': MovieIcon,
+          'music': MusicNoteIcon,
+        };
+
+        spoilerIcons = mediaIcons.map((mediaIcon) => (
+          <Icon
+            fixedWidth
+            className='status__content__spoiler-icon'
+            id={mediaIcon}
+            icon={mediaComponents[mediaIcon]}
+            aria-hidden='true'
+            key={`icon-${mediaIcon}`}
+          />
+        ));
+      }
+
       if (hidden) {
         mentionsPlaceholder = <div>{mentionLinks}</div>;
       }
 
       return (
         <div className={classNames} tabIndex={0} onMouseDown={this.handleMouseDown} onMouseUp={this.handleMouseUp}>
-          <p
-            style={{ marginBottom: hidden && status.get('mentions').isEmpty() ? '0px' : null }}
-          >
-            <span dangerouslySetInnerHTML={spoilerContent} className='translate' lang={language} />
-            {' '}
-            <StatusExpandButton
-              hidden={hidden}
-              handleSpoilerClick={this.handleSpoilerClick}
-              mediaIcons={mediaIcons}
-            />
-          </p>
+          <ContentWarning text={spoilerHtml} expanded={!hidden} onClick={this.handleSpoilerClick} icons={spoilerIcons} />
 
           {mentionsPlaceholder}
 

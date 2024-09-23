@@ -75,3 +75,6 @@ docker-compose.override.yml
 # Everything in a MathJax distribution, keeping only the compiled versions we use
 public/MathJax/es5/tex-*
 !public/MathJax/es5/tex-chtml.js
+
+# Ignore local-only rspec configuration
+.rspec-local
