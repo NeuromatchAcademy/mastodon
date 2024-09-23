@@ -95,6 +95,7 @@ export const accountDefaultValues: AccountShape = {
   limited: false,
   moved: null,
   hide_collections: false,
+  account_css: '',
 };
 
 const AccountFactory = ImmutableRecord<AccountShape>(accountDefaultValues);

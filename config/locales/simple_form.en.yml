@@ -11,6 +11,7 @@ en:
         note: 'You can @mention other people or #hashtags.'
         show_collections: People will be able to browse through your follows and followers. People that you follow will see that you follow them regardless.
         unlocked: People will be able to follow you without requesting approval. Uncheck if you want to review follow requests and chose whether to accept or reject new followers.
+        account_css: Custom CSS that is applied to your account page
       account_alias:
         acct: Specify the username@domain of the account you want to move from
       account_migration:
@@ -152,6 +153,7 @@ en:
         indexable: Include public posts in search results
         show_collections: Show follows and followers on profile
         unlocked: Automatically accept new followers
+        account_css: Account CSS
       account_alias:
         acct: Handle of the old account
       account_migration:
@@ -341,3 +343,4 @@ en:
       sessions:
         webauthn: Use one of your security keys to sign in
     'yes': 'Yes'
+    neuromatchstodon_only: "Neuromatchstodon Only"

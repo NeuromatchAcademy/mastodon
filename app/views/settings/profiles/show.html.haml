@@ -67,5 +67,10 @@
   .fields-group
     = f.input :bot, as: :boolean, wrapper: :with_label, hint: t('simple_form.hints.defaults.bot')
 
+  %h4= t 'edit_profile.myspace_mode'
+
+  .fields-group
+    = f.input :account_css, as: :text, wrapper: :with_block_label, label: I18n.t('simple_form.labels.account.account_css'), hint: I18n.t('simple_form.hints.account.account_css'), neuromatchstodon_only: true
+
   .actions
     = f.button :button, t('generic.save_changes'), type: :submit
