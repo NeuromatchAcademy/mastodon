@@ -14,10 +14,8 @@ class ActivityPub::FetchAllRepliesWorker
   # Global max replies to fetch per request (all replies, recursively)
   MAX_REPLIES = 1000
 
-  def perform(parent_status_id, current_account_id = nil, options = {})
+  def perform(parent_status_id, options = {})
     @parent_status = Status.find(parent_status_id)
-    @current_account_id = current_account_id
-    @current_account = @current_account_id.nil? ? nil : Account.find(@current_account_id)
     Rails.logger.debug { "FetchAllRepliesWorker - #{parent_status_id}: Fetching all replies for status: #{@parent_status}" }
 
     uris_to_fetch = get_replies(@parent_status.uri, options)
@@ -50,7 +48,7 @@ class ActivityPub::FetchAllRepliesWorker
 
   def get_replies_uri(parent_status_uri)
     begin
-      json_status = fetch_resource(parent_status_uri, true, @current_account)
+      json_status = fetch_resource(parent_status_uri, true)
       replies_collection_or_uri = json_status['replies']
       Rails.logger.debug { "FetchAllRepliesWorker - #{@parent_status_id}: replies URI was nil" } if replies_collection_or_uri.nil?
       replies_collection_or_uri
