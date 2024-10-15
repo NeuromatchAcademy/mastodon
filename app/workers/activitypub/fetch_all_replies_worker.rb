@@ -12,7 +12,7 @@ class ActivityPub::FetchAllRepliesWorker
   sidekiq_options queue: 'pull', retry: 3
 
   # Global max replies to fetch per request (all replies, recursively)
-  MAX_REPLIES = 1000
+  MAX_REPLIES = (ENV['FETCH_REPLIES_MAX_GLOBAL'] || 1000).to_i
 
   def perform(parent_status_id, options = {})
     @parent_status = Status.find(parent_status_id)
