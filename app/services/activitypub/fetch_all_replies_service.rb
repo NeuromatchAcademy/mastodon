@@ -9,6 +9,7 @@ class ActivityPub::FetchAllRepliesService < ActivityPub::FetchRepliesService
   def call(collection_or_uri, allow_synchronous_requests: true, request_id: nil)
     @allow_synchronous_requests = allow_synchronous_requests
     @filter_by_host = false
+    @collection_or_uri = collection_or_uri
 
     @items = collection_items(collection_or_uri)
     @items = filtered_replies
@@ -40,6 +41,9 @@ class ActivityPub::FetchAllRepliesService < ActivityPub::FetchRepliesService
     Status.where(uri: uris).should_fetch_replies.touch_all(:fetched_replies_at)
 
     # Reject all statuses that we already have in the db
-    uris.reject { |uri| dont_update.include?(uri) }.take(MAX_REPLIES)
+    uris = uris.reject { |uri| dont_update.include?(uri) }.take(MAX_REPLIES)
+
+    Rails.logger.debug { "FetchAllRepliesService - #{@collection_or_uri}: Fetching filtered statuses: #{uris}" }
+    uris
   end
 end
