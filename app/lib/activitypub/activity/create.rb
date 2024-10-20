@@ -42,6 +42,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   def process_status
     @tags                 = []
     @mentions             = []
+    @unresolved_mentions  = []
     @silenced_account_ids = []
     @params               = {}
 
@@ -55,6 +56,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     end
 
     resolve_thread(@status)
+    resolve_unresolved_mentions(@status)
     fetch_replies(@status)
     distribute
     forward_for_reply
@@ -197,6 +199,8 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     return if account.nil?
 
     @mentions << Mention.new(account: account, silent: false)
+  rescue Mastodon::UnexpectedResponseError, *Mastodon::HTTP_CONNECTION_ERRORS
+    @unresolved_mentions << tag['href']
   end
 
   def process_emoji(tag)
@@ -246,7 +250,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
         media_attachment.download_file!
         media_attachment.download_thumbnail!
         media_attachment.save
-      rescue Mastodon::UnexpectedResponseError, HTTP::TimeoutError, HTTP::ConnectionError, OpenSSL::SSL::SSLError
+      rescue Mastodon::UnexpectedResponseError, *Mastodon::HTTP_CONNECTION_ERRORS
         RedownloadMediaWorker.perform_in(rand(30..600).seconds, media_attachment.id)
       rescue Seahorse::Client::NetworkingError => e
         Rails.logger.warn "Error storing media attachment: #{e}"
@@ -301,6 +305,12 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     ThreadResolveWorker.perform_async(status.id, in_reply_to_uri, { 'request_id' => @options[:request_id] })
   end
 
+  def resolve_unresolved_mentions(status)
+    @unresolved_mentions.uniq.each do |uri|
+      MentionResolveWorker.perform_in(rand(30...600).seconds, status.id, uri, { 'request_id' => @options[:request_id] })
+    end
+  end
+
   def fetch_replies(status)
     collection = @object['replies']
     return if collection.blank?
@@ -342,7 +352,15 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   end
 
   def converted_text
-    linkify([@status_parser.title.presence, @status_parser.spoiler_text.presence, @status_parser.url || @status_parser.uri].compact.join("\n\n"))
+    [formatted_title, @status_parser.spoiler_text.presence, formatted_url].compact.join("\n\n")
+  end
+
+  def formatted_title
+    "<h2>#{@status_parser.title}</h2>" if @status_parser.title.present?
+  end
+
+  def formatted_url
+    linkify(@status_parser.url || @status_parser.uri)
   end
 
   def unsupported_media_type?(mime_type)

@@ -43,6 +43,7 @@ require 'paperclip/matchers'
 require 'capybara/rspec'
 require 'chewy/rspec'
 require 'email_spec/rspec'
+require 'pundit/rspec'
 require 'test_prof/recipes/rspec/before_all'
 
 Rails.root.glob('spec/support/**/*.rb').each { |f| require f }
@@ -159,6 +160,11 @@ RSpec.configure do |config|
     # Use https and configured hostname in request spec requests
     integration_session.https!
     host! Rails.configuration.x.local_domain
+  end
+
+  config.before :each, type: :system do
+    # Align with capybara config so that rails helpers called from rspec use matching host
+    host! 'localhost:3000'
   end
 
   config.after do
