@@ -387,23 +387,43 @@ RSpec.describe User do
     end
   end
 
-  describe 'token_for_app' do
+  describe '#token_for_app' do
     let(:user) { Fabricate(:user) }
-    let(:app) { Fabricate(:application, owner: user) }
 
-    it 'returns a token' do
-      expect(user.token_for_app(app)).to be_a(Doorkeeper::AccessToken)
+    context 'when user owns app but does not have tokens' do
+      let(:app) { Fabricate(:application, owner: user) }
+
+      it 'creates and returns a persisted token' do
+        expect { user.token_for_app(app) }
+          .to change(Doorkeeper::AccessToken.where(resource_owner_id: user.id, application: app), :count).by(1)
+      end
     end
 
-    it 'persists a token' do
-      t = user.token_for_app(app)
-      expect(user.token_for_app(app)).to eql(t)
+    context 'when user owns app and already has tokens' do
+      let(:app) { Fabricate(:application, owner: user) }
+      let!(:token) { Fabricate :access_token, application: app, resource_owner_id: user.id }
+
+      it 'returns a persisted token' do
+        expect(user.token_for_app(app))
+          .to be_a(Doorkeeper::AccessToken)
+          .and eq(token)
+      end
     end
 
-    it 'is nil if user does not own app' do
-      app.update!(owner: nil)
+    context 'when user does not own app' do
+      let(:app) { Fabricate(:application) }
 
-      expect(user.token_for_app(app)).to be_nil
+      it 'returns nil' do
+        expect(user.token_for_app(app))
+          .to be_nil
+      end
+    end
+
+    context 'when app is nil' do
+      it 'returns nil' do
+        expect(user.token_for_app(nil))
+          .to be_nil
+      end
     end
   end
 
@@ -434,7 +454,9 @@ RSpec.describe User do
   end
 
   describe '#reset_password!' do
-    subject(:user) { Fabricate(:user, password: 'foobar12345') }
+    subject(:user) { Fabricate(:user, password: original_password) }
+
+    let(:original_password) { 'foobar12345' }
 
     let!(:session_activation) { Fabricate(:session_activation, user: user) }
     let!(:access_token) { Fabricate(:access_token, resource_owner_id: user.id) }
@@ -442,31 +464,40 @@ RSpec.describe User do
 
     let(:redis_pipeline_stub) { instance_double(Redis::Namespace, publish: nil) }
 
-    before do
-      allow(redis).to receive(:pipelined).and_yield(redis_pipeline_stub)
-      user.reset_password!
+    before { stub_redis }
+
+    it 'changes the password immediately and revokes related access' do
+      expect { user.reset_password! }
+        .to remove_activated_sessions
+        .and remove_active_user_tokens
+        .and remove_user_web_subscriptions
+
+      expect(user)
+        .to_not be_external_or_valid_password(original_password)
+      expect { session_activation.reload }
+        .to raise_error(ActiveRecord::RecordNotFound)
+      expect { web_push_subscription.reload }
+        .to raise_error(ActiveRecord::RecordNotFound)
+      expect(redis_pipeline_stub)
+        .to have_received(:publish).with("timeline:access_token:#{access_token.id}", Oj.dump(event: :kill)).once
     end
 
-    it 'changes the password immediately' do
-      expect(user.external_or_valid_password?('foobar12345')).to be false
+    def remove_activated_sessions
+      change(user.session_activations, :count).to(0)
     end
 
-    it 'deactivates all sessions' do
-      expect(user.session_activations.count).to eq 0
-      expect { session_activation.reload }.to raise_error(ActiveRecord::RecordNotFound)
+    def remove_active_user_tokens
+      change { Doorkeeper::AccessToken.active_for(user).count }.to(0)
     end
 
-    it 'revokes all access tokens' do
-      expect(Doorkeeper::AccessToken.active_for(user).count).to eq 0
+    def remove_user_web_subscriptions
+      change { Web::PushSubscription.where(user: user).or(Web::PushSubscription.where(access_token: access_token)).count }.to(0)
     end
 
-    it 'revokes streaming access for all access tokens' do
-      expect(redis_pipeline_stub).to have_received(:publish).with("timeline:access_token:#{access_token.id}", Oj.dump(event: :kill)).once
-    end
-
-    it 'removes push subscriptions' do
-      expect(Web::PushSubscription.where(user: user).or(Web::PushSubscription.where(access_token: access_token)).count).to eq 0
-      expect { web_push_subscription.reload }.to raise_error(ActiveRecord::RecordNotFound)
+    def stub_redis
+      allow(redis)
+        .to receive(:pipelined)
+        .and_yield(redis_pipeline_stub)
     end
   end
 

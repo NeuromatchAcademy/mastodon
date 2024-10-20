@@ -608,6 +608,9 @@ lt:
         message_html: Tavo Elasticsearch klasteris turi tik vieną mazgą, <code>ES_PRESET</code> turėtų būti nustatyta į <code>single_node_cluster</code>.
       elasticsearch_running_check:
         message_html: Nepavyko prijungti prie Elasticsearch. Patikrink, ar ji veikia, arba išjunk viso teksto paiešką.
+      software_version_check:
+        action: Žiūrėti galimus naujinimus
+        message_html: Yra „Mastodon“ naujinimas.
     tags:
       moderation:
         not_trendable: Netendencinga
@@ -814,9 +817,11 @@ lt:
       view_strikes: Peržiūrėti ankstesnius savo paskyros pažeidimus
   author_attribution:
     example_title: Teksto pavyzdys
-    hint_html: Valdyk, kaip esi nurodomas (-a), kai nuorodos bendrinamos platformoje „Mastodon“.
+    hint_html: Ar rašote naujienas ar tinklaraščio straipsnius už „Mastodon“ ribų? Valdykite, kaip būsite nurodomi, kai jais bus bendrinama platformoje „Mastodon“.
+    instructions: 'Įsitikinkite, kad šis kodas yra jūsų straipsnio HTML:'
     more_from_html: Daugiau iš %{name}
     s_blog: "%{name} tinklaraštis"
+    then_instructions: Tada toliau esančiame lauke įrašykite leidinio domeno vardą.
     title: Autoriaus (-ės) atribucija
   challenge:
     hint_html: "<strong>Patarimas:</strong> artimiausią valandą daugiau neprašysime tavo slaptažodžio."
@@ -1090,7 +1095,7 @@ lt:
     delete: Paskyros trynimas
     development: Kūrimas
     edit_profile: Redaguoti profilį
-    export: Duomenų eksportas
+    export: Eksportuoti
     featured_tags: Rodomi saitažodžiai
     import: Importuoti
     import_and_export: Importas ir eksportas

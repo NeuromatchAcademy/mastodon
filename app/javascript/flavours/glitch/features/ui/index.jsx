@@ -21,6 +21,7 @@ import { Permalink } from 'flavours/glitch/components/permalink';
 import { PictureInPicture } from 'flavours/glitch/features/picture_in_picture';
 import { identityContextPropShape, withIdentity } from 'flavours/glitch/identity_context';
 import { layoutFromWindow } from 'flavours/glitch/is_mobile';
+import { selectUnreadNotificationGroupsCount } from 'flavours/glitch/selectors/notifications';
 import { WithRouterPropTypes } from 'flavours/glitch/utils/react_router';
 
 import { uploadCompose, resetCompose, changeComposeSpoilerness } from '../../actions/compose';
@@ -90,7 +91,7 @@ const mapStateToProps = state => ({
   hasMediaAttachments: state.getIn(['compose', 'media_attachments']).size > 0,
   canUploadMore: !state.getIn(['compose', 'media_attachments']).some(x => ['audio', 'video'].includes(x.get('type'))) && state.getIn(['compose', 'media_attachments']).size < 4,
   isWide: state.getIn(['local_settings', 'stretch']),
-  unreadNotifications: state.getIn(['notifications', 'unread']),
+  unreadNotifications: selectUnreadNotificationGroupsCount(state),
   showFaviconBadge: state.getIn(['local_settings', 'notifications', 'favicon_badge']),
   hicolorPrivacyIcons: state.getIn(['local_settings', 'hicolor_privacy_icons']),
   moved: state.getIn(['accounts', me, 'moved']) && state.getIn(['accounts', state.getIn(['accounts', me, 'moved'])]),
@@ -196,7 +197,7 @@ class SwitchingColumnsArea extends PureComponent {
             {redirect}
 
             {singleColumn ? <Redirect from='/deck' to='/home' exact /> : null}
-            {singleColumn && pathName.startsWith('/deck/') ? <Redirect from={pathName} to={pathName.slice(5)} /> : null}
+            {singleColumn && pathName.startsWith('/deck/') ? <Redirect from={pathName} to={{...this.props.location, pathname: pathName.slice(5)}} /> : null}
             {/* Redirect old bookmarks (without /deck) with home-like routes to the advanced interface */}
             {!singleColumn && pathName === '/getting-started' ? <Redirect from='/getting-started' to='/deck/getting-started' exact /> : null}
             {!singleColumn && pathName === '/home' ? <Redirect from='/home' to='/deck/getting-started' exact /> : null}
