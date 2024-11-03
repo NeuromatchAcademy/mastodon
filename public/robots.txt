@@ -20,6 +20,12 @@ User-agent: *
 Disallow: /media_proxy/
 Disallow: /interact/
 
+# AI Data Scraper
+# https://darkvisitors.com/agents/ai2bot
+
+User-agent: AI2Bot
+Disallow: /
+
 # AI Search Crawler
 # https://darkvisitors.com/agents/amazonbot
 
@@ -86,6 +92,12 @@ Disallow: /
 User-agent: Diffbot
 Disallow: /
 
+# AI Assistant
+# https://darkvisitors.com/agents/duckassistbot
+
+User-agent: DuckAssistBot
+Disallow: /
+
 # AI Data Scraper
 # https://darkvisitors.com/agents/facebookbot
 
@@ -102,6 +114,12 @@ Disallow: /
 # https://darkvisitors.com/agents/gptbot
 
 User-agent: GPTBot
+Disallow: /
+
+# AI Data Scraper
+# https://darkvisitors.com/agents/kangaroo-bot
+
+User-agent: Kangaroo Bot
 Disallow: /
 
 # AI Data Scraper
