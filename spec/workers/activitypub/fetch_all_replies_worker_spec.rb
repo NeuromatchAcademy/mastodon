@@ -140,6 +140,13 @@ RSpec.describe ActivityPub::FetchAllRepliesWorker do
       got_uris = subject.perform(status.id)
       expect(got_uris).to match_array(top_items + top_items_paged)
     end
+
+    it 'fetches the top status using a prefetched body' do
+      allow(FetchReplyWorker).to receive(:perform_async)
+      subject.perform(status.id)
+      expect(a_request(:get, top_note_uri)).to have_been_made.times(1)
+      expect(FetchReplyWorker).to have_received(:perform_async).with(top_note_uri, { 'prefetched_body' => top_object.deep_stringify_keys })
+    end
   end
 
   describe 'perform' do

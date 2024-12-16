@@ -18,7 +18,12 @@ class ActivityPub::FetchAllRepliesWorker
     @parent_status = Status.find(parent_status_id)
     Rails.logger.debug { "FetchAllRepliesWorker - #{@parent_status.uri}: Fetching all replies for status: #{@parent_status}" }
 
-    uris_to_fetch = get_replies(@parent_status.uri, options)
+    # Refetch parent status and replies with one request
+    @parent_status_json = fetch_resource(@parent_status.uri, true)
+    raise UnexpectedResponseError("Could not fetch ActivityPub JSON for parent status: #{@parent_status.uri}") if @parent_status_json.nil?
+
+    FetchReplyWorker.perform_async(@parent_status.uri, { 'prefetched_body' => @parent_status_json })
+    uris_to_fetch = get_replies(@parent_status.uri, @parent_status_json, options)
     return if uris_to_fetch.nil?
 
     @parent_status.touch(:fetched_replies_at)
@@ -29,7 +34,7 @@ class ActivityPub::FetchAllRepliesWorker
       next_reply = uris_to_fetch.pop
       next if next_reply.nil?
 
-      new_reply_uris = get_replies(next_reply, options)
+      new_reply_uris = get_replies(next_reply, nil, options)
       next if new_reply_uris.nil?
 
       new_reply_uris = new_reply_uris.reject { |uri| fetched_uris.include?(uri) }
@@ -44,16 +49,17 @@ class ActivityPub::FetchAllRepliesWorker
 
   private
 
-  def get_replies(status_uri, options = {})
-    replies_collection_or_uri = get_replies_uri(status_uri)
+  def get_replies(status_uri, prefetched_body = nil, options = {})
+    replies_collection_or_uri = get_replies_uri(status_uri, prefetched_body)
     return if replies_collection_or_uri.nil?
 
     ActivityPub::FetchAllRepliesService.new.call(replies_collection_or_uri, **options.deep_symbolize_keys)
   end
 
-  def get_replies_uri(parent_status_uri)
+  def get_replies_uri(parent_status_uri, prefetched_body = nil)
     begin
-      json_status = fetch_resource(parent_status_uri, true)
+      json_status = prefetched_body.nil? ? fetch_resource(parent_status_uri, true) : prefetched_body
+
       if json_status.nil?
         Rails.logger.debug { "FetchAllRepliesWorker - #{@parent_status.uri}: error getting replies URI for #{parent_status_uri}, returned nil" }
         nil
