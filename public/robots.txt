@@ -20,7 +20,6 @@ User-agent: *
 Disallow: /media_proxy/
 Disallow: /interact/
 Disallow: /api/v1/instance/domain_blocks
-
 # AI Data Scraper
 # https://darkvisitors.com/agents/ai2bot
 
