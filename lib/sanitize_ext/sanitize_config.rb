@@ -126,7 +126,7 @@ class Sanitize
 
       add_attributes: {
         'a' => {
-          'rel' => 'nofollow noopener noreferrer',
+          'rel' => 'nofollow noopener',
           'target' => '_blank',
         },
       },
@@ -146,18 +146,16 @@ class Sanitize
     )
 
     MASTODON_OEMBED = freeze_config(
-      elements: %w(audio embed iframe source video),
+      elements: %w(audio iframe source video),
 
       attributes: {
         'audio' => %w(controls),
-        'embed' => %w(height src type width),
         'iframe' => %w(allowfullscreen frameborder height scrolling src width),
         'source' => %w(src type),
         'video' => %w(controls height loop width),
       },
 
       protocols: {
-        'embed' => { 'src' => HTTP_PROTOCOLS },
         'iframe' => { 'src' => HTTP_PROTOCOLS },
         'source' => { 'src' => HTTP_PROTOCOLS },
       },
@@ -173,7 +171,7 @@ class Sanitize
       node = env[:node]
 
       rel = (node['rel'] || '').split & ['tag']
-      rel += %w(nofollow noopener noreferrer) unless TagManager.instance.local_url?(node['href'])
+      rel += %w(nofollow noopener) unless TagManager.instance.local_url?(node['href'])
 
       if rel.empty?
         node.remove_attribute('rel')
