@@ -31,7 +31,6 @@ import { MentionsPlaceholder } from './mentions_placeholder';
 import { Permalink } from './permalink';
 import StatusActionBar from './status_action_bar';
 import StatusContent from './status_content';
-import StatusExpandButton from './status_expand_button';
 import StatusIcons from './status_icons';
 import StatusPrepend from './status_prepend';
 
@@ -727,14 +726,6 @@ class Status extends ImmutablePureComponent {
                 {hashtagBar}
               </>
             )}
-            {/* Only show expand button if collapsed and no spoiler tag is present */}
-            {!expanded && status.get('spoiler_text').length===0 ? (
-              <StatusExpandButton
-                hidden={!expanded}
-                handleSpoilerClick={this.handleExpandedToggle}
-                mediaIcons={mediaIcons}
-              />
-            ) : null}
 
             {/* This is a glitch-soc addition to have a placeholder */}
             {!expanded && <MentionsPlaceholder status={status} />}
