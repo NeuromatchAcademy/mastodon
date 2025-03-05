@@ -20,7 +20,6 @@ User-agent: *
 Disallow: /media_proxy/
 Disallow: /interact/
 Disallow: /api/v1/instance/domain_blocks
-
 # AI Data Scraper
 # https://darkvisitors.com/agents/ai2bot
 
@@ -85,6 +84,12 @@ Disallow: /
 # https://darkvisitors.com/agents/cohere-ai
 
 User-agent: cohere-ai
+Disallow: /
+
+# AI Data Scraper
+# https://darkvisitors.com/agents/cohere-training-data-crawler
+
+User-agent: cohere-training-data-crawler
 Disallow: /
 
 # AI Data Scraper
