@@ -62,11 +62,11 @@ RSpec.describe 'Profile' do
       visit account_path('chupacabra')
       # wait for page to load...
       page.find '.account__header'
-      expect(subject.html).to have_content('background-color: red !important')
+      expect(page.html).to have_content('background-color: red !important')
 
       visit account_path('bob')
       page.find '.account__header'
-      expect(subject.html).to have_no_content('background-color: red !important')
+      expect(page.html).to have_no_content('background-color: red !important')
     end
   end
 end
