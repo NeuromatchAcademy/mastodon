@@ -419,7 +419,7 @@ export function initMediaEditModal(id) {
 
     dispatch(openModal({
       modalType: 'FOCAL_POINT',
-      modalProps: { id },
+      modalProps: { mediaId: id },
     }));
   };
 }

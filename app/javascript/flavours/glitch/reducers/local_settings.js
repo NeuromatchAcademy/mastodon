@@ -11,7 +11,6 @@ const initialState = ImmutableMap({
   side_arm_reply_mode : 'keep',
   show_reply_count : false,
   always_show_spoilers_field: false,
-  confirm_missing_media_description: false,
   confirm_boost_missing_media_description: false,
   confirm_before_clearing_draft: true,
   prepend_cw_re: true,
@@ -23,21 +22,7 @@ const initialState = ImmutableMap({
   rewrite_mentions: 'no',
   content_warnings : ImmutableMap({
     filter       : null,
-    media_outside: false,
     shared_state : false,
-  }),
-  collapsed : ImmutableMap({
-    enabled     : true,
-    auto        : ImmutableMap({
-      all              : false,
-      notifications    : true,
-      lengthy          : true,
-      reblogs          : false,
-      replies          : false,
-      media            : false,
-      height           : 400,
-    }),
-    show_action_bar : true,
   }),
   media     : ImmutableMap({
     letterbox        : true,
