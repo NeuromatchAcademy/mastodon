@@ -113,39 +113,38 @@ RSpec.describe ActivityPub::FetchAllRepliesWorker do
   end
 
   let(:account) { Fabricate(:account, domain: 'example.com') }
-  let(:status)  { Fabricate(:status, account: account, uri: top_note_uri) }
+  let(:status) do
+    Fabricate(
+      :status,
+      account: account,
+      uri: top_note_uri,
+      created_at: 1.day.ago - Status::FetchRepliesConcern::FETCH_REPLIES_INITIAL_WAIT_MINUTES
+    )
+  end
 
   before do
+    stub_const('Status::FetchRepliesConcern::FETCH_REPLIES_ENABLED', true)
     allow(FetchReplyWorker).to receive(:push_bulk)
     all_items.each do |item|
       next if [top_note_uri, reply_note_uri].include? item
 
       stub_request(:get, item).to_return(status: 200, body: Oj.dump(empty_object), headers: { 'Content-Type': 'application/activity+json' })
     end
+
+    stub_request(:get, top_note_uri).to_return(status: 200, body: Oj.dump(top_object), headers: { 'Content-Type': 'application/activity+json' })
+    stub_request(:get, reply_note_uri).to_return(status: 200, body: Oj.dump(reply_object), headers: { 'Content-Type': 'application/activity+json' })
   end
 
   shared_examples 'fetches all replies' do
-    before do
-      stub_request(:get, top_note_uri).to_return(status: 200, body: Oj.dump(top_object), headers: { 'Content-Type': 'application/activity+json' })
-      stub_request(:get, reply_note_uri).to_return(status: 200, body: Oj.dump(reply_object), headers: { 'Content-Type': 'application/activity+json' })
-    end
-
     it 'fetches statuses recursively' do
       got_uris = subject.perform(status.id)
       expect(got_uris).to match_array(all_items)
     end
 
-    it 'respects the maxium limits set by not recursing after the max is reached' do
+    it 'respects the maximum limits set by not recursing after the max is reached' do
       stub_const('ActivityPub::FetchAllRepliesWorker::MAX_REPLIES', 5)
       got_uris = subject.perform(status.id)
       expect(got_uris).to match_array(top_items + top_items_paged)
-    end
-
-    it 'fetches the top status using a prefetched body' do
-      allow(FetchReplyWorker).to receive(:perform_async)
-      subject.perform(status.id)
-      expect(a_request(:get, top_note_uri)).to have_been_made.times(1)
-      expect(FetchReplyWorker).to have_received(:perform_async).with(top_note_uri, { 'prefetched_body' => top_object.deep_stringify_keys })
     end
   end
 
@@ -256,6 +255,27 @@ RSpec.describe ActivityPub::FetchAllRepliesWorker do
       end
 
       it_behaves_like 'fetches all replies'
+
+      it 'limits by max pages' do
+        stub_const('ActivityPub::FetchAllRepliesWorker::MAX_PAGES', 3)
+        got_uris = subject.perform(status.id)
+        expect(got_uris).to match_array(top_items + top_items_paged + nested_items)
+      end
+    end
+
+    context 'when replies should not be fetched' do
+      # ensure that we should not fetch by setting the status to be created in the debounce window
+      let(:status) { Fabricate(:status, account: account, uri: top_note_uri, created_at: DateTime.now) }
+
+      before do
+        stub_const('Status::FetchRepliesConcern::FETCH_REPLIES_INITIAL_WAIT_MINUTES', 1.week)
+      end
+
+      it 'returns nil without fetching' do
+        got_uris = subject.perform(status.id)
+        expect(got_uris).to be_nil
+        assert_not_requested :get, top_note_uri
+      end
     end
   end
 end

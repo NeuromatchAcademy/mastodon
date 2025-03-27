@@ -15,6 +15,7 @@ import { focusApp, unfocusApp, changeLayout } from 'mastodon/actions/app';
 import { synchronouslySubmitMarkers, submitMarkers, fetchMarkers } from 'mastodon/actions/markers';
 import { fetchNotifications } from 'mastodon/actions/notification_groups';
 import { INTRODUCTION_VERSION } from 'mastodon/actions/onboarding';
+import { AlertsController } from 'mastodon/components/alerts_controller';
 import { HoverCardController } from 'mastodon/components/hover_card_controller';
 import { PictureInPicture } from 'mastodon/features/picture_in_picture';
 import { identityContextPropShape, withIdentity } from 'mastodon/identity_context';
@@ -33,7 +34,6 @@ import UploadArea from './components/upload_area';
 import ColumnsAreaContainer from './containers/columns_area_container';
 import LoadingBarContainer from './containers/loading_bar_container';
 import ModalContainer from './containers/modal_container';
-import NotificationsContainer from './containers/notifications_container';
 import {
   Compose,
   Status,
@@ -205,7 +205,7 @@ class SwitchingColumnsArea extends PureComponent {
             <WrappedRoute path='/keyboard-shortcuts' component={KeyboardShortcuts} content={children} />
             <WrappedRoute path='/about' component={About} content={children} />
             <WrappedRoute path='/privacy-policy' component={PrivacyPolicy} content={children} />
-            <WrappedRoute path='/terms-of-service' component={TermsOfService} content={children} />
+            <WrappedRoute path='/terms-of-service/:date?' component={TermsOfService} content={children} />
 
             <WrappedRoute path={['/home', '/timelines/home']} component={HomeTimeline} content={children} />
             <Redirect from='/timelines/public' to='/public' exact />
@@ -607,7 +607,7 @@ class UI extends PureComponent {
           </SwitchingColumnsArea>
 
           {layout !== 'mobile' && <PictureInPicture />}
-          <NotificationsContainer />
+          <AlertsController />
           {!disableHoverCards && <HoverCardController />}
           <LoadingBarContainer className='loading-bar' />
           <ModalContainer />
