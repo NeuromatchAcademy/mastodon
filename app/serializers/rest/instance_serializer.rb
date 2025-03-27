@@ -59,6 +59,9 @@ class REST::InstanceSerializer < ActiveModel::Serializer
       urls: {
         streaming: Rails.configuration.x.streaming_api_base_url,
         status: object.status_page_url,
+        about: about_url,
+        privacy_policy: privacy_policy_url,
+        terms_of_service: TermsOfService.live.exists? ? terms_of_service_url : nil,
       },
 
       vapid: {
@@ -104,7 +107,9 @@ class REST::InstanceSerializer < ActiveModel::Serializer
     {
       enabled: registrations_enabled?,
       approval_required: Setting.registrations_mode == 'approved',
+      reason_required: Setting.registrations_mode == 'approved' && Setting.require_invite_text,
       message: registrations_enabled? ? nil : registrations_message,
+      min_age: Setting.min_age.presence,
       url: ENV.fetch('SSO_ACCOUNT_SIGN_UP', nil),
     }
   end
