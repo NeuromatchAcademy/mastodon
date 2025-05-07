@@ -6,13 +6,11 @@ import { injectIntl, defineMessages } from 'react-intl';
 import classNames from 'classnames';
 
 import { supportsPassiveEvents } from 'detect-passive-events';
-import spring from 'react-motion/lib/spring';
 import Overlay from 'react-overlays/Overlay';
 
 import { Icon } from 'flavours/glitch/components/icon';
+import FunctionsIcon from '@/material-icons/400-24px/functions.svg?react';
 import { assetHost } from 'flavours/glitch/utils/config';
-
-import Motion from '../../ui/util/optional_motion';
 
 const messages = defineMessages({
   inline_short:  { id: 'latex.inline.short', defaultMessage: 'Inline' },
@@ -123,32 +121,31 @@ class LaTeXDropdownMenu extends React.PureComponent {
     const { style, items, placement, value } = this.props;
 
     return (
-      <Motion defaultStyle={{ opacity: 0, scaleX: 0.85, scaleY: 0.75 }} style={{ opacity: spring(1, { damping: 35, stiffness: 400 }), scaleX: spring(1, { damping: 35, stiffness: 400 }), scaleY: spring(1, { damping: 35, stiffness: 400 }) }}>
-        {({ opacity, scaleX, scaleY }) => (
-          // It should not be transformed when mounting because the resulting
-          // size will be used to determine the coordinate of the menu by
-          // react-overlays
-          <div className={`latex-dropdown__dropdown ${placement}`} style={{ ...style, opacity: opacity, transform: mounted ? `scale(${scaleX}, ${scaleY})` : null }} role='listbox' ref={this.setRef}>
-            {items.map(item => (
-              <div role='option' tabIndex='0' key={item.value} data-index={item.value} onKeyDown={this.handleKeyDown} onClick={this.handleClick} className={classNames('latex-dropdown__option', { active: item.value === value })} aria-selected={item.value === value} ref={item.value === value ? this.setFocusRef : null}>
-                <div className='latex-dropdown__option__icon'>
-                  <img
-                    className={classNames('latex-icon')}
-                    alt={item.value}
-                    src={`${assetHost}/latex/${item.icon}.svg`}
-                  />
-                  <Icon id={item.icon} fixedWidth />
-                </div>
+      // It should not be transformed when mounting because the resulting
+      // size will be used to determine the coordinate of the menu by
+      // react-overlays
+      <div className={`latex-dropdown__dropdown ${placement}`} style={{
+        ...style,
+        visibility: mounted ? 'visible' : 'hidden',
+      }} role='listbox' ref={this.setRef}>
+        {items.map(item => (
+          <div role='option' tabIndex='0' key={item.value} data-index={item.value} onKeyDown={this.handleKeyDown} onClick={this.handleClick} className={classNames('latex-dropdown__option', { active: item.value === value })} aria-selected={item.value === value} ref={item.value === value ? this.setFocusRef : null}>
+            <div className='latex-dropdown__option__icon'>
+              <img
+                className={classNames('latex-icon')}
+                alt={item.value}
+                src={`${assetHost}/latex/${item.icon}.svg`}
+              />
+              <Icon icon={FunctionsIcon} id={item.icon} fixedWidth />
+            </div>
 
-                <div className='latex-dropdown__option__content'>
-                  <strong>{item.text}</strong>
-                  {item.meta}
-                </div>
-              </div>
-            ))}
+            <div className='latex-dropdown__option__content'>
+              <strong>{item.text}</strong>
+              {item.meta}
+            </div>
           </div>
-        )}
-      </Motion>
+        ))}
+      </div>
     );
   }
 

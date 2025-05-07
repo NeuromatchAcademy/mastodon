@@ -1,3 +1,6 @@
+@use '../variables' as *;
+@use '../functions' as *;
+
 #account_account_css {
   font-family: $font-monospace;
   height: 15em;
