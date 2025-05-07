@@ -1,3 +1,6 @@
+@use '../variables' as *;
+@use '../functions' as *;
+
 .compose-form {
   .latex-dropdown {
     top: 24px;

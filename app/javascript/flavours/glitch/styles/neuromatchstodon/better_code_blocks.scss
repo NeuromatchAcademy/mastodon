@@ -1,3 +1,6 @@
+@use '../variables' as *;
+@use '../functions' as *;
+
 pre {
   background: darken($ui-base-color, 8%);
   border-radius: 3px;
