@@ -26,6 +26,8 @@ module JsonLdHelper
   # The url attribute can be a string, an array of strings, or an array of objects.
   # The objects could include a mimeType. Not-included mimeType means it's text/html.
   def url_to_href(value, preferred_type = nil)
+    value = [value] if value.is_a?(Hash)
+
     single_value = if value.is_a?(Array) && !value.first.is_a?(String)
                      value.find { |link| preferred_type.nil? || ((link['mimeType'].presence || 'text/html') == preferred_type) }
                    elsif value.is_a?(Array)
@@ -39,6 +41,15 @@ module JsonLdHelper
     else
       single_value['href']
     end
+  end
+
+  def url_to_media_type(value, preferred_type = nil)
+    value = [value] if value.is_a?(Hash)
+    return unless value.is_a?(Array) && !value.first.is_a?(String)
+
+    single_value = value.find { |link| preferred_type.nil? || ((link['mimeType'].presence || 'text/html') == preferred_type) }
+
+    single_value['mediaType'] unless single_value.nil?
   end
 
   def as_array(value)
@@ -123,7 +134,7 @@ module JsonLdHelper
         patch_for_forwarding!(value, compacted_value)
       elsif value.is_a?(Array)
         compacted_value = [compacted_value] unless compacted_value.is_a?(Array)
-        return if value.size != compacted_value.size
+        return nil if value.size != compacted_value.size
 
         compacted[key] = value.zip(compacted_value).map do |v, vc|
           if v.is_a?(Hash) && vc.is_a?(Hash)

@@ -190,6 +190,7 @@ fo:
         create_relay: Stovna reiðlag
         create_unavailable_domain: Stovna navnaøki, sum ikki er tøkt
         create_user_role: Stovna leiklut
+        create_username_block: Stovna brúkaranavnsreglu
         demote_user: Lækka brúkara í tign
         destroy_announcement: Strika kunngerð
         destroy_canonical_email_block: Strika t-postablokk
@@ -203,6 +204,7 @@ fo:
         destroy_status: Strika post
         destroy_unavailable_domain: Strika navnaøki, sum ikki er tøkt
         destroy_user_role: Bein burtur leiklut
+        destroy_username_block: Strika brúkaranavnsreglu
         disable_2fa_user: Ger 2FA óvirkið
         disable_custom_emoji: Ger serligt kenslutekn óvirkið
         disable_relay: Ger reiðlag óvirkið
@@ -237,6 +239,7 @@ fo:
         update_report: Dagfør frágreiðing
         update_status: Dagfør Uppslag
         update_user_role: Dagfør Leiklut
+        update_username_block: Dagfør brúkaranavnsreglu
       actions:
         approve_appeal_html: "%{name} góðkendi umsjónaráheitan frá %{target}"
         approve_user_html: "%{name} góðtók umsókn frá %{target}"
@@ -255,6 +258,7 @@ fo:
         create_relay_html: "%{name} gjørdi eitt reiðlag %{target}"
         create_unavailable_domain_html: "%{name} steðgaði veiting til navnaøkið %{target}"
         create_user_role_html: "%{name} stovnaði %{target} leiklutin"
+        create_username_block_html: "%{name} legði reglu afturat fyri brúkaranøvn, sum innihalda %{target}"
         demote_user_html: "%{name} lækkaði tignina hjá brúkaranum %{target}"
         destroy_announcement_html: "%{name} strikaðar fráboðanir %{target}"
         destroy_canonical_email_block_html: "%{name} strikaði blokeringina av teldupostin við hashkodu %{target}"
@@ -268,6 +272,7 @@ fo:
         destroy_status_html: "%{name} slettaði upplegg hjá %{target}"
         destroy_unavailable_domain_html: "%{name} tók upp aftir veiting til navnaøkið %{target}"
         destroy_user_role_html: "%{name} slettaði leiklutin hjá %{target}"
+        destroy_username_block_html: "%{name} strikaði reglu fyri brúkaranøvn, sum innihalda %{target}"
         disable_2fa_user_html: "%{name} slepti kravið um váttan í tveimum stigum fyri brúkaran %{target}"
         disable_custom_emoji_html: "%{name} gjørdi kensluteknið %{target} óvirkið"
         disable_relay_html: "%{name} gjørdi reiðlagið %{target} óvirkið"
@@ -302,6 +307,7 @@ fo:
         update_report_html: "%{name} dagførdi meldingina %{target}"
         update_status_html: "%{name} dagførdi postin hjá %{target}"
         update_user_role_html: "%{name} broyttir %{target} leiklutir"
+        update_username_block_html: "%{name} dagførdi reglu fyri brúkaranøvn, sum innihalda %{target}"
       deleted_account: strikað konta
       empty: Eingir loggar funnir.
       filter_by_action: Filtrera eftir atgerð
@@ -578,6 +584,13 @@ fo:
         all: Allir
         limited: Avmarkaðir
         title: Umsjón
+      moderation_notes:
+        create: Legg umsjónarviðmerking afturat
+        created_msg: Umsjónarviðmerking fyri hesa eindina stovnað!
+        description_html: Vís ella skriva viðmerkingar til onnur umsjónarfólk ella teg sjálva/n í framtíðini
+        destroyed_msg: Umsjónarviðmerking fyri hesa eindina strikað!
+        placeholder: Upplýsingar um hesa eindina, framdar atgerðir ella eitthvørt annað, sum kann hjálpa tær við umsjónini av hesi eindini í framtíðini.
+        title: Umsjónarviðmerkingar
       private_comment: Privat viðmerking
       public_comment: Sjónlig viðmerking
       purge: Reinsa
@@ -786,17 +799,26 @@ fo:
       title: Leiklutir
     rules:
       add_new: Ger nýggja reglu
+      add_translation: Legg umseting afturat
       delete: Strika
       description_html: Sjálvt um tey flestu vilja vera við, at tey hava lisið og tikið undir við tænastutreytunum, so lesa tey flestu tær ikki fyrr enn eftir at ein trupulleiki stingur seg upp. <strong>Ger tað lættari at skimma ígjøgnum ambætarareglurnar við at veita tær í einum fløtum punkt-lista.</strong> Royn at gera einstøku reglurnar stuttar og einfaldar, samstundis sum at tær ikki blíva pettaðar ov nógv sundur.
       edit: Broyt reglur
       empty: Ongar ambætarareglur eru ásettar enn.
+      move_down: Flyt niður
+      move_up: Flyt upp
       title: Ambætarareglur
+      translation: Umseting
+      translations: Umsetingar
+      translations_explanation: Tað er valfrítt at leggja umsetingar afturat fyri reglurnar. Sjálvsetta svarið verður víst, um eingin umsett útgáva er tøk. Vinarliga tryggja, at umsetingar samsvara við sjálvsetta svarið.
     settings:
       about:
         manage_rules: Stýr ambætarareglum
         preamble: Gev útdýpandi upplýsingar um, hvussu ambætarin er rikin, umsýndur og fíggjaður.
         rules_hint: Eitt øki er burturav fyri reglur, sum brúkararnir hjá tær skulu fylgja.
         title: Um
+      allow_referrer_origin:
+        desc: Tá brúkarar tínir klikkja á leinki til uttanhýsis vevstøð, so kann kagin senda adressuna á tínum Mastodon ambætara við. Óvirkja hetta, um hetta kann eyðmerkja brúkarar tínar, t.d. um hetta er ein persónligur Mastodon ambætari.
+        title: Loyv uttanhýsis vevstøðum at síggja tín Mastodon ambætara sum ferðslukeldu
       appearance:
         preamble: Tillaga brúkaramarkamótið hjá Mastodon.
         title: Útsjónd
@@ -816,9 +838,9 @@ fo:
       discovery:
         follow_recommendations: Tilmæli um at fylgja
         preamble: At fáa áhugavert innihald í ljósmála er avgerandi fyri at nýggir brúkarar, sum kanska ongan kenna á Mastodon, kunnu koma væl umborð. Stýr, hvussu hentleikarnir at uppdaga ymiskt rigga á ambætaranum hjá tær.
+        privacy: Privatlív
         profile_directory: Vangaskrá
         public_timelines: Almennar tíðarlinjur
-        publish_discovered_servers: Kunnger uppdagaðu ambætararnar
         publish_statistics: Legg hagtøl út
         title: Uppdaging
         trends: Rák
@@ -1069,6 +1091,25 @@ fo:
           other: Brúkt av %{count} brúkarum seinastu vikuna
       title: Tilmæli & rák
       trending: Vælumtókt
+    username_blocks:
+      add_new: Legg afturat
+      block_registrations: Blokera skrásetingar
+      comparison:
+        contains: Inniheldur
+        equals: Er tað sama sum
+      contains_html: Inniheldur %{string}
+      created_msg: Eydnaðist at leggja brúkaranavnsreglu afturat
+      delete: Strika
+      edit:
+        title: Broyt brúkaranavnsreglu
+      matches_exactly_html: Tað sama sum %{string}
+      new:
+        create: Stovna reglu
+        title: Stovna brúkaranavnsreglu
+      no_username_block_selected: Ongar brúkaranavnsreglur vóru broyttar, tí ongar vóru valdar
+      not_permitted: Ikki loyvt
+      title: Brúkaranavnsreglur
+      updated_msg: Eydnaðist at dagføra brúkaranavnsreglu
     warning_presets:
       add_new: Legg afturat
       delete: Strika
@@ -1333,6 +1374,10 @@ fo:
     basic_information: Grundleggjandi upplýsingar
     hint_html: "<strong>Tillaga tað, sum fólk síggja á tínum almenna vanga og við síðna av tínum postum.</strong> Sannlíkindini fyri, at onnur fylgja tær og virka saman við tær eru størri, tá tú hevur fylt út vangan og eina vangamynd."
     other: Onnur
+  emoji_styles:
+    auto: Sjálvvirkandi
+    native: Upprunalig
+    twemoji: Twitter kenslutekn
   errors:
     '400': Umbønin, sum tú sendi inn, var ógildug ella hevði skeivt skap.
     '403': Tú hevur ikki loyvi at síggja hesa síðuna.
@@ -1642,6 +1687,10 @@ fo:
       title: Nýggj umrøða
     poll:
       subject: Ein spurnarkanning hjá %{name} er endað
+    quote:
+      body: 'Postur tín var siteraður av %{name}:'
+      subject: "%{name} siteraði postin hjá tær"
+      title: Nýggj sitering
     reblog:
       body: 'Postur tín var stimbraður av %{name}:'
       subject: "%{name} stimbraði tín post"
@@ -1852,12 +1901,17 @@ fo:
     edited_at_html: Rættað %{date}
     errors:
       in_reply_not_found: Posturin, sum tú roynir at svara, sýnist ikki at finnast.
+      quoted_status_not_found: Posturin, sum tú roynir at sitera, sýnist ikki at finnast.
     over_character_limit: mesta tal av teknum, %{max}, rokkið
     pin_errors:
       direct: Postar, sum einans eru sjónligir hjá nevndum brúkarum, kunnu ikki festast
       limit: Tú hevur longu fest loyvda talið av postum
       ownership: Postar hjá øðrum kunnu ikki festast
       reblog: Ein stimbran kann ikki festast
+    quote_policies:
+      followers: Einans tey, ið fylgja tær
+      nobody: Eingin
+      public: Øll
     title: '%{name}: "%{quote}"'
     visibilities:
       direct: Beinleiðis
@@ -2050,7 +2104,6 @@ fo:
       post_action: Skriva
       post_step: Sig hey við verðina við teksti, myndum, video ella spurnarkanningum.
       post_title: Stovna tín fyrsta post
-      share_action: Deil
       share_step: Lat vinir tínar vita, hvussu tey finna teg á Mastodon.
       share_title: Deil tín Mastodon vanga
       sign_in_action: Rita inn

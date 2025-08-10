@@ -187,6 +187,7 @@ zh-TW:
         create_relay: 新增中繼
         create_unavailable_domain: 新增無法存取的網域
         create_user_role: 新增角色
+        create_username_block: 新增使用者名稱規則
         demote_user: 將用戶降級
         destroy_announcement: 刪除公告
         destroy_canonical_email_block: 刪除電子郵件封鎖
@@ -200,6 +201,7 @@ zh-TW:
         destroy_status: 刪除狀態
         destroy_unavailable_domain: 刪除無法存取的網域
         destroy_user_role: 移除角色
+        destroy_username_block: 刪除使用者名稱規則
         disable_2fa_user: 停用兩階段驗證
         disable_custom_emoji: 停用自訂 emoji 表情符號
         disable_relay: 停用中繼
@@ -234,6 +236,7 @@ zh-TW:
         update_report: 更新檢舉報告
         update_status: 更新狀態
         update_user_role: 更新角色
+        update_username_block: 變更使用者名稱規則
       actions:
         approve_appeal_html: "%{name} 已批准來自 %{target} 的審核決定申訴"
         approve_user_html: "%{name} 已批准自 %{target} 而來的註冊"
@@ -252,6 +255,7 @@ zh-TW:
         create_relay_html: "%{name} 已新增中繼 %{target}"
         create_unavailable_domain_html: "%{name} 停止發送至網域 %{target}"
         create_user_role_html: "%{name} 已新增 %{target} 角色"
+        create_username_block_html: "%{name} 已新增使用者名稱包含 %{target} 之規則"
         demote_user_html: "%{name} 將使用者 %{target} 降級"
         destroy_announcement_html: "%{name} 已刪除公告 %{target}"
         destroy_canonical_email_block_html: "%{name} 已解除封鎖 hash 為 %{target} 之電子郵件"
@@ -265,6 +269,7 @@ zh-TW:
         destroy_status_html: "%{name} 已刪除 %{target} 的嘟文"
         destroy_unavailable_domain_html: "%{name} 已恢復對網域 %{target} 的發送"
         destroy_user_role_html: "%{name} 已刪除 %{target} 角色"
+        destroy_username_block_html: "%{name} 已移除使用者名稱包含 %{target} 之規則"
         disable_2fa_user_html: "%{name} 已停用使用者 %{target} 的兩階段驗證 (2FA) "
         disable_custom_emoji_html: "%{name} 已停用自訂 emoji 表情符號 %{target}"
         disable_relay_html: "%{name} 已停用中繼 %{target}"
@@ -299,6 +304,7 @@ zh-TW:
         update_report_html: "%{name} 已更新 %{target} 的檢舉"
         update_status_html: "%{name} 已更新 %{target} 的嘟文"
         update_user_role_html: "%{name} 已變更 %{target} 角色"
+        update_username_block_html: "%{name} 已變更使用者名稱包含 %{target} 之規則"
       deleted_account: 已刪除帳號
       empty: 找不到 log
       filter_by_action: 按動作過濾
@@ -567,6 +573,13 @@ zh-TW:
         all: 全部
         limited: 限制
         title: 管管
+      moderation_notes:
+        create: 新增站務筆記
+        created_msg: 已成功新增站點管理筆記！
+        description_html: 檢視或替其他管理員與未來的自己留下筆記
+        destroyed_msg: 已成功刪除站點管理筆記！
+        placeholder: 關於此站點之資訊、已採取行動、或任何協助您將來管理此站點之事項。
+        title: 站務筆記
       private_comment: 私人留言
       public_comment: 公開留言
       purge: 清除
@@ -772,17 +785,26 @@ zh-TW:
       title: 角色
     rules:
       add_new: 新增規則
+      add_translation: 新增翻譯
       delete: 刪除
       description_html: 雖然大多數人皆宣稱已閱讀並同意服務條款，通常直到某些問題發生時人們從未讀過。<strong>以透過提供條列式規則的方式使您的伺服器規則可以一目了然。</strong>試著維持各項條款簡短而明瞭，但也試著不要將條款切割為許多分開的項目。
       edit: 編輯規則
       empty: 未曾定義任何伺服器規則
+      move_down: 向下移
+      move_up: 向上移
       title: 伺服器規則
+      translation: 翻譯
+      translations: 翻譯
+      translations_explanation: 您可以選擇性地替規則添加翻譯。若沒有翻譯版本，預設值將被顯示。請確保任何提供之翻譯與預設值內容同步。
     settings:
       about:
         manage_rules: 管理伺服器規則
         preamble: 提供關於此伺服器如何運作、管理、及金援之供詳細資訊。
         rules_hint: 這是關於您的使用者應遵循規則之專有區域。
         title: 關於
+      allow_referrer_origin:
+        desc: 當您的使用者點擊連結至外部網站時，他們的瀏覽器可能會將您 Mastodon 伺服器網址作為流量來源送出。若這將唯一識別您的使用者，請停用此選項，例如這是一個個人 Mastodon 伺服器。
+        title: 允許外部網站視您的 Mastodon 伺服器為流量來源
       appearance:
         preamble: 客製化 Mastodon 網頁介面。
         title: 外觀設定
@@ -804,9 +826,9 @@ zh-TW:
       discovery:
         follow_recommendations: 跟隨建議
         preamble: 呈現有趣的內容有助於 Mastodon 上一人不識的新手上路。控制各種不同的分類於您伺服器上如何被探索到。
+        privacy: 隱私權
         profile_directory: 個人檔案目錄
         public_timelines: 公開時間軸
-        publish_discovered_servers: 公開已知伺服器列表
         publish_statistics: 公開統計資料
         title: 探索
         trends: 熱門趨勢
@@ -1053,6 +1075,25 @@ zh-TW:
           other: 上週被 %{count} 個人使用
       title: 推薦內容與熱門趨勢
       trending: 熱門
+    username_blocks:
+      add_new: 新增
+      block_registrations: 禁止註冊
+      comparison:
+        contains: 包含
+        equals: 等於
+      contains_html: 包含 %{string}
+      created_msg: 已成功新增使用者名稱規則
+      delete: 刪除
+      edit:
+        title: 編輯使用者名稱規則
+      matches_exactly_html: 等於 %{string}
+      new:
+        create: 新增規則
+        title: 新增使用者名稱規則
+      no_username_block_selected: 因未選取任何使用者名稱規則，所以什麼事都沒發生
+      not_permitted: 不允許
+      title: 使用者名稱規則
+      updated_msg: 已成功變更使用者名稱規則
     warning_presets:
       add_new: 新增
       delete: 刪除
@@ -1316,6 +1357,10 @@ zh-TW:
     basic_information: 基本資訊
     hint_html: "<strong>自訂人們能於您個人檔案及嘟文旁所見之內容。</strong>當您完成填寫個人檔案及設定大頭貼後，其他人們比較願意跟隨您並與您互動。"
     other: 其他
+  emoji_styles:
+    auto: 自動
+    native: 原生風格
+    twemoji: Twemoji
   errors:
     '400': 您所送出的請求無效或格式不正確。
     '403': 您沒有檢視這個頁面的權限。
@@ -1353,7 +1398,7 @@ zh-TW:
     add_new: 新增
     errors:
       limit: 您所推薦之主題標籤數量已達上限
-    hint_html: "<strong>於個人檔案上推薦您的推薦主題標籤</strong> 展示創意作品或者長期更新的專案的絕佳工具，推薦主題標籤於您個人資料頁面顯眼地展示，並且能快速存取您自己的嘟文。"
+    hint_html: "<strong>於個人檔案上展示您的推薦主題標籤</strong> 展示創意作品或者長期更新的專案的絕佳工具，推薦主題標籤於您個人資料頁面顯眼地展示，並且能快速存取您自己的嘟文。"
   filters:
     contexts:
       account: 個人檔案
@@ -1605,6 +1650,10 @@ zh-TW:
       title: 新的提及
     poll:
       subject: 由 %{name} 發起的投票已結束
+    quote:
+      body: 您的嘟文被 %{name} 引用：
+      subject: "%{name} 已引用您的嘟文"
+      title: 新引用
     reblog:
       body: 您的嘟文被 %{name} 轉嘟：
       subject: "%{name} 已轉嘟您的嘟文"
@@ -1810,13 +1859,18 @@ zh-TW:
       other: 含有不得使用的標籤： %{tags}
     edited_at_html: 編輯於 %{date}
     errors:
-      in_reply_not_found: 您嘗試回覆的嘟文看起來不存在。
+      in_reply_not_found: 您嘗試回覆之嘟文似乎不存在。
+      quoted_status_not_found: 您嘗試引用之嘟文似乎不存在。
     over_character_limit: 已超過 %{max} 字的限制
     pin_errors:
       direct: 無法釘選只有僅提及使用者可見之嘟文
       limit: 釘選嘟文的數量已達上限
       ownership: 不能釘選他人的嘟文
       reblog: 不能釘選轉嘟
+    quote_policies:
+      followers: 僅限您之跟隨者
+      nobody: 禁止任何人
+      public: 任何人
     title: "%{name}：「%{quote}」"
     visibilities:
       direct: 私訊
@@ -1870,6 +1924,11 @@ zh-TW:
     does_not_match_previous_name: 與先前的名稱不吻合
   terms_of_service:
     title: 服務條款
+  terms_of_service_interstitial:
+    future_preamble_html: 我們已更新一些服務條款，其將於 <strong>%{date}</strong> 生效。我們建議您仔細檢視更新條款。
+    past_preamble_html: 自您上次訪問起，我們已更新一些服務條款。我們建議您仔細檢視更新條款。
+    review_link: 檢視服務條款
+    title: "%{domain} 之服務條款正在悄悄發生變化"
   themes:
     contrast: Mastodon（高對比）
     default: Mastodon（深色）
@@ -2012,7 +2071,6 @@ zh-TW:
       post_action: 撰寫
       post_step: 透過文字、照片、影片或投票向新世界打聲招呼吧。
       post_title: 撰寫您第一則嘟文
-      share_action: 分享
       share_step: 讓您的朋友們知道如何於 Mastodon 找到您。
       share_title: 分享您 Mastodon 個人檔案
       sign_in_action: 登入

@@ -4,6 +4,11 @@ namespace :api, format: false do
   # OEmbed
   get '/oembed', to: 'oembed#show', as: :oembed
 
+  # Experimental JSON / REST API
+  namespace :v1_alpha do
+    resources :async_refreshes, only: :show
+  end
+
   # JSON / REST API
   namespace :v1 do
     resources :statuses, only: [:index, :create, :show, :update, :destroy] do
@@ -12,6 +17,12 @@ namespace :api, format: false do
         resources :favourited_by, controller: :favourited_by_accounts, only: :index
         resource :reblog, only: :create
         post :unreblog, to: 'reblogs#destroy'
+
+        resources :quotes, only: :index do
+          member do
+            post :revoke
+          end
+        end
 
         resource :favourite, only: :create
         post :unfavourite, to: 'favourites#destroy'

@@ -1,5 +1,3 @@
-import { injectIntl } from 'react-intl';
-
 import { connect } from 'react-redux';
 
 import {
@@ -106,4 +104,4 @@ const mapDispatchToProps = (dispatch) => ({
 
 });
 
-export default injectIntl(connect(mapStateToProps, mapDispatchToProps)(ComposeForm));
+export default connect(mapStateToProps, mapDispatchToProps)(ComposeForm);

@@ -190,6 +190,7 @@ es:
         create_relay: Crear Relé
         create_unavailable_domain: Crear Dominio No Disponible
         create_user_role: Crear Rol
+        create_username_block: Crear regla de nombre de usuario
         demote_user: Degradar Usuario
         destroy_announcement: Eliminar Anuncio
         destroy_canonical_email_block: Eliminar Bloqueo de Correo Electrónico
@@ -203,6 +204,7 @@ es:
         destroy_status: Eliminar Publicación
         destroy_unavailable_domain: Eliminar Dominio No Disponible
         destroy_user_role: Destruir Rol
+        destroy_username_block: Eliminar regla de nombre de usuario
         disable_2fa_user: Deshabilitar 2FA
         disable_custom_emoji: Deshabilitar Emoji Personalizado
         disable_relay: Desactivar Relé
@@ -237,6 +239,7 @@ es:
         update_report: Actualizar informe
         update_status: Actualizar Publicación
         update_user_role: Actualizar Rol
+        update_username_block: Actualizar regla de nombre de usuario
       actions:
         approve_appeal_html: "%{name} aprobó la solicitud de moderación de %{target}"
         approve_user_html: "%{name} aprobó el registro de %{target}"
@@ -255,6 +258,7 @@ es:
         create_relay_html: "%{name} creó un relé %{target}"
         create_unavailable_domain_html: "%{name} detuvo las entregas al dominio %{target}"
         create_user_role_html: "%{name} creó el rol %{target}"
+        create_username_block_html: "%{name} agregó una regla para los nombres de usuario que contienen %{target}"
         demote_user_html: "%{name} degradó al usuario %{target}"
         destroy_announcement_html: "%{name} eliminó el anuncio %{target}"
         destroy_canonical_email_block_html: "%{name} desbloqueó el correo electrónico con el hash %{target}"
@@ -268,6 +272,7 @@ es:
         destroy_status_html: "%{name} eliminó la publicación de %{target}"
         destroy_unavailable_domain_html: "%{name} reanudó las entregas al dominio %{target}"
         destroy_user_role_html: "%{name} eliminó el rol %{target}"
+        destroy_username_block_html: "%{name} eliminó una regla para los nombres de usuario que contienen %{target}"
         disable_2fa_user_html: "%{name} desactivó el requisito de dos factores para el usuario %{target}"
         disable_custom_emoji_html: "%{name} desactivó el emoji %{target}"
         disable_relay_html: "%{name} desactivó el relé %{target}"
@@ -302,6 +307,7 @@ es:
         update_report_html: "%{name} actualizó el informe %{target}"
         update_status_html: "%{name} actualizó la publicación de %{target}"
         update_user_role_html: "%{name} cambió el rol %{target}"
+        update_username_block_html: "%{name} actualizó una regla para los nombres de usuario que contienen %{target}"
       deleted_account: cuenta eliminada
       empty: No se encontraron registros.
       filter_by_action: Filtrar por acción
@@ -578,6 +584,13 @@ es:
         all: Todos
         limited: Limitado
         title: Moderación
+      moderation_notes:
+        create: Añadir nota de moderación
+        created_msg: "¡Nota de moderación de instancia creada!"
+        description_html: Ver y dejar notas para otros moderadores y a tu yo futuro
+        destroyed_msg: "¡Nota de moderación de instancia eliminada con éxito!"
+        placeholder: Información sobre esta instancia, acciones tomadas o cualquier otra cosa que te ayude a moderar esta instancia en el futuro.
+        title: Notas de Moderación
       private_comment: Comentario privado
       public_comment: Comentario público
       purge: Purgar
@@ -786,17 +799,26 @@ es:
       title: Roles
     rules:
       add_new: Añadir norma
+      add_translation: Añadir traducción
       delete: Eliminar
       description_html: Aunque la mayoría afirma haber leído y estar de acuerdo con los términos de servicio, la gente normalmente no los lee hasta después de que surja algún problema. <strong>Haz que sea más fácil ver las normas de tu servidor de un vistazo estipulándolas en una lista de puntos.</strong> Intenta que cada norma sea corta y sencilla, pero sin estar divididas en muchos puntos.
       edit: Editar norma
       empty: Aún no se han definido las normas del servidor.
+      move_down: Mover hacia abajo
+      move_up: Mover hacia arriba
       title: Normas del servidor
+      translation: Traducción
+      translations: Traducciones
+      translations_explanation: Opcionalmente, puedes añadir traducciones para las reglas. Se mostrará el valor por defecto si no hay ninguna versión traducida disponible. Por favor, asegúrate siempre de que cualquier traducción proporcionada esté sincronizada con el valor por defecto.
     settings:
       about:
         manage_rules: Administrar reglas del servidor
         preamble: Proporciona información detallada sobre cómo el servidor es operado, moderado y financiado.
         rules_hint: Hay un área dedicada para las reglas a las que se espera que tus usuarios se adhieran.
         title: Acerca de
+      allow_referrer_origin:
+        desc: Cuando tus usuarios cliquen en enlaces a sitios externos, su navegador podría enviar la dirección de tu servidor de Mastodon como referencia. Deshabilita esto si identifica a tus usuarios unívocamente, por ejemplo, si este es un servidor de Mastodon personal.
+        title: Permitir que sitios externos vean tu servidor Mastodon como fuente de tráfico
       appearance:
         preamble: Personalizar la interfaz web de Mastodon.
         title: Apariencia
@@ -816,9 +838,9 @@ es:
       discovery:
         follow_recommendations: Recomendaciones de cuentas
         preamble: Exponer contenido interesante a la superficie es fundamental para incorporar nuevos usuarios que pueden no conocer a nadie Mastodon. Controla cómo funcionan varias opciones de descubrimiento en tu servidor.
+        privacy: Privacidad
         profile_directory: Directorio de perfiles
         public_timelines: Lineas de tiempo públicas
-        publish_discovered_servers: Publicar servidores descubiertos
         publish_statistics: Publicar estadísticas
         title: Descubrimiento
         trends: Tendencias
@@ -1069,6 +1091,25 @@ es:
           other: Usada por %{count} personas durante la última semana
       title: Recomendaciones y Tendencias
       trending: En tendencia
+    username_blocks:
+      add_new: Añadir nueva
+      block_registrations: Bloquear registros
+      comparison:
+        contains: Contiene
+        equals: Es igual a
+      contains_html: Contiene %{string}
+      created_msg: Regla de nombre de usuario creada correctamente
+      delete: Eliminar
+      edit:
+        title: Editar regla de nombre de usuario
+      matches_exactly_html: Es igual a %{string}
+      new:
+        create: Crear regla
+        title: Crear nueva regla de nombre de usuario
+      no_username_block_selected: No se cambiaron las reglas de nombre de usuario, ya que no se seleccionó ninguno
+      not_permitted: No permitido
+      title: Reglas de nombre de usuario
+      updated_msg: Regla de nombre de usuario actualizada correctamente
     warning_presets:
       add_new: Añadir nuevo
       delete: Borrar
@@ -1333,6 +1374,10 @@ es:
     basic_information: Información básica
     hint_html: "<strong>Personaliza lo que la gente ve en tu perfil público junto a tus publicaciones.</strong> Es más probable que otras personas te sigan e interactúen contigo cuando completas tu perfil y foto."
     other: Otros
+  emoji_styles:
+    auto: Automático
+    native: Nativo
+    twemoji: Twemoji
   errors:
     '400': La solicitud que has enviado no es valida o estaba malformada.
     '403': No tienes permiso para acceder a esta página.
@@ -1642,6 +1687,10 @@ es:
       title: Nueva mención
     poll:
       subject: Una encuesta de %{name} ha terminado
+    quote:
+      body: 'Tu publicación ha sido citada por %{name}:'
+      subject: "%{name} citó tu publicación"
+      title: Nueva cita
     reblog:
       body: 'Tu publicación fue impulsada por %{name}:'
       subject: "%{name} impulsó tu publicación"
@@ -1852,12 +1901,17 @@ es:
     edited_at_html: Editado %{date}
     errors:
       in_reply_not_found: La publicación a la que intentas responder no existe.
+      quoted_status_not_found: La publicación que estás intentando citar no parece existir.
     over_character_limit: Límite de caracteres de %{max} superado
     pin_errors:
       direct: Las publicaciones que son visibles solo para los usuarios mencionados no pueden fijarse
       limit: Ya has fijado el número máximo de publicaciones
       ownership: La publicación de otra persona no puede fijarse
       reblog: Una publicación impulsada no puede fijarse
+    quote_policies:
+      followers: Solo tus seguidores
+      nobody: Nadie
+      public: Cualquiera
     title: "%{name}: «%{quote}»"
     visibilities:
       direct: Directa
@@ -1911,6 +1965,11 @@ es:
     does_not_match_previous_name: no coincide con el nombre anterior
   terms_of_service:
     title: Términos del Servicio
+  terms_of_service_interstitial:
+    future_preamble_html: Estamos realizando cambios en nuestros términos de servicio, que serán aplicados el <strong>%{date}</strong>. Te recomendamos que revises los términos actualizados.
+    past_preamble_html: Hemos cambiado nuestros términos de servicio desde tu última visita. Te animamos a que revises los términos actualizados.
+    review_link: Revisar los términos de servicio
+    title: Los términos de servicio de %{domain} van a cambiar
   themes:
     contrast: Mastodon (alto contraste)
     default: Mastodon (oscuro)
@@ -2050,7 +2109,6 @@ es:
       post_action: Redactar
       post_step: Di hola al mundo con texto, fotos, vídeos o encuestas.
       post_title: Escribe tu primera publicación
-      share_action: Compartir
       share_step: Dile a tus amigos cómo encontrarte en Mastodon.
       share_title: Comparte tu perfil de Mastodon
       sign_in_action: Regístrate

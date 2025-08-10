@@ -27,7 +27,15 @@ RSpec.describe 'Remote Interaction Helper' do
 
   def expected_csp_headers
     <<~CSP.squish
-      default-src 'none'; frame-ancestors 'self'; form-action 'none'; script-src 'self' https://cb6e6126.ngrok.io 'wasm-unsafe-eval' 'nonce-ZbA+JmE7+bK8F5qvADZHuQ=='; connect-src https:
+      default-src 'none';
+      frame-ancestors 'self';
+      form-action 'none';
+      script-src 'self' #{local_domain} 'wasm-unsafe-eval' 'nonce-ZbA+JmE7+bK8F5qvADZHuQ==';
+      connect-src https:
     CSP
+  end
+
+  def local_domain
+    root_url(host: Rails.configuration.x.local_domain).chop
   end
 end
