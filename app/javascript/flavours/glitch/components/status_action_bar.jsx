@@ -7,6 +7,7 @@ import { withRouter } from 'react-router-dom';
 
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
+import { connect } from 'react-redux';
 
 import BookmarkIcon from '@/material-icons/400-24px/bookmark-fill.svg?react';
 import BookmarkBorderIcon from '@/material-icons/400-24px/bookmark.svg?react';
@@ -18,8 +19,8 @@ import StarIcon from '@/material-icons/400-24px/star-fill.svg?react';
 import StarBorderIcon from '@/material-icons/400-24px/star.svg?react';
 import VisibilityIcon from '@/material-icons/400-24px/visibility.svg?react';
 import RepeatActiveIcon from '@/svg-icons/repeat_active.svg?react';
-import RepeatDisabledIcon from '@/svg-icons/repeat_disabled.svg';
-import RepeatPrivateIcon from '@/svg-icons/repeat_private.svg';
+import RepeatDisabledIcon from '@/svg-icons/repeat_disabled.svg?react';
+import RepeatPrivateIcon from '@/svg-icons/repeat_private.svg?react';
 import RepeatPrivateActiveIcon from '@/svg-icons/repeat_private_active.svg?react';
 import { identityContextPropShape, withIdentity } from 'flavours/glitch/identity_context';
 import { PERMISSION_MANAGE_USERS, PERMISSION_MANAGE_FEDERATION } from 'flavours/glitch/permissions';
@@ -67,16 +68,26 @@ const messages = defineMessages({
   edited: { id: 'status.edited', defaultMessage: 'Edited {date}' },
   filter: { id: 'status.filter', defaultMessage: 'Filter this post' },
   openOriginalPage: { id: 'account.open_original_page', defaultMessage: 'Open original page' },
+  revokeQuote: { id: 'status.revoke_quote', defaultMessage: 'Remove my post from @{name}’s post' },
 });
+
+const mapStateToProps = (state, { status }) => {
+  const quotedStatusId = status.getIn(['quote', 'quoted_status']);
+  return ({
+    quotedAccountId: quotedStatusId ? state.getIn(['statuses', quotedStatusId, 'account']) : null,
+  });
+};
 
 class StatusActionBar extends ImmutablePureComponent {
   static propTypes = {
     identity: identityContextPropShape,
     status: ImmutablePropTypes.map.isRequired,
+    quotedAccountId: ImmutablePropTypes.string,
     onReply: PropTypes.func,
     onFavourite: PropTypes.func,
     onReblog: PropTypes.func,
     onDelete: PropTypes.func,
+    onRevokeQuote: PropTypes.func,
     onDirect: PropTypes.func,
     onMention: PropTypes.func,
     onMute: PropTypes.func,
@@ -101,6 +112,7 @@ class StatusActionBar extends ImmutablePureComponent {
   // evaluate to false. See react-immutable-pure-component for usage.
   updateOnProps = [
     'status',
+    'quotedAccountId',
     'showReplyCount',
     'withCounters',
     'withDismiss',
@@ -119,6 +131,8 @@ class StatusActionBar extends ImmutablePureComponent {
   handleShareClick = () => {
     navigator.share({
       url: this.props.status.get('url'),
+    }).catch((e) => {
+      if (e.name !== 'AbortError') console.error(e);
     });
   };
 
@@ -174,6 +188,10 @@ class StatusActionBar extends ImmutablePureComponent {
     this.props.onMute(this.props.status.get('account'));
   };
 
+  handleRevokeQuoteClick = () => {
+    this.props.onRevokeQuote(this.props.status);
+  }
+
   handleBlockClick = () => {
     this.props.onBlock(this.props.status);
   };
@@ -194,6 +212,10 @@ class StatusActionBar extends ImmutablePureComponent {
     this.props.onMuteConversation(this.props.status);
   };
 
+  handleFilterClick = () => {
+    this.props.onAddFilter(this.props.status);
+  };
+
   handleCopy = () => {
     const url = this.props.status.get('url');
     navigator.clipboard.writeText(url);
@@ -203,25 +225,18 @@ class StatusActionBar extends ImmutablePureComponent {
     this.props.onFilter();
   };
 
-  handleFilterClick = () => {
-    this.props.onAddFilter(this.props.status);
-  };
-
   render () {
-    const { status, intl, withDismiss, withCounters, showReplyCount, scrollKey } = this.props;
-    const { permissions, signedIn } = this.props.identity;
+    const { status, quotedAccountId, intl, withDismiss, withCounters, showReplyCount, scrollKey } = this.props;
+    const { signedIn, permissions } = this.props.identity;
 
-    const mutingConversation = status.get('muted');
     const publicStatus       = ['public', 'unlisted'].includes(status.get('visibility'));
     const pinnableStatus     = ['public', 'unlisted', 'private'].includes(status.get('visibility'));
+    const mutingConversation = status.get('muted');
     const writtenByMe        = status.getIn(['account', 'id']) === me;
     const isRemote           = status.getIn(['account', 'username']) !== status.getIn(['account', 'acct']);
 
     let menu = [];
     let reblogIcon = 'retweet';
-    let replyIcon;
-    let replyIconComponent;
-    let replyTitle;
 
     menu.push({ text: intl.formatMessage(messages.open), action: this.handleOpen });
 
@@ -266,6 +281,10 @@ class StatusActionBar extends ImmutablePureComponent {
           menu.push(null);
         }
 
+        if (quotedAccountId === me) {
+          menu.push({ text: intl.formatMessage(messages.revokeQuote, { name: status.getIn(['account', 'username']) }), action: this.handleRevokeQuoteClick, dangerous: true });
+        }
+
         menu.push({ text: intl.formatMessage(messages.mute, { name: status.getIn(['account', 'username']) }), action: this.handleMuteClick, dangerous: true });
         menu.push({ text: intl.formatMessage(messages.block, { name: status.getIn(['account', 'username']) }), action: this.handleBlockClick, dangerous: true });
         menu.push({ text: intl.formatMessage(messages.report, { name: status.getIn(['account', 'username']) }), action: this.handleReport, dangerous: true });
@@ -287,6 +306,10 @@ class StatusActionBar extends ImmutablePureComponent {
         }
       }
     }
+
+    let replyIcon;
+    let replyIconComponent;
+    let replyTitle;
 
     if (status.get('in_reply_to_id', null) === null) {
       replyIcon = 'reply';
@@ -373,4 +396,4 @@ class StatusActionBar extends ImmutablePureComponent {
 
 }
 
-export default withRouter(withIdentity(injectIntl(StatusActionBar)));
+export default withRouter(withIdentity(connect(mapStateToProps)(injectIntl(StatusActionBar))));

@@ -22,7 +22,9 @@
 class Fasp::Provider < ApplicationRecord
   include DebugConcern
 
+  has_many :fasp_backfill_requests, inverse_of: :fasp_provider, class_name: 'Fasp::BackfillRequest', dependent: :delete_all
   has_many :fasp_debug_callbacks, inverse_of: :fasp_provider, class_name: 'Fasp::DebugCallback', dependent: :delete_all
+  has_many :fasp_subscriptions, inverse_of: :fasp_provider, class_name: 'Fasp::Subscription', dependent: :delete_all
 
   validates :name, presence: true
   validates :base_url, presence: true, url: true
@@ -31,6 +33,10 @@ class Fasp::Provider < ApplicationRecord
 
   before_create :create_keypair
   after_commit :update_remote_capabilities
+
+  scope :with_capability, lambda { |capability_name|
+    where('fasp_providers.capabilities @> ?::jsonb', "[{\"id\": \"#{capability_name}\", \"enabled\": true}]")
+  }
 
   def capabilities
     read_attribute(:capabilities).map do |attributes|
@@ -110,6 +116,10 @@ class Fasp::Provider < ApplicationRecord
       fediverse_account: provider_info['fediverseAccount']
     )
     save!
+  end
+
+  def delivery_failure_tracker
+    @delivery_failure_tracker ||= DeliveryFailureTracker.new(base_url, resolution: :minutes)
   end
 
   private

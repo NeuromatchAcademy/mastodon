@@ -190,6 +190,7 @@ de:
         create_relay: Relay erstellen
         create_unavailable_domain: Nicht verfügbare Domain erstellen
         create_user_role: Rolle erstellen
+        create_username_block: Regel für Profilnamen erstellen
         demote_user: Benutzer*in herabstufen
         destroy_announcement: Ankündigung löschen
         destroy_canonical_email_block: E-Mail-Sperre entfernen
@@ -203,6 +204,7 @@ de:
         destroy_status: Beitrag entfernen
         destroy_unavailable_domain: Nicht-verfügbare Domain entfernen
         destroy_user_role: Rolle entfernen
+        destroy_username_block: Regel für Profilnamen löschen
         disable_2fa_user: 2FA deaktivieren
         disable_custom_emoji: Eigenes Emoji deaktivieren
         disable_relay: Relay deaktivieren
@@ -237,6 +239,7 @@ de:
         update_report: Meldung aktualisieren
         update_status: Beitrag aktualisieren
         update_user_role: Rolle bearbeiten
+        update_username_block: Regel für Profilnamen aktualisieren
       actions:
         approve_appeal_html: "%{name} hat den Einspruch gegen eine Moderationsentscheidung von %{target} genehmigt"
         approve_user_html: "%{name} genehmigte die Registrierung von %{target}"
@@ -255,6 +258,7 @@ de:
         create_relay_html: "%{name} erstellte ein Relay %{target}"
         create_unavailable_domain_html: "%{name} beendete die Zustellung an die Domain %{target}"
         create_user_role_html: "%{name} erstellte die Rolle %{target}"
+        create_username_block_html: "%{name} erstellte eine Regel für Profilnamen mit %{target}"
         demote_user_html: "%{name} stufte %{target} herunter"
         destroy_announcement_html: "%{name} löschte die Ankündigung %{target}"
         destroy_canonical_email_block_html: "%{name} entsperrte die E-Mail mit dem Hash %{target}"
@@ -268,6 +272,7 @@ de:
         destroy_status_html: "%{name} entfernte einen Beitrag von %{target}"
         destroy_unavailable_domain_html: "%{name} nahm die Zustellung an die Domain %{target} wieder auf"
         destroy_user_role_html: "%{name} löschte die Rolle %{target}"
+        destroy_username_block_html: "%{name} entfernte eine Regel für Profilnamen mit %{target}"
         disable_2fa_user_html: "%{name} deaktivierte die Zwei-Faktor-Authentisierung für %{target}"
         disable_custom_emoji_html: "%{name} deaktivierte das Emoji %{target}"
         disable_relay_html: "%{name} deaktivierte das Relay %{target}"
@@ -302,6 +307,7 @@ de:
         update_report_html: "%{name} überarbeitete die Meldung %{target}"
         update_status_html: "%{name} überarbeitete einen Beitrag von %{target}"
         update_user_role_html: "%{name} änderte die Rolle von %{target}"
+        update_username_block_html: "%{name} aktualisierte eine Regel für Profilnamen mit %{target}"
       deleted_account: gelöschtes Konto
       empty: Protokolle nicht gefunden.
       filter_by_action: Nach Aktion filtern
@@ -486,9 +492,12 @@ de:
           created_at: Erstellt am
           delete: Entfernen
           ip: IP-Adresse
+          request_body: Body anfragen
+          title: Callback testen
       providers:
         active: Aktiv
         base_url: Basis-URL
+        callback: Callback
         delete: Entfernen
         edit: Anbieter bearbeiten
         finish_registration: Registrierung abschließen
@@ -575,6 +584,13 @@ de:
         all: Alle
         limited: Eingeschränkt
         title: Server
+      moderation_notes:
+        create: Moderationsnotiz hinzufügen
+        created_msg: Moderationsnotiz für diesen Server erfolgreich erstellt!
+        description_html: Hinterlasse Notizen für dich und deine Moderator*innen
+        destroyed_msg: Moderationsnotiz für diesen Server erfolgreich entfernt!
+        placeholder: Informationen über diesen Server, ergriffene Maßnahmen oder andere Sachverhalte, die in Zukunft nützlich sein könnten.
+        title: Moderationsnotizen
       private_comment: Privater Kommentar
       public_comment: Öffentlicher Kommentar
       purge: Säubern
@@ -783,17 +799,26 @@ de:
       title: Rollen
     rules:
       add_new: Regel hinzufügen
+      add_translation: Übersetzung hinzufügen
       delete: Löschen
       description_html: Während die meisten behaupten, die Nutzungsbedingungen tatsächlich gelesen zu haben, bekommen viele sie erst nach einem Problem mit. <strong>Vereinfache und reduziere daher die Serverregeln mit Stichpunkten.</strong> Versuche dabei, die einzelnen Vorgaben kurz und einfach zu halten, aber vermeide, sie in viele verschiedene Elemente aufzuteilen.
       edit: Regel bearbeiten
       empty: Es wurden bisher keine Serverregeln definiert.
+      move_down: Abwärts
+      move_up: Aufwärts
       title: Serverregeln
+      translation: Übersetzung
+      translations: Übersetzungen
+      translations_explanation: Du kannst Serverregeln übersetzen. Der Standardwert wird angezeigt, wenn keine übersetzte Version verfügbar ist. Bitte vergewissere dich, dass jede Übersetzung mit dem Standardwert übereinstimmt.
     settings:
       about:
         manage_rules: Serverregeln verwalten
         preamble: Schildere ausführlich, wie dein Server betrieben, moderiert und finanziert wird.
         rules_hint: Es gibt einen eigenen Bereich für Regeln, die deine Benutzer*innen einhalten müssen.
         title: Über
+      allow_referrer_origin:
+        desc: Klicken Nutzer*innen auf Links zu externen Seiten, kann der Browser die Adresse deines Mastodon-Servers als Referrer (Verweis) übermitteln. Diese Option sollte deaktiviert werden, wenn Nutzer*innen dadurch eindeutig identifiziert würden – z. B. wenn es sich um einen privaten Mastodon-Server handelt.
+        title: Externen Seiten erlauben, diesen Mastodon-Server als Quelle zu sehen
       appearance:
         preamble: Passe das Webinterface von Mastodon an.
         title: Design
@@ -813,9 +838,9 @@ de:
       discovery:
         follow_recommendations: Follower-Empfehlungen
         preamble: Das Auffinden interessanter Inhalte ist wichtig, um neue Nutzer einzubinden, die Mastodon noch nicht kennen. Bestimme, wie verschiedene Suchfunktionen auf deinem Server funktionieren.
+        privacy: Datenschutz
         profile_directory: Profilverzeichnis
         public_timelines: Öffentliche Timeline
-        publish_discovered_servers: Entdeckte Server offenlegen
         publish_statistics: Statistiken veröffentlichen
         title: Entdecken
         trends: Trends
@@ -1066,6 +1091,25 @@ de:
           other: In den vergangenen 7 Tagen von %{count} Profilen verwendet
       title: Empfehlungen & Trends
       trending: Angesagt
+    username_blocks:
+      add_new: Neue Regel
+      block_registrations: Registrierungen sperren
+      comparison:
+        contains: Enthält
+        equals: Entspricht
+      contains_html: Enthält %{string}
+      created_msg: Regel für Profilnamen erfolgreich erstellt
+      delete: Löschen
+      edit:
+        title: Regel für Profilnamen bearbeiten
+      matches_exactly_html: Entspricht %{string}
+      new:
+        create: Regel erstellen
+        title: Neue Regel für Profilnamen erstellen
+      no_username_block_selected: Keine Regeln für Profilnamen wurden geändert, weil keine ausgewählt wurde(n)
+      not_permitted: Nicht gestattet
+      title: Regeln für Profilnamen
+      updated_msg: Regel für Profilnamen erfolgreich aktualisiert
     warning_presets:
       add_new: Neu hinzufügen
       delete: Löschen
@@ -1330,6 +1374,10 @@ de:
     basic_information: Allgemeine Informationen
     hint_html: "<strong>Bestimme, was andere auf deinem öffentlichen Profil und neben deinen Beiträgen sehen können.</strong> Wenn du ein Profilbild festlegst und dein Profil vervollständigst, werden andere eher mit dir interagieren und dir folgen."
     other: Andere
+  emoji_styles:
+    auto: Automatisch
+    native: Nativ
+    twemoji: Twemoji
   errors:
     '400': Die Anfrage, die du gestellt hast, war ungültig oder fehlerhaft.
     '403': Dir fehlt die Berechtigung, diese Seite aufzurufen.
@@ -1576,7 +1624,7 @@ de:
       too_many: Mehr als vier Dateien können nicht angehängt werden
   migrations:
     acct: umgezogen nach
-    cancel: Weiterleitung beenden
+    cancel: Nicht mehr weiterleiten
     cancel_explanation: Das Abbrechen der Weiterleitung wird dein aktuelles Konto erneut aktivieren, aber keine Follower zurückholen, die auf dieses Konto verschoben wurden.
     cancelled_msg: Die Weiterleitung wurde erfolgreich beendet.
     errors:
@@ -1639,6 +1687,10 @@ de:
       title: Neue Erwähnung
     poll:
       subject: Eine Umfrage von %{name} ist beendet
+    quote:
+      body: 'Dein Beitrag wurde von %{name} zitiert:'
+      subject: "%{name} zitierte deinen Beitrag"
+      title: Neuer zitierter Beitrag
     reblog:
       body: 'Dein Beitrag wurde von %{name} geteilt:'
       subject: "%{name} teilte deinen Beitrag"
@@ -1849,12 +1901,17 @@ de:
     edited_at_html: 'Bearbeitet: %{date}'
     errors:
       in_reply_not_found: Der Beitrag, auf den du antworten möchtest, scheint nicht zu existieren.
+      quoted_status_not_found: Der Beitrag, den du zitieren möchtest, scheint nicht zu existieren.
     over_character_limit: Begrenzung von %{max} Zeichen überschritten
     pin_errors:
       direct: Beiträge, die nur für erwähnte Profile sichtbar sind, können nicht angeheftet werden
       limit: Du hast bereits die maximale Anzahl an Beiträgen angeheftet
       ownership: Du kannst nur eigene Beiträge anheften
       reblog: Du kannst keine geteilten Beiträge anheften
+    quote_policies:
+      followers: Nur meine Follower
+      nobody: Niemand
+      public: Alle
     title: "%{name}: „%{quote}“"
     visibilities:
       direct: Direktnachricht
@@ -1908,11 +1965,16 @@ de:
     does_not_match_previous_name: entspricht nicht dem vorherigen Namen
   terms_of_service:
     title: Nutzungsbedingungen
+  terms_of_service_interstitial:
+    future_preamble_html: Wir aktualisieren unsere Nutzungsbedingungen, die am <strong>%{date}</strong> in Kraft treten. Bitte lies dir die aktualisierten Bedingungen sorgfältig durch.
+    past_preamble_html: Wir haben unsere Nutzungsbedingungen seit deinem letzten Besuch geändert. Bitte lies dir die aktualisierten Bedingungen sorgfältig durch.
+    review_link: Nutzungsbedingungen lesen
+    title: Die Nutzungsbedingungen von %{domain} ändern sich
   themes:
     contrast: Mastodon (Hoher Kontrast)
     default: Mastodon (Dunkel)
     mastodon-light: Mastodon (Hell)
-    system: Automatisch (mit System synchronisieren)
+    system: Automatisch (wie Betriebssystem)
   time:
     formats:
       default: "%d. %b %Y, %H:%M Uhr"
@@ -1973,12 +2035,12 @@ de:
       subject: Es wurde auf dein Konto von einer neuen IP-Adresse zugegriffen
       title: Eine neue Anmeldung
     terms_of_service_changed:
-      agreement: Wenn du %{domain} weiterhin verwendest, stimmst du den neuen Nutzungsbedingungen automatisch zu. Falls du mit diesen nicht einverstanden bist, kannst du die Vereinbarung mit %{domain} jederzeit widerrufen, indem du dein Konto dort löschst.
-      changelog: 'Hier siehst du, was sich geändert hat:'
-      description: 'Du erhältst diese E-Mail, weil wir einige Änderungen an unseren Nutzungsbedingungen für %{domain} vorgenommen haben. Diese Änderungen gelten ab %{date}. Wir empfehlen, die vollständig aktualisierte Fassung hier zu lesen:'
-      description_html: Du erhältst diese E-Mail, weil wir einige Änderungen an unseren Nutzungsbedingungen für %{domain} vorgenommen haben. Diese Änderungen gelten ab <strong>%{date}</strong>. Wir empfehlen, die <a href="%{path}" target="_blank">vollständig aktualisierte Fassung hier zu lesen</a>.
+      agreement: Du stimmst den neuen Nutzungsbedingungen automatisch zu, wenn du %{domain} weiterhin verwendest. Falls du mit diesen nicht einverstanden bist, kannst du die Vereinbarung mit %{domain} jederzeit widerrufen, indem du dein Konto dort löschst.
+      changelog: 'Die Änderungen im Überblick:'
+      description: 'Du erhältst diese E-Mail, weil wir für %{domain} einige Änderungen an unseren Nutzungsbedingungen vorgenommen haben. Diese Änderungen gelten ab %{date}. Wir empfehlen, die vollständig aktualisierte Fassung hier zu lesen:'
+      description_html: Du erhältst diese E-Mail, weil wir für %{domain} einige Änderungen an unseren Nutzungsbedingungen vorgenommen haben. Diese Änderungen gelten ab <strong>%{date}</strong>. Wir empfehlen, die <a href="%{path}" target="_blank">vollständig aktualisierte Fassung hier zu lesen</a>.
       sign_off: Das Team von %{domain}
-      subject: Aktualisierungen unserer Nutzungsbedingungen
+      subject: Aktualisierung unserer Nutzungsbedingungen
       subtitle: Die Nutzungsbedingungen von %{domain} ändern sich
       title: Wichtige Mitteilung
     warning:
@@ -2047,7 +2109,6 @@ de:
       post_action: Verfassen
       post_step: Begrüße die Welt mit Text, Fotos, Videos oder Umfragen.
       post_title: Erstelle deinen ersten Beitrag
-      share_action: Teilen
       share_step: Lass deine Freund*innen wissen, wie sie dich auf Mastodon finden können.
       share_title: Teile dein Mastodon-Profil
       sign_in_action: Anmelden

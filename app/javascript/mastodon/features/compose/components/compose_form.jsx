@@ -12,9 +12,10 @@ import { length } from 'stringz';
 
 import { missingAltTextModal } from 'mastodon/initial_state';
 
-import AutosuggestInput from '../../../components/autosuggest_input';
-import AutosuggestTextarea from '../../../components/autosuggest_textarea';
-import { Button } from '../../../components/button';
+import AutosuggestInput from 'mastodon/components/autosuggest_input';
+import AutosuggestTextarea from 'mastodon/components/autosuggest_textarea';
+import { Button } from 'mastodon/components/button';
+import { LoadingIndicator } from 'mastodon/components/loading_indicator';
 import EmojiPickerDropdown from '../containers/emoji_picker_dropdown_container';
 import LaTeXDropdown from '../containers/latex_dropdown_container';
 import PollButtonContainer from '../containers/poll_button_container';
@@ -93,10 +94,29 @@ class ComposeForm extends ImmutablePureComponent {
     this.props.onChange(e.target.value);
   };
 
-  handleKeyDown = (e) => {
-    if (e.keyCode === 13 && (e.ctrlKey || e.metaKey)) {
-      this.handleSubmit();
+  blurOnEscape = (e) => {
+    if (['esc', 'escape'].includes(e.key.toLowerCase())) {
+      e.target.blur();
     }
+  }
+
+  handleKeyDownPost = (e) => {
+    if (e.key.toLowerCase() === 'enter' && (e.ctrlKey || e.metaKey)) {
+        this.handleSubmit();
+    }
+    this.blurOnEscape(e);
+  };
+
+  handleKeyDownSpoiler = (e) => {
+    if (e.key.toLowerCase() === 'enter') {
+      if (e.ctrlKey || e.metaKey) {
+        this.handleSubmit();
+      } else {
+        e.preventDefault();
+        this.textareaRef.current?.focus();
+      }
+    }
+    this.blurOnEscape(e);
   };
 
   getFulltextForCharacterCounting = () => {
@@ -233,9 +253,8 @@ class ComposeForm extends ImmutablePureComponent {
   };
 
   render () {
-    const { intl, onPaste, autoFocus, withoutNavigation, maxChars } = this.props;
+    const { intl, onPaste, autoFocus, withoutNavigation, maxChars, isSubmitting } = this.props;
     const { highlighted } = this.state;
-    const disabled = this.props.isSubmitting;
 
     return (
       <form className='compose-form' onSubmit={this.handleSubmit}>
@@ -254,9 +273,9 @@ class ComposeForm extends ImmutablePureComponent {
                 <AutosuggestInput
                   placeholder={intl.formatMessage(messages.spoiler_placeholder)}
                   value={this.props.spoilerText}
-                  disabled={disabled}
+                  disabled={isSubmitting}
                   onChange={this.handleChangeSpoilerText}
-                  onKeyDown={this.handleKeyDown}
+                  onKeyDown={this.handleKeyDownSpoiler}
                   ref={this.setSpoilerText}
                   suggestions={this.props.suggestions}
                   onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
@@ -276,12 +295,12 @@ class ComposeForm extends ImmutablePureComponent {
             <AutosuggestTextarea
               ref={this.textareaRef}
               placeholder={intl.formatMessage(messages.placeholder)}
-              disabled={disabled}
+              disabled={isSubmitting}
               value={this.props.text}
               onChange={this.handleChange}
               suggestions={this.props.suggestions}
               onFocus={this.handleFocus}
-              onKeyDown={this.handleKeyDown}
+              onKeyDown={this.handleKeyDownPost}
               onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
               onSuggestionsClearRequested={this.onSuggestionsClearRequested}
               onSuggestionSelected={this.onSuggestionSelected}
@@ -314,9 +333,15 @@ class ComposeForm extends ImmutablePureComponent {
                 <Button
                   type='submit'
                   compact
-                  text={intl.formatMessage(this.props.isEditing ? messages.saveChanges : (this.props.isInReply ? messages.reply : messages.publish))}
                   disabled={!this.canSubmit()}
-                />
+                  loading={isSubmitting}
+                >
+                  {intl.formatMessage(
+                    this.props.isEditing ?
+                      messages.saveChanges : 
+                      (this.props.isInReply ? messages.reply : messages.publish)
+                  )}
+                </Button>
               </div>
             </div>
           </div>
