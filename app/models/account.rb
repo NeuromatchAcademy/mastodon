@@ -31,6 +31,7 @@
 #  outbox_url                    :string           default(""), not null
 #  shared_inbox_url              :string           default(""), not null
 #  followers_url                 :string           default(""), not null
+#  following_url                 :string           default(""), not null
 #  protocol                      :integer          default("ostatus"), not null
 #  memorial                      :boolean          default(FALSE), not null
 #  moved_to_account_id           :bigint(8)
@@ -51,6 +52,7 @@
 #  requested_review_at           :datetime
 #  indexable                     :boolean          default(FALSE), not null
 #  attribution_domains           :string           default([]), is an Array
+#  id_scheme                     :integer          default("username_ap_id")
 #  account_css                   :text
 #
 
@@ -105,6 +107,7 @@ class Account < ApplicationRecord
 
   enum :protocol, { ostatus: 0, activitypub: 1 }
   enum :suspension_origin, { local: 0, remote: 1 }, prefix: true
+  enum :id_scheme, { username_ap_id: 0, numeric_ap_id: 1 }
 
   validates :username, presence: true
   validates_with UniqueUsernameValidator, if: -> { will_save_change_to_username? }
@@ -117,13 +120,14 @@ class Account < ApplicationRecord
 
   # Local user validations
   validates :username, format: { with: /\A[a-z0-9_]+\z/i }, length: { maximum: USERNAME_LENGTH_LIMIT }, if: -> { local? && will_save_change_to_username? && !actor_type_application? }
-  validates_with UnreservedUsernameValidator, if: -> { local? && will_save_change_to_username? && !actor_type_application? }
+  validates_with UnreservedUsernameValidator, if: -> { local? && will_save_change_to_username? && !actor_type_application? && !user&.bypass_registration_checks }
   validates :display_name, length: { maximum: DISPLAY_NAME_LENGTH_LIMIT }, if: -> { local? && will_save_change_to_display_name? }
   validates :note, note_length: { maximum: NOTE_LENGTH_LIMIT }, if: -> { local? && will_save_change_to_note? }
   validates :fields, length: { maximum: DEFAULT_FIELDS_SIZE }, if: -> { local? && will_save_change_to_fields? }
   validates_with EmptyProfileFieldNamesValidator, if: -> { local? && will_save_change_to_fields? }
   with_options on: :create, if: :local? do
     validates :followers_url, absence: true
+    validates :following_url, absence: true
     validates :inbox_url, absence: true
     validates :shared_inbox_url, absence: true
     validates :uri, absence: true
@@ -440,6 +444,7 @@ class Account < ApplicationRecord
 
   before_validation :prepare_contents, if: :local?
   before_create :generate_keys
+  before_create :set_id_scheme
   before_destroy :clean_feed_manager
 
   def ensure_keys!
@@ -462,6 +467,12 @@ class Account < ApplicationRecord
     keypair = OpenSSL::PKey::RSA.new(2048)
     self.private_key = keypair.to_pem
     self.public_key  = keypair.public_key.to_pem
+  end
+
+  def set_id_scheme
+    return unless local? && Mastodon::Feature.numeric_ap_ids_enabled?
+
+    self.id_scheme = :numeric_ap_id
   end
 
   def normalize_domain

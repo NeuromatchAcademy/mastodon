@@ -9,13 +9,12 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 
 import FlagIcon from '@/material-icons/400-24px/flag-fill.svg?react';
-import FormatQuoteIcon from '@/material-icons/400-24px/format_quote.svg?react';
 import PersonIcon from '@/material-icons/400-24px/person-fill.svg?react';
 import PersonAddIcon from '@/material-icons/400-24px/person_add-fill.svg?react';
 import { Account } from 'flavours/glitch/components/account';
+import { LinkedDisplayName } from '@/flavours/glitch/components/display_name';
 import { Icon }  from 'flavours/glitch/components/icon';
 import { Hotkeys } from 'flavours/glitch/components/hotkeys';
-import { Permalink } from 'flavours/glitch/components/permalink';
 import { StatusQuoteManager } from 'flavours/glitch/components/status_quoted';
 import { WithRouterPropTypes } from 'flavours/glitch/utils/react_router';
 
@@ -45,8 +44,6 @@ class Notification extends ImmutablePureComponent {
   static propTypes = {
     notification: ImmutablePropTypes.map.isRequired,
     hidden: PropTypes.bool,
-    onMoveUp: PropTypes.func.isRequired,
-    onMoveDown: PropTypes.func.isRequired,
     onMention: PropTypes.func.isRequired,
     onFavourite: PropTypes.func.isRequired,
     onReblog: PropTypes.func.isRequired,
@@ -60,16 +57,6 @@ class Notification extends ImmutablePureComponent {
     onUnmount: PropTypes.func,
     unread: PropTypes.bool,
     ...WithRouterPropTypes,
-  };
-
-  handleMoveUp = () => {
-    const { notification, onMoveUp } = this.props;
-    onMoveUp(notification.get('id'));
-  };
-
-  handleMoveDown = () => {
-    const { notification, onMoveDown } = this.props;
-    onMoveDown(notification.get('id'));
   };
 
   handleOpen = () => {
@@ -112,8 +99,6 @@ class Notification extends ImmutablePureComponent {
       mention: this.handleMention,
       open: this.handleOpen,
       openProfile: this.handleOpenProfile,
-      moveUp: this.handleMoveUp,
-      moveDown: this.handleMoveDown,
     };
   }
 
@@ -164,8 +149,6 @@ class Notification extends ImmutablePureComponent {
         containerId={notification.get('id')}
         withDismiss
         hidden={this.props.hidden}
-        onMoveDown={this.handleMoveDown}
-        onMoveUp={this.handleMoveUp}
         onMention={this.props.onMention}
         contextType='notifications'
         getScrollPosition={this.props.getScrollPosition}
@@ -190,8 +173,6 @@ class Notification extends ImmutablePureComponent {
         muted
         withDismiss
         notification={notification}
-        onMoveDown={this.handleMoveDown}
-        onMoveUp={this.handleMoveUp}
         onMention={this.props.onMention}
         contextType='notifications'
         getScrollPosition={this.props.getScrollPosition}
@@ -287,6 +268,31 @@ class Notification extends ImmutablePureComponent {
         id={notification.get('status')}
         account={notification.get('account')}
         prepend='update'
+        muted
+        notification={notification}
+        onMoveDown={this.handleMoveDown}
+        onMoveUp={this.handleMoveUp}
+        onMention={this.props.onMention}
+        contextType='notifications'
+        getScrollPosition={this.props.getScrollPosition}
+        updateScrollBottom={this.props.updateScrollBottom}
+        cachedMediaWidth={this.props.cachedMediaWidth}
+        cacheMediaWidth={this.props.cacheMediaWidth}
+        onUnmount={this.props.onUnmount}
+        withDismiss
+        unread={this.props.unread}
+      />
+    );
+  }
+
+  renderQuotedUpdate (notification) {
+    return (
+      <StatusQuoteManager
+        containerId={notification.get('id')}
+        hidden={!!this.props.hidden}
+        id={notification.get('status')}
+        account={notification.get('account')}
+        prepend='quoted_update'
         muted
         notification={notification}
         onMoveDown={this.handleMoveDown}
@@ -401,19 +407,10 @@ class Notification extends ImmutablePureComponent {
     }
 
     const targetAccount = report.get('target_account');
-    const targetDisplayNameHtml = { __html: targetAccount.get('display_name_html') };
-    const targetLink = (
-      <bdi>
-        <Permalink
-          className='notification__display-name'
-          href={targetAccount.get('url')}
-          title={targetAccount.get('acct')}
-          to={`/@${targetAccount.get('acct')}`}
-          dangerouslySetInnerHTML={targetDisplayNameHtml}
-          data-hover-card-account={targetAccount.get('id')}
-        />
-      </bdi>
-    );
+    const targetLink = <LinkedDisplayName
+      className='notification__display-name'
+      displayProps={{account:targetAccount, variant: 'simple'}}
+    />;
 
     return (
       <Hotkeys handlers={this.getHandlers()}>
@@ -435,19 +432,7 @@ class Notification extends ImmutablePureComponent {
   render () {
     const { notification } = this.props;
     const account          = notification.get('account');
-    const displayNameHtml  = { __html: account.get('display_name_html') };
-    const link             = (
-      <bdi>
-        <Permalink
-          className='notification__display-name'
-          href={`/@${account.get('acct')}`}
-          title={account.get('acct')}
-          to={`/@${account.get('acct')}`}
-          dangerouslySetInnerHTML={displayNameHtml}
-          data-hover-card-account={account.get('id')}
-        />
-      </bdi>
-    );
+    const link             = <LinkedDisplayName className='notification__display-name' displayProps={{account, variant: 'simple'}} />;
 
     switch(notification.get('type')) {
     case 'follow':
@@ -466,6 +451,8 @@ class Notification extends ImmutablePureComponent {
       return this.renderStatus(notification);
     case 'update':
       return this.renderUpdate(notification);
+    case 'quoted_update':
+      return this.renderQuotedUpdate(notification);
     case 'poll':
       return this.renderPoll(notification);
     case 'severed_relationships':
