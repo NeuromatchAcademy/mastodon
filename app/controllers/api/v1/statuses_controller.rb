@@ -3,6 +3,7 @@
 class Api::V1::StatusesController < Api::BaseController
   include Authorization
   include AsyncRefreshesConcern
+  include Api::InteractionPoliciesConcern
 
   before_action -> { authorize_if_got_token! :read, :'read:statuses' }, except: [:create, :update, :destroy]
   before_action -> { doorkeeper_authorize! :write, :'write:statuses' }, only:   [:create, :update, :destroy]
@@ -158,8 +159,6 @@ class Api::V1::StatusesController < Api::BaseController
   end
 
   def set_quoted_status
-    return unless Mastodon::Feature.outgoing_quotes_enabled?
-
     @quoted_status = Status.find(status_params[:quoted_status_id]) if status_params[:quoted_status_id].present?
     authorize(@quoted_status, :quote?) if @quoted_status.present?
   rescue ActiveRecord::RecordNotFound, Mastodon::NotPermittedError
@@ -206,23 +205,6 @@ class Api::V1::StatusesController < Api::BaseController
         options: [],
       ]
     )
-  end
-
-  def quote_approval_policy
-    # TODO: handle `nil` separately
-    return nil unless Mastodon::Feature.outgoing_quotes_enabled? && status_params[:quote_approval_policy].present?
-
-    case status_params[:quote_approval_policy]
-    when 'public'
-      Status::QUOTE_APPROVAL_POLICY_FLAGS[:public] << 16
-    when 'followers'
-      Status::QUOTE_APPROVAL_POLICY_FLAGS[:followers] << 16
-    when 'nobody'
-      0
-    else
-      # TODO: raise more useful message
-      raise ActiveRecord::RecordInvalid
-    end
   end
 
   def serializer_for_status
