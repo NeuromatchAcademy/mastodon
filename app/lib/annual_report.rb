@@ -20,7 +20,12 @@ class AnnualReport
     return unless Setting.wrapstodon
 
     datetime = Time.now.utc
-    datetime.year if datetime.month == 12 && (10..31).cover?(datetime.day)
+
+    if datetime.month == 12 && (10..31).cover?(datetime.day)
+      datetime.year
+    elsif datetime.month == 1
+      datetime.year - 1
+    end
   end
 
   def initialize(account, year)
