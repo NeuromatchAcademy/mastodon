@@ -117,8 +117,9 @@ class Status extends ImmutablePureComponent {
     hidden: PropTypes.bool,
     unread: PropTypes.bool,
     showThread: PropTypes.bool,
+    showActions: PropTypes.bool,
     isQuotedPost: PropTypes.bool,
-    shouldHighlightOnMount: PropTypes.bool, 
+    shouldHighlightOnMount: PropTypes.bool,
     getScrollPosition: PropTypes.func,
     updateScrollBottom: PropTypes.func,
     cacheMediaWidth: PropTypes.func,
@@ -381,7 +382,7 @@ class Status extends ImmutablePureComponent {
   };
 
   render () {
-    const { intl, hidden, featured, unfocusable, unread, showThread, isQuotedPost = false, scrollKey, pictureInPicture, previousId, nextInReplyToId, rootId, skipPrepend, avatarSize = 46, children } = this.props;
+    const { intl, hidden, featured, unfocusable, unread, showThread, showActions = true, isQuotedPost = false, scrollKey, pictureInPicture, previousId, nextInReplyToId, rootId, skipPrepend, avatarSize = 46, children } = this.props;
 
     let { status, account, ...other } = this.props;
 
@@ -538,9 +539,8 @@ class Status extends ImmutablePureComponent {
     } else if (status.get('card') && !status.get('quote')) {
       media = (
         <Card
-          onOpenMedia={this.handleOpenMedia}
+          key={`${status.get('id')}-${status.get('edited_at')}`}
           card={status.get('card')}
-          compact
           sensitive={status.get('sensitive')}
         />
       );
@@ -553,7 +553,6 @@ class Status extends ImmutablePureComponent {
     }
 
     const {statusContentProps, hashtagBar} = getHashtagBarForStatus(status);
-
     return (
       <Hotkeys handlers={handlers} focusable={!unfocusable}>
         <div className={classNames('status__wrapper', `status__wrapper-${status.get('visibility')}`, { 'status__wrapper-reply': !!status.get('in_reply_to_id'), unread, focusable: !this.props.muted })} tabIndex={this.props.muted || unfocusable ? null : 0} data-featured={featured ? 'true' : null} aria-label={textForScreenReader({intl, status, rebloggedByText, isQuote: isQuotedPost})} ref={this.handleRef} data-nosnippet={status.getIn(['account', 'noindex'], true) || undefined}>
@@ -600,7 +599,7 @@ class Status extends ImmutablePureComponent {
 
             {matchedFilters && <FilterWarning title={matchedFilters.join(', ')} expanded={this.state.showDespiteFilter} onClick={this.handleFilterToggle} />}
 
-            {(status.get('spoiler_text').length > 0 && (!matchedFilters || this.state.showDespiteFilter)) && <ContentWarning text={status.getIn(['translation', 'spoilerHtml']) || status.get('spoilerHtml')} expanded={expanded} onClick={this.handleExpandedToggle} />}
+            {(!matchedFilters || this.state.showDespiteFilter) && <ContentWarning status={status} expanded={expanded} onClick={this.handleExpandedToggle} />}
 
             {expanded && (
               <>
@@ -620,7 +619,7 @@ class Status extends ImmutablePureComponent {
               </>
             )}
 
-            {!isQuotedPost &&
+            {(showActions && !isQuotedPost) &&
               <StatusActionBar scrollKey={scrollKey} status={status} account={account}  {...other} />
             }
           </div>

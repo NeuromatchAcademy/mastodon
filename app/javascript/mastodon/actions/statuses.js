@@ -85,6 +85,8 @@ export function fetchStatus(id, {
       dispatch(fetchStatusSuccess(skipLoading));
     }).catch(error => {
       dispatch(fetchStatusFail(id, error, skipLoading, parentQuotePostId));
+      if (error.status === 404)
+        dispatch(deleteFromTimelines(id));
     });
   };
 }
@@ -203,8 +205,8 @@ export function deleteStatusFail(id, error) {
   };
 }
 
-export const updateStatus = status => dispatch =>
-  dispatch(importFetchedStatus(status));
+export const updateStatus = (status, { bogusQuotePolicy }) => dispatch =>
+  dispatch(importFetchedStatus(status, { bogusQuotePolicy }));
 
 export function muteStatus(id) {
   return (dispatch) => {

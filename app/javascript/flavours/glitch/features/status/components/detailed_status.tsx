@@ -4,7 +4,7 @@
                   @typescript-eslint/no-unsafe-assignment */
 
 import type { CSSProperties } from 'react';
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 import { FormattedMessage } from 'react-intl';
 
@@ -57,6 +57,8 @@ export const DetailedStatus: React.FC<{
   pictureInPicture: any;
   onToggleHidden?: (status: any) => void;
   onToggleMediaVisibility?: () => void;
+  ancestors?: number;
+  multiColumn?: boolean;
   expanded: boolean;
 }> = ({
   status,
@@ -72,6 +74,8 @@ export const DetailedStatus: React.FC<{
   pictureInPicture,
   onToggleMediaVisibility,
   onToggleHidden,
+  ancestors = 0,
+  multiColumn = false,
   expanded,
 }) => {
   const properStatus = status?.get('reblog') ?? status;
@@ -79,13 +83,6 @@ export const DetailedStatus: React.FC<{
   const [showDespiteFilter, setShowDespiteFilter] = useState(false);
   const nodeRef = useRef<HTMLDivElement>();
 
-  const rewriteMentions = useAppSelector(
-    (state) => state.local_settings.get('rewrite_mentions', false) as boolean,
-  );
-  const tagMisleadingLinks = useAppSelector(
-    (state) =>
-      state.local_settings.get('tag_misleading_links', false) as boolean,
-  );
   const letterboxMedia = useAppSelector(
     (state) =>
       state.local_settings.getIn(['media', 'letterbox'], false) as boolean,
@@ -142,6 +139,30 @@ export const DetailedStatus: React.FC<{
   const handleTranslate = useCallback(() => {
     if (onTranslate) onTranslate(status);
   }, [onTranslate, status]);
+
+  // The component is managed and will change if the status changes
+  // Ancestors can increase when loading a thread, in which case we want to scroll,
+  // or decrease if a post is deleted, in which case we don't want to mess with it
+  const previousAncestors = useRef(-1);
+  useEffect(() => {
+    if (nodeRef.current && previousAncestors.current < ancestors) {
+      nodeRef.current.scrollIntoView(true);
+
+      // In the single-column interface, `scrollIntoView` will put the post behind the header, so compensate for that.
+      if (!multiColumn) {
+        const offset = document
+          .querySelector('.column-header__wrapper')
+          ?.getBoundingClientRect().bottom;
+
+        if (offset) {
+          const scrollingElement = document.scrollingElement ?? document.body;
+          scrollingElement.scrollBy(0, -offset);
+        }
+      }
+    }
+
+    previousAncestors.current = ancestors;
+  }, [ancestors, multiColumn]);
 
   if (!properStatus) {
     return null;
@@ -273,8 +294,8 @@ export const DetailedStatus: React.FC<{
   } else if (status.get('card') && !status.get('quote')) {
     media = (
       <Card
+        key={`${status.get('id')}-${status.get('edited_at')}`}
         sensitive={status.get('sensitive')}
-        onOpenMedia={onOpenMedia}
         card={status.get('card')}
       />
     );
@@ -315,13 +336,17 @@ export const DetailedStatus: React.FC<{
         to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/reblogs`}
         className='detailed-status__link'
       >
-        <span className='detailed-status__reblogs'>
-          <AnimatedNumber value={status.get('reblogs_count')} />
-        </span>
         <FormattedMessage
-          id='status.reblogs'
-          defaultMessage='{count, plural, one {boost} other {boosts}}'
-          values={{ count: status.get('reblogs_count') }}
+          id='status.reblogs_count'
+          defaultMessage='{count, plural, one {{counter} boost} other {{counter} boosts}}'
+          values={{
+            count: status.get('reblogs_count'),
+            counter: (
+              <span className='detailed-status__reblogs'>
+                <AnimatedNumber value={status.get('reblogs_count')} />
+              </span>
+            ),
+          }}
         />
       </Link>
     );
@@ -335,26 +360,34 @@ export const DetailedStatus: React.FC<{
         to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/quotes`}
         className='detailed-status__link'
       >
-        <span className='detailed-status__quotes'>
-          <AnimatedNumber value={status.get('quotes_count')} />
-        </span>
         <FormattedMessage
-          id='status.quotes'
-          defaultMessage='{count, plural, one {quote} other {quotes}}'
-          values={{ count: status.get('quotes_count') }}
+          id='status.quotes_count'
+          defaultMessage='{count, plural, one {{counter} quote} other {{counter} quotes}}'
+          values={{
+            count: status.get('quotes_count'),
+            counter: (
+              <span className='detailed-status__quotes'>
+                <AnimatedNumber value={status.get('quotes_count')} />
+              </span>
+            ),
+          }}
         />
       </Link>
     );
   } else {
     quotesLink = (
       <span className='detailed-status__link'>
-        <span className='detailed-status__quotes'>
-          <AnimatedNumber value={status.get('quotes_count')} />
-        </span>
         <FormattedMessage
-          id='status.quotes'
-          defaultMessage='{count, plural, one {quote} other {quotes}}'
-          values={{ count: status.get('quotes_count') }}
+          id='status.quotes_count'
+          defaultMessage='{count, plural, one {{counter} quote} other {{counter} quotes}}'
+          values={{
+            count: status.get('quotes_count'),
+            counter: (
+              <span className='detailed-status__quotes'>
+                <AnimatedNumber value={status.get('quotes_count')} />
+              </span>
+            ),
+          }}
         />
       </span>
     );
@@ -365,13 +398,17 @@ export const DetailedStatus: React.FC<{
       to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/favourites`}
       className='detailed-status__link'
     >
-      <span className='detailed-status__favorites'>
-        <AnimatedNumber value={status.get('favourites_count')} />
-      </span>
       <FormattedMessage
-        id='status.favourites'
-        defaultMessage='{count, plural, one {favorite} other {favorites}}'
-        values={{ count: status.get('favourites_count') }}
+        id='status.favourites_count'
+        defaultMessage='{count, plural, one {{counter} favorite} other {{counter} favorites}}'
+        values={{
+          count: status.get('favourites_count'),
+          counter: (
+            <span className='detailed-status__favorites'>
+              <AnimatedNumber value={status.get('favourites_count')} />
+            </span>
+          ),
+        }}
       />
     </Link>
   );
@@ -429,25 +466,19 @@ export const DetailedStatus: React.FC<{
           />
         )}
 
-        {status.get('spoiler_text').length > 0 &&
-          (!matchedFilters || showDespiteFilter) && (
-            <ContentWarning
-              text={
-                status.getIn(['translation', 'spoilerHtml']) ||
-                status.get('spoilerHtml')
-              }
-              expanded={expanded}
-              onClick={handleExpandedToggle}
-            />
-          )}
+        {(!matchedFilters || showDespiteFilter) && (
+          <ContentWarning
+            status={status}
+            expanded={expanded}
+            onClick={handleExpandedToggle}
+          />
+        )}
 
         {expanded && (
           <>
             <StatusContent
               status={status}
               onTranslate={handleTranslate}
-              tagLinks={tagMisleadingLinks}
-              rewriteMentions={rewriteMentions}
               {...(statusContentProps as any)}
             />
 
@@ -458,6 +489,7 @@ export const DetailedStatus: React.FC<{
               <QuotedStatus
                 quote={status.get('quote')}
                 parentQuotePostId={status.get('id')}
+                contextType='thread'
               />
             )}
           </>

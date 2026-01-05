@@ -145,6 +145,7 @@ br:
         destroy_custom_emoji_html: Dilamet eo bet ar fromlun %{target} gant %{name}
         destroy_email_domain_block_html: Distanket eo bet an domani postel %{target} gant %{name}
         destroy_status_html: Dilamet eo bet toud %{target} gant %{name}
+        destroy_user_role_html: Dilamet eo bet ar perzh %{target} gant %{name}
         disable_custom_emoji_html: Diweredekaet eo bet ar fromlun %{target} gant %{name}
         enable_custom_emoji_html: Gweredekaet eo bet ar fromlun %{target} gant %{name}
         resend_user_html: Adkaset eo bet ar postel kadarnaat evit %{target} gant %{name}
@@ -241,6 +242,7 @@ br:
         registrations:
           confirm: Kadarnaat
         save: Enrollañ
+        sign_in: Kevreañ
         status: Statud
     follow_recommendations:
       language: Evit ar yezh
@@ -315,6 +317,7 @@ br:
       already_suspended_badges:
         local: Astalet endeo war ar servijer-mañ
       are_you_sure: Ha sur oc'h?
+      cancel: Nullañ
       comment:
         none: Hini ebet
       confirm: Kadarnaat
@@ -359,6 +362,7 @@ br:
         view_devops: DevOps
       title: Rolloù
     rules:
+      add_new: Ouzhpennañ ur reolenn
       add_translation: Ouzhpennañ un droidigezh
       delete: Dilemel
       edit: Kemmañ ar reolenn
@@ -372,6 +376,7 @@ br:
         manage_rules: Merañ reolennoù ar servijer
         title: Diwar-benn
       appearance:
+        preamble: Personelaat etrefas web Mastodon.
         title: Neuz
       content_retention:
         danger_zone: Takad dañjer
@@ -385,6 +390,9 @@ br:
         all: D'an holl dud
         disabled: Da zen ebet
         users: D'an implijerien·ezed lec'hel kevreet
+      landing_page:
+        values:
+          about: Diwar-benn
       title: Arventennoù ar servijer
     site_uploads:
       delete: Dilemel ar restr pellgaset
@@ -396,6 +404,7 @@ br:
       version: Handelv
     statuses:
       account: Aozer·ez
+      application: Arload
       batch:
         report: Disklêriañ
       deleted: Dilamet
@@ -437,6 +446,7 @@ br:
       upload_check_privacy_error_object_storage:
         action: Gwelet amañ evit kaout muioc'h a ditouroù
     tags:
+      name: Anv
       search: Klask
       title: Gerioù-klik
     terms_of_service:
@@ -468,6 +478,8 @@ br:
     username_blocks:
       add_new: Ouzhpennañ unan nevez
       delete: Dilemel
+      new:
+        create: Krouiñ ur reolenn
     warning_presets:
       add_new: Ouzhpennañ unan nevez
       delete: Dilemel
@@ -534,6 +546,8 @@ br:
     rules:
       title_invited: Pedet oc'h bet.
     security: Diogelroez
+    sign_in:
+      title: Kevreañ ouzh %{domain}
     status:
       account_status: Statud ar gont
   challenge:
@@ -560,6 +574,7 @@ br:
       x_seconds: "%{count}eil"
   deletes:
     proceed: Dilemel ar gont
+    success_msg: Ho kont a zo bet dilamet gant berzh
   disputes:
     strikes:
       appeal: Ober engalv
@@ -609,6 +624,7 @@ br:
         title: Toudoù silet
   generic:
     all: Pep tra
+    cancel: Nullañ
     changes_saved_msg: Enrollet eo bet ar cheñchamantoù gant berzh!
     confirm: Kadarnaat
     copy: Eilañ
@@ -660,6 +676,10 @@ br:
     table:
       uses: Implijoù
     title: Pediñ tud
+  link_preview:
+    author_html: Gant %{name}
+    potentially_sensitive_content:
+      hide_button: Kuzhat
   login_activities:
     authentication_methods:
       password: ger-tremen
@@ -767,21 +787,29 @@ br:
     platforms:
       adobe_air: Adobe Air
       android: Android
+      blackberry: BlackBerry
+      chrome_os: ChromeOS
+      firefox_os: Firefox OS
       ios: iOS
+      kai_os: KaiOS
       linux: Linux
       mac: macOS
+      unknown_platform: Savenn dianav
       windows: Windows
+      windows_mobile: Windows Mobile
+      windows_phone: Windows Phone
     revoke: Dizober
   settings:
     account: Kont
     account_settings: Arventennoù ar gont
     aliases: Aliasoù ar gont
+    appearance: Neuz
     back: Distreiñ da vMastodon
     delete: Dilemel ar gont
     development: Diorren
     edit_profile: Kemmañ ar profil
     export: Ezporzhiañ
-    featured_tags: Gerioù-klik en a-raok
+    featured_tags: Penngerioù-klik
     import: Enporzhiañ
     import_and_export: Enporzhiañ hag ezporzhiañ
     notifications: Kemennoù dre bostel
@@ -803,6 +831,8 @@ br:
         one: "%{count} skeudenn"
         other: "%{count} skeudenn"
         two: "%{count} skeudenn"
+    content_warnings:
+      show: Diskouez muioc'h
     edited_at_html: Kemmet d'an %{date}
     errors:
       quoted_status_not_found: War a seblant, n'eus ket eus an embannadenn emaoc'h o klask menegiñ.
@@ -816,6 +846,7 @@ br:
     title: '%{name}: "%{quote}"'
     visibilities:
       direct: Meneg prevez
+      private: Heulierien·ezed hepken
       public: Publik
   statuses_cleanup:
     keep_direct: Mirout ar c'hannadoù eeun

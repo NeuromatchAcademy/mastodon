@@ -33,9 +33,9 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
 
   attribute :voters_count, if: :poll_and_voters_count?
 
-  attribute :quote, if: :quote?
-  attribute :quote, key: :_misskey_quote, if: :quote?
-  attribute :quote, key: :quote_uri, if: :quote?
+  attribute :quote, if: :nonlegacy_quote?
+  attribute :quote, key: :_misskey_quote, if: :serializable_quote?
+  attribute :quote, key: :quote_uri, if: :serializable_quote?
   attribute :quote_authorization, if: :quote_authorization?
 
   attribute :interaction_policy
@@ -226,13 +226,21 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
     object.quote&.present?
   end
 
+  def serializable_quote?
+    object.quote&.quoted_status&.present?
+  end
+
+  def nonlegacy_quote?
+    object.quote.present? && !object.quote.legacy?
+  end
+
   def quote_authorization?
     object.quote.present? && ActivityPub::TagManager.instance.approval_uri_for(object.quote).present?
   end
 
   def quote
     # TODO: handle inlining self-quotes
-    ActivityPub::TagManager.instance.uri_for(object.quote.quoted_status)
+    object.quote.quoted_status.present? ? ActivityPub::TagManager.instance.uri_for(object.quote.quoted_status) : { type: 'Tombstone' }
   end
 
   def quote_authorization
@@ -243,10 +251,10 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
     approved_uris = []
 
     # On outgoing posts, only automatic approval is supported
-    policy = object.quote_approval_policy >> 16
-    approved_uris << ActivityPub::TagManager::COLLECTIONS[:public] if policy.anybits?(Status::QUOTE_APPROVAL_POLICY_FLAGS[:public])
-    approved_uris << ActivityPub::TagManager.instance.followers_uri_for(object.account) if policy.anybits?(Status::QUOTE_APPROVAL_POLICY_FLAGS[:followers])
-    approved_uris << ActivityPub::TagManager.instance.following_uri_for(object.account) if policy.anybits?(Status::QUOTE_APPROVAL_POLICY_FLAGS[:following])
+    policy = object.quote_interaction_policy.automatic
+    approved_uris << ActivityPub::TagManager::COLLECTIONS[:public] if policy.public?
+    approved_uris << ActivityPub::TagManager.instance.followers_uri_for(object.account) if policy.followers?
+    approved_uris << ActivityPub::TagManager.instance.following_uri_for(object.account) if policy.following?
     approved_uris << ActivityPub::TagManager.instance.uri_for(object.account) if approved_uris.empty?
 
     {
