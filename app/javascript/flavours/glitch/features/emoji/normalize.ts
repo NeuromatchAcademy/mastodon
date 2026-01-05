@@ -10,6 +10,8 @@ import {
   SKIN_TONE_CODES,
   EMOJIS_WITH_DARK_BORDER,
   EMOJIS_WITH_LIGHT_BORDER,
+  EMOJIS_REQUIRING_INVERSION_IN_LIGHT_MODE,
+  EMOJIS_REQUIRING_INVERSION_IN_DARK_MODE,
 } from './constants';
 import type { CustomEmojiMapArg, ExtraCustomEmojiMap } from './types';
 
@@ -150,19 +152,35 @@ export function twemojiToUnicodeInfo(
   return hexNumbersToString(mappedCodes);
 }
 
+export function emojiToInversionClassName(emoji: string): string | null {
+  if (EMOJIS_REQUIRING_INVERSION_IN_DARK_MODE.includes(emoji)) {
+    return 'invert-on-dark';
+  }
+  if (EMOJIS_REQUIRING_INVERSION_IN_LIGHT_MODE.includes(emoji)) {
+    return 'invert-on-light';
+  }
+  return null;
+}
+
 export function cleanExtraEmojis(extraEmojis?: CustomEmojiMapArg) {
   if (!extraEmojis) {
     return null;
   }
-  if (!isList(extraEmojis)) {
-    return extraEmojis;
-  }
-  return extraEmojis
-    .toJSON()
-    .reduce<ExtraCustomEmojiMap>(
+  if (Array.isArray(extraEmojis)) {
+    return extraEmojis.reduce<ExtraCustomEmojiMap>(
       (acc, emoji) => ({ ...acc, [emoji.shortcode]: emoji }),
       {},
     );
+  }
+  if (isList(extraEmojis)) {
+    return extraEmojis
+      .toJS()
+      .reduce<ExtraCustomEmojiMap>(
+        (acc, emoji) => ({ ...acc, [emoji.shortcode]: emoji }),
+        {},
+      );
+  }
+  return extraEmojis;
 }
 
 function hexStringToNumbers(hexString: string): number[] {

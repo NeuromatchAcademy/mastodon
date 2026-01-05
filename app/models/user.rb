@@ -131,11 +131,12 @@ class User < ApplicationRecord
 
   delegate :can?, to: :role
 
-  attr_reader :invite_code, :date_of_birth
+  attr_reader :invite_code
   attr_writer :current_account
 
   attribute :external, :boolean, default: false
   attribute :bypass_registration_checks, :boolean, default: false
+  attribute :date_of_birth, :date
 
   def self.those_who_can(*any_of_privileges)
     matching_role_ids = UserRole.that_can(*any_of_privileges).map(&:id)
@@ -149,17 +150,6 @@ class User < ApplicationRecord
 
   def self.skip_mx_check?
     Rails.env.local?
-  end
-
-  def date_of_birth=(hash_or_string)
-    @date_of_birth = begin
-      if hash_or_string.is_a?(Hash)
-        day, month, year = hash_or_string.values_at(1, 2, 3)
-        "#{day}.#{month}.#{year}"
-      else
-        hash_or_string
-      end
-    end
   end
 
   def role
@@ -180,6 +170,10 @@ class User < ApplicationRecord
 
   def disable!
     update!(disabled: true)
+
+    # This terminates all connections for the given account with the streaming
+    # server:
+    redis.publish("timeline:system:#{account.id}", Oj.dump(event: :kill))
   end
 
   def enable!
@@ -357,17 +351,22 @@ class User < ApplicationRecord
   end
 
   def reset_password!
+    # First, change password to something random, this revokes sessions and on-going access:
+    change_password!(SecureRandom.hex)
+
+    # Finally, send a reset password prompt to the user
+    send_reset_password_instructions
+  end
+
+  def change_password!(new_password)
     # First, change password to something random and deactivate all sessions
     transaction do
-      update(password: SecureRandom.hex)
+      update(password: new_password)
       session_activations.destroy_all
     end
 
     # Then, remove all authorized applications and connected push subscriptions
     revoke_access!
-
-    # Finally, send a reset password prompt to the user
-    send_reset_password_instructions
   end
 
   protected

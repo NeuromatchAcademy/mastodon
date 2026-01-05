@@ -7,6 +7,8 @@ nn:
     hosted_on: "%{domain} er vert for Mastodon"
     title: Om
   accounts:
+    errors:
+      cannot_be_added_to_collections: Du kan ikkje leggja til denne brukarkontoen i samlingar.
     followers:
       one: Fylgjar
       other: Fylgjarar
@@ -796,6 +798,8 @@ nn:
         view_dashboard_description: Gir brukere tilgang til dashbordet og ulike metrikker
         view_devops: DevOps
         view_devops_description: Gir brukere tilgang til Sidekiq og pgHero-dashbord
+        view_feeds: Sjå direktestraumar og emnestraumar
+        view_feeds_description: La brukarar sjå direkte- og emnestraumane uansett innstillingar på tenaren
       title: Roller
     rules:
       add_new: Legg til regel
@@ -837,17 +841,28 @@ nn:
         title: Ikkje la brukarar indekserast av søkjemotorar som standard
       discovery:
         follow_recommendations: Fylgjeforslag
-        preamble: Å framheva interessant innhald er vitalt i mottakinga av nye brukarar som ikkje nødvendigvis kjenner nokon på Mastodon. Kontroller korleis oppdagingsfunksjonane på tenaren din fungerar.
+        preamble: Å framheva interessant innhald er viktig for å ta imot nye brukarar som ikkje nødvendigvis kjenner nokon på Mastodon. Kontroller korleis oppdagingsfunksjonane på tenaren din fungerer.
         privacy: Personvern
         profile_directory: Profilkatalog
         public_timelines: Offentlege tidsliner
         publish_statistics: Publiser statistikk
         title: Oppdaging
-        trends: Trender
+        trends: Populært
+        wrapstodon: Mastodon-året
       domain_blocks:
         all: Til alle
         disabled: Til ingen
         users: Til lokale brukarar som er logga inn
+      feed_access:
+        modes:
+          authenticated: Berre godkjende brukarar
+          disabled: Krev ei spesifikk brukarrolle
+          public: Alle
+      landing_page:
+        values:
+          about: Om
+          local_feed: Lokal tidsline
+          trends: Populært
       registrations:
         moderation_recommandation: Pass på at du har mange og kjappe redaktørar og moderatorar på laget ditt før du opnar for allmenn registrering!
         preamble: Kontroller kven som kan oppretta konto på tenaren din.
@@ -901,6 +916,7 @@ nn:
       no_status_selected: Ingen statusar vart endra sidan ingen vart valde
       open: Opne innlegg
       original_status: Opprinnelig innlegg
+      quotes: Sitat
       reblogs: Framhevingar
       replied_to_html: Svarte %{acct_link}
       status_changed: Innlegg endret
@@ -908,6 +924,7 @@ nn:
       title: Kontoinnlegg - @%{name}
       trending: Populært
       view_publicly: Vis offentleg
+      view_quoted_post: Vis det siterte innlegget
       visibility: Synlighet
       with_media: Med media
     strikes:
@@ -1076,7 +1093,7 @@ nn:
           tag_uses_measure: brukarar totalt
         description_html: Dette er emneknagger som for øyeblikket vises i mange innlegg som serveren din ser. Det kan hjelpe dine brukere med å finne ut hva folk snakker mest om i øyeblikket. Ingen emneknagger vises offentlig før du godkjenner dem.
         listable: Kan bli foreslått
-        no_tag_selected: Ingen merkelappar vart endra fordi ingen var valde
+        no_tag_selected: Ingen emneknaggar vart endra fordi ingen var valde
         not_listable: Vil ikke bli foreslått
         not_trendable: Kjem ikkje til å syna under trendar
         not_usable: Kan ikke brukes
@@ -1182,10 +1199,10 @@ nn:
     hint_html: Viss du vil flytta frå ein annan konto til denne, kan du laga eit alias her. Det treng du før du kan halda fram med å flytta fylgjarar frå den gamle kontoen til dnene. Denne handlinga er i seg sjølv <strong>harmlaus og kan angrast</strong>. <strong>Du har starta overføringa frå den gamle kontoen</strong>.
     remove: Fjern aliaslenking
   appearance:
-    advanced_web_interface: Avansert nettgrensesnitt
-    advanced_web_interface_hint: 'Om du vil bruke heile skjermbreidda di, let det avanserte nettgrensesnittet deg setje opp mange ulike kolonnar for å sjå så mykje informasjon du vil på ein gong: Heim, varsel, samla tidslinje, og kva som helst antall lister og emneknaggar.'
+    advanced_settings: Avanserte innstillingar
     animations_and_accessibility: Animasjonar og tilgjengelegheit
-    confirmation_dialogs: Bekreftelsesdialoger
+    boosting_preferences: Innstillingar for framheving
+    boosting_preferences_info_html: "<strong>Tips:</strong> Å trykkja <kbd>Shift</kbd> + <kbd>klikk</kbd> på %{icon} framhev-ikonet vil framheva innlegget uansett innstillingar."
     discovery: Oppdaging
     localization:
       body: Mastodon er omsett av friviljuge.
@@ -1302,6 +1319,13 @@ nn:
     hint_html: "<strong>Tips:</strong> Vi skal ikkje spørja deg om passordet ditt igjen i laupet av den neste timen."
     invalid_password: Ugyldig passord
     prompt: Stadfest passord for å halda fram
+  color_scheme:
+    auto: Auto
+    dark: Mørkt
+    light: Lyst
+  contrast:
+    auto: Auto
+    high: Høg
   crypto:
     errors:
       invalid_key: er ikkje ein gild Ed25519 eller Curve25519 nykel
@@ -1587,6 +1611,13 @@ nn:
       expires_at: Vert ugyldig
       uses: Bruk
     title: By folk inn
+  link_preview:
+    author_html: Av %{name}
+    potentially_sensitive_content:
+      action: Klikk for å visa
+      confirm_visit: Er du sikker på at du vil opna denne lenka?
+      hide_button: Gøym
+      label: Mogleg sensitivt innhald
   lists:
     errors:
       limit: Du har nådd grensa for kor mange lister du kan ha
@@ -1651,7 +1682,7 @@ nn:
       disabled_account: Din nåværende konto vil ikke være fullt brukbar etterpå. Men du vil ha tilgang til dataeksportering såvel som reaktivering.
       followers: Denne handlinga flyttar alle fylgjarar frå denne kontoen til den nye
       only_redirect_html: Alternativt kan du velge å <a href="%{path}">bare legge ut en omdirigering på profilen din</a>.
-      other_data: Inkje anna data flyttast av seg sjølve
+      other_data: Ingen andre data blir flytte automatisk (inkludert innlegga dine og lista over folk du fylgjer)
       redirect: Profilen til din nåværende konto vil bli oppdatert med en omdirigeringsnotis og bli fjernet fra søk
   moderation:
     title: Moderasjon
@@ -1685,16 +1716,22 @@ nn:
       body: 'Du vart nemnd av %{name} i:'
       subject: Du vart nemnd av %{name}
       title: Ny omtale
+    moderation_warning:
+      subject: Du har fått ei moderasjonsåtvaring
     poll:
       subject: Meiningsmålinga frå %{name} er avslutta
     quote:
       body: 'Innlegget ditt vart sitert av %{name}:'
       subject: "%{name} siterte innlegget ditt"
       title: Nytt sitat
+    quoted_update:
+      subject: "%{name} redigerte eit innlegg du har sitert"
     reblog:
       body: 'Statusen din vart framheva av %{name}:'
       subject: "%{name} framheva statusen din"
       title: Ny framheving
+    severed_relationships:
+      subject: Du har tapte tilkoplingar på grunn av ei avgjerd frå ein moderator
     status:
       subject: "%{name} postet nettopp"
     update:
@@ -1897,6 +1934,9 @@ nn:
         other: "%{count} videoar"
     boosted_from_html: Framheva av %{acct_link}
     content_warning: 'Innhaldsåtvaring: %{warning}'
+    content_warnings:
+      hide: Gøym inlegget
+      show: Vis meir
     default_language: Samme språk som brukergrensesnittet
     disallowed_hashtags:
       one: 'inneheldt ein emneknagg som ikkje var tillaten: %{tags}'
@@ -1905,16 +1945,22 @@ nn:
     errors:
       in_reply_not_found: Det ser ut til at tutet du freistar å svara ikkje finst.
       quoted_status_not_found: Innlegget du prøver å sitera ser ikkje ut til å finnast.
+      quoted_user_not_mentioned: Kan ikkje sitera ein person som ikkje er nemnd i direktemeldingar.
     over_character_limit: øvregrensa for teikn, %{max}, er nådd
     pin_errors:
       direct: Innlegg som bare er synlige for nevnte brukere kan ikke festes
       limit: Du har allereie festa så mange tut som det går an å festa
       ownership: Du kan ikkje festa andre sine tut
       reblog: Ei framheving kan ikkje festast
+    quote_error:
+      not_available: Innlegget er ikkje tilgjengeleg
+      pending_approval: Innlegget ventar
+      revoked: Innlegget er sletta av skribenten
     quote_policies:
       followers: Berre fylgjarar
       nobody: Berre eg
       public: Allle
+    quote_post_author: Siterte eit innlegg av %{acct}
     title: "%{name}: «%{quote}»"
     visibilities:
       direct: Privat omtale
@@ -2149,3 +2195,6 @@ nn:
     not_supported: Denne nettleseren støtter ikke sikkerhetsnøkler
     otp_required: For å bruke sikkerhetsnøkler, må du først aktivere to-faktor autentisering.
     registered_on: Registrert den %{date}
+  wrapstodon:
+    description: Sjå korleis %{name} brukte Mastodon i år!
+    title: Mastodon-året %{year} for %{name}

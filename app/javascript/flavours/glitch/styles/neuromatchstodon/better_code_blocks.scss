@@ -1,5 +1,12 @@
-@use '../variables' as *;
-@use '../functions' as *;
+@use '../mastodon/variables' as *;
+@use 'variables' as *;
+@use 'functions' as *;
+
+code {
+  border-radius: 3px;
+  padding: 0 0.4em;
+  background: darken($ui-base-color, 8%);
+}
 
 pre {
   background: darken($ui-base-color, 8%);

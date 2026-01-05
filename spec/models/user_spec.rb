@@ -39,6 +39,15 @@ RSpec.describe User do
     end
 
     it { is_expected.to allow_value('admin@localhost').for(:email) }
+
+    context 'when registration form time is present' do
+      subject { Fabricate.build :user }
+
+      before { stub_const 'RegistrationFormTimeValidator::REGISTRATION_FORM_MIN_TIME', 3.seconds }
+
+      it { is_expected.to allow_value(10.seconds.ago).for(:registration_form_time) }
+      it { is_expected.to_not allow_value(1.second.ago).for(:registration_form_time).against(:base) }
+    end
   end
 
   describe 'Normalizations' do
@@ -382,12 +391,15 @@ RSpec.describe User do
 
     let(:current_sign_in_at) { Time.zone.now }
 
-    before do
-      user.disable!
-    end
-
     it 'disables user' do
+      allow(redis).to receive(:publish)
+
+      user.disable!
+
       expect(user).to have_attributes(disabled: true)
+
+      expect(redis)
+        .to have_received(:publish).with("timeline:system:#{user.account.id}", Oj.dump(event: :kill)).once
     end
   end
 
