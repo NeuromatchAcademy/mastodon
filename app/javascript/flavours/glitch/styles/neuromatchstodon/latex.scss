@@ -1,5 +1,7 @@
-@use '../variables' as *;
-@use '../functions' as *;
+@use 'sass:color';
+
+@use '../mastodon/variables' as *;
+@use 'variables' as *;
 
 .compose-form {
   .latex-dropdown {
@@ -95,7 +97,7 @@
   }
 
   &.active:hover {
-    background: lighten($ui-highlight-color, 4%);
+    background: color.adjust($ui-highlight-color, $lightness: 4%);
   }
 }
 

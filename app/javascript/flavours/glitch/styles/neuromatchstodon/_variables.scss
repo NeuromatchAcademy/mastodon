@@ -1,0 +1,33 @@
+// Leftovers after big upstream css refactor
+// https://github.com/glitch-soc/mastodon/commit/1ca3894048b9db05724466b6efcbea230e368fe4#diff-4188c1348e93a1d88210a710e320bd892c113df37644e64b0f64de4fe3916fca
+// See last version
+// https://github.com/NeuromatchAcademy/mastodon/blob/0141cdfa791e9c7f91e8e5d96e99b0050a55f9f6/app/javascript/flavours/glitch/styles/_variables.scss
+
+@use 'sass:color';
+
+$black: #000; // Black
+$white: #fff; // White
+$red-600: #b7253d !default; // Deep Carmine
+$red-500: #df405a !default; // Cerise
+$blurple-600: #563acc; // Iris
+$blurple-500: #6364ff; // Brand purple
+$blurple-400: #7477fd; // Medium slate blue
+$blurple-300: #858afa; // Faded Blue
+$grey-600: hsl(240deg, 8%, 33%); // Trout
+$grey-100: hsl(240deg, 51%, 90%); // Topaz
+
+// Values from the classic Mastodon UI
+$classic-base-color: hsl(240deg, 16%, 19%);
+$classic-primary-color: hsl(240deg, 29%, 70%);
+$classic-secondary-color: hsl(255deg, 25%, 88%);
+$classic-highlight-color: $blurple-500;
+
+$ui-base-color: $classic-base-color !default; // Darkest
+$ui-highlight-color: $classic-highlight-color !default;
+$ui-base-lighter-color: color.adjust($ui-base-color, $lightness: 26%);
+
+$simple-background-color: $white !default;
+$base-shadow-color: $black !default;
+$inverted-text-color: $ui-base-color !default;
+$primary-text-color: $white !default;
+$lighter-text-color: $ui-base-lighter-color !default;
