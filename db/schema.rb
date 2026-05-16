@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_05_155103) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_16_044825) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -1258,6 +1258,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_155103) do
     t.index ["status_id"], name: "index_statuses_tags_on_status_id"
   end
 
+  create_table "stickies", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "status_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["status_id"], name: "index_stickies_on_status_id"
+  end
+
   create_table "tag_follows", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.datetime "created_at", null: false
@@ -1594,6 +1601,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_155103) do
   add_foreign_key "statuses", "statuses", column: "reblog_of_id", on_delete: :cascade
   add_foreign_key "statuses_tags", "statuses", on_delete: :cascade
   add_foreign_key "statuses_tags", "tags", name: "fk_3081861e21", on_delete: :cascade
+  add_foreign_key "stickies", "statuses"
   add_foreign_key "tag_follows", "accounts", on_delete: :cascade
   add_foreign_key "tag_follows", "tags", on_delete: :cascade
   add_foreign_key "tag_trends", "tags", on_delete: :cascade

@@ -28,6 +28,9 @@ class Feed
       unhydrated = redis.zrangebyscore(key, "(#{min_id}", "(#{max_id}", limit: [0, limit], with_scores: true).map { |id| id.first.to_i }
     end
 
+    # prepend stickies!
+    # TODO but this is where to do it!!!
+
     Status.where(id: unhydrated)
   end
 

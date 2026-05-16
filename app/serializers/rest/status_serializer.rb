@@ -16,6 +16,7 @@ class REST::StatusSerializer < ActiveModel::Serializer
   attribute :bookmarked, if: :current_user?
   attribute :pinned, if: :pinnable?
   attribute :local_only, if: :local?
+  attribute :sticky?, if: :sticky?
   has_many :filtered, serializer: REST::FilterResultSerializer, if: :current_user?
 
   attribute :content, unless: :source_requested?
@@ -40,6 +41,7 @@ class REST::StatusSerializer < ActiveModel::Serializer
   has_one :quote_approval
 
   delegate :local?, to: :object
+  delegate :sticky?, to: :object
 
   def quote
     object.quote if object.quote&.acceptable?

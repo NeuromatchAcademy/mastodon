@@ -28,6 +28,7 @@ import {
   deleteStatus,
   toggleStatusSpoilers,
   toggleStatusCollapse,
+  toggleSticky,
   editStatus,
   translateStatus,
   undoStatusTranslation,
@@ -239,6 +240,14 @@ const mapDispatchToProps = (dispatch, { contextType }) => ({
       },
     }));
   },
+
+  onSticky (status) {
+    dispatch(toggleSticky(status.get('id')));
+  },
+
+  onUnsticky (status) {
+    dispatch(toggleSticky(status.get('id')));
+  }
 
 });
 

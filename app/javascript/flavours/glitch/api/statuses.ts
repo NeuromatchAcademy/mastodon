@@ -29,3 +29,17 @@ export const apiSetQuotePolicy = async (
     },
   );
 };
+
+export const apiSticky = async (statusId: string) => {
+  await api().request<ApiContextJSON>({
+    method: 'POST',
+    url: `/api/v1/statuses/${statusId}/sticky`,
+  });
+};
+
+export const apiUnsticky = async (statusId: string) => {
+  await api().request<ApiContextJSON>({
+    method: 'POST',
+    url: `/api/v1/statuses/${statusId}/unsticky`,
+  });
+};

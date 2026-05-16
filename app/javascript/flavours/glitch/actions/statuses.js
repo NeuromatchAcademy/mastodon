@@ -7,7 +7,7 @@ import api from '../api';
 import { showAlert } from './alerts';
 import { ensureComposeIsVisible, setComposeToStatus } from './compose';
 import { importFetchedStatus, importFetchedAccount } from './importer';
-import { fetchContext } from './statuses_typed';
+import { fetchContext, sticky, unsticky } from './statuses_typed';
 import { deleteFromTimelines } from './timelines';
 
 export * from './statuses_typed';
@@ -367,3 +367,15 @@ export const navigateToStatus = (statusId) => {
     }
   };
 };
+
+export const toggleSticky = (statusId) => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const stickied = state.statuses.getIn([statusId, 'stickied']);
+    if (stickied) {
+      dispatch(unsticky({statusId}))
+    } else {
+      dispatch(sticky({statusId}))
+    }
+  };
+}
