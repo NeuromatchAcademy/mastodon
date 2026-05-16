@@ -131,7 +131,7 @@ class PublicFeed
 
   def without_duplicate_reblogs
     Status.where(statuses: { reblog_of_id: nil })
-          .or(max_boost_id_scope)
+      .or(max_boost_id_scope)
   end
 
   def media_only_scope

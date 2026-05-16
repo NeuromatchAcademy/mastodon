@@ -139,7 +139,7 @@ export const AccountEdit: FC = () => {
   const dispatch = useAppDispatch();
 
   const { profile, isPending } = useAppSelector((state) => state.profileEdit);
-  console.log(profile);
+
   useEffect(() => {
     void dispatch(fetchProfile());
   }, [dispatch]);

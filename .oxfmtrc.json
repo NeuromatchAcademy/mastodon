@@ -12,6 +12,7 @@
     "/public/packs-test",
     "/public/system",
     "/public/vite*",
+    "/public/MathJax",
 
     "*.html",
     "docker-compose.override.yml",
