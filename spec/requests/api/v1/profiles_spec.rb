@@ -31,6 +31,7 @@ RSpec.describe 'Profile API' do
       expect(response.parsed_body)
         .to match(
           'id' => account.id.to_s,
+          'account_css' => nil,
           'avatar' => %r{https://.*},
           'avatar_static' => %r{https://.*},
           'avatar_description' => '',
