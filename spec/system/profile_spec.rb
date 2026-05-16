@@ -48,11 +48,11 @@ RSpec.describe 'Profile' do
     it 'Can have custom account_css set' do
       visit account_path('chupacabra')
       # wait for page to load...
-      page.find '.account__header'
+      page.find '._comp_account_header__header'
       expect(page.html).to have_text('background-color: red !important')
 
       visit account_path('bob')
-      page.find '.account__header'
+      page.find '._comp_account_header__header'
       expect(page.html).to have_no_text('background-color: red !important')
     end
   end
