@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Sticky posts', :inline_jobs, :js do
+RSpec.describe 'Sticky posts', :inline_jobs, :js, :streaming do
   include ProfileStories
 
   let(:email)               { 'test@example.com' }
@@ -27,7 +27,8 @@ RSpec.describe 'Sticky posts', :inline_jobs, :js do
     expect(page).to have_css('.status', text: 'Hello from Alice')
 
     within(first('.status')) do
-      find('button[title="More"]').click_button
+      # rubocop:disable Capybara/SpecificActions
+      find('button[title="More"]').click
     end
 
     within('.dropdown-menu') do
@@ -36,7 +37,7 @@ RSpec.describe 'Sticky posts', :inline_jobs, :js do
     end
 
     within(first('.status')) do
-      find('button[title="More"]').click_button
+      find('button[title="More"]').click
     end
 
     within('.dropdown-menu') do
@@ -54,7 +55,7 @@ RSpec.describe 'Sticky posts', :inline_jobs, :js do
     visit '/public/local'
 
     within(first('.status')) do
-      find('button[title="More"]').click_button
+      find('button[title="More"]').click
     end
 
     within('.dropdown-menu') do
@@ -63,7 +64,8 @@ RSpec.describe 'Sticky posts', :inline_jobs, :js do
 
     # Reopen and confirm we're back to "Make sticky"
     within(first('.status')) do
-      find('button[title="More"]').click_button
+      find('button[title="More"]').click
+      # rubocop:enable Capybara/SpecificActions
     end
 
     within('.dropdown-menu') do
