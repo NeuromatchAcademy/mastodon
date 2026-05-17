@@ -370,12 +370,11 @@ export const navigateToStatus = (statusId) => {
 
 export const toggleSticky = (statusId) => {
   return (dispatch, getState) => {
-    const state = getState();
-    const stickied = state.statuses.getIn([statusId, 'stickied']);
-    if (stickied) {
+    const isSticky = getState().statuses.getIn([statusId, 'sticky']);
+    if (isSticky) {
       dispatch(unsticky({statusId}))
     } else {
       dispatch(sticky({statusId}))
     }
   };
-}
+};

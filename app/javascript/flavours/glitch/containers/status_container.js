@@ -245,10 +245,6 @@ const mapDispatchToProps = (dispatch, { contextType }) => ({
     dispatch(toggleSticky(status.get('id')));
   },
 
-  onUnsticky (status) {
-    dispatch(toggleSticky(status.get('id')));
-  }
-
 });
 
 export default connect(makeMapStateToProps, mapDispatchToProps)(Status);

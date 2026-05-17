@@ -31,15 +31,17 @@ export const apiSetQuotePolicy = async (
 };
 
 export const apiSticky = async (statusId: string) => {
-  await api().request<ApiContextJSON>({
+  const { data } = await api().request<ApiStatusJSON>({
     method: 'POST',
     url: `/api/v1/statuses/${statusId}/sticky`,
   });
+  return data;
 };
 
 export const apiUnsticky = async (statusId: string) => {
-  await api().request<ApiContextJSON>({
+  const { data } = await api().request<ApiStatusJSON>({
     method: 'POST',
     url: `/api/v1/statuses/${statusId}/unsticky`,
   });
+  return data;
 };
