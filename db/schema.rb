@@ -1262,7 +1262,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_16_044825) do
     t.datetime "created_at", null: false
     t.bigint "status_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["status_id"], name: "index_stickies_on_status_id"
+    t.index ["status_id"], name: "index_stickies_on_status_id", unique: true
   end
 
   create_table "tag_follows", force: :cascade do |t|
