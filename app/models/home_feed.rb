@@ -10,7 +10,7 @@ class HomeFeed < Feed
     results = super
     return results if max_id.present? || min_id.present?
 
-    prepend_stickies(results, Sticky.recent_statuses_for_feed)
+    prepend_stickies(results, Sticky.stickied_statuses)
   end
 
   def async_refresh

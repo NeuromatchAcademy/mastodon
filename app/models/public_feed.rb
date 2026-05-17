@@ -48,7 +48,7 @@ class PublicFeed
   def prepend_stickies(results)
     return results unless allow_local_only?
 
-    stickies = Sticky.recent_statuses_for_feed.to_a
+    stickies = Sticky.stickied_statuses.to_a
     sticky_ids = stickies.to_set(&:id)
     stickies + results.to_a.reject { |s| sticky_ids.include?(s.id) }
   end
