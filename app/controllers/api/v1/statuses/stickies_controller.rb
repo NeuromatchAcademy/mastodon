@@ -1,30 +1,23 @@
 # frozen_string_literal: true
 
 class Api::V1::Statuses::StickiesController < Api::V1::Statuses::BaseController
-  include Authorization
-
-  before_action :set_status
-  # before_action -> { authorize_if_got_token! :'admin:write', :'admin:write:accounts', except: [:index, :show] }
-
-  # before_action -> { authorize_if_got_token! :'admin:read', :'admin:read:reports' }, only: [:index, :show]
-  # before_action -> { authorize_if_got_token! :'admin:write', :'admin:write:reports' }, except: [:show]
-
-  after_action :verify_authorized
-  # skip_before_action :set_status, only: [:destroy]
-
-  def show
-    render json: @status, serializer: REST::StatusSerializer
-  end
+  before_action -> { doorkeeper_authorize! :write, :'write:statuses' }
+  before_action :require_user!
+  before_action :require_manage_users!
 
   def create
-    Sticky.create(status_id: @status.id)
+    Sticky.find_or_create_by!(status: @status)
     render json: @status, serializer: REST::StatusSerializer
   end
 
   def destroy
-    @status.sticky.destroy
-    render json: @status, serializer: REST::StatusSerializer
-  rescue ActiveRecord::RecordNotFound, Mastodon::NotPermittedError
-    not_found
+    @status.sticky&.destroy
+    render json: @status.reload, serializer: REST::StatusSerializer
+  end
+
+  private
+
+  def require_manage_users!
+    forbidden unless current_user&.role&.can?(:manage_users)
   end
 end

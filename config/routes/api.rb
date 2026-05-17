@@ -56,8 +56,8 @@ namespace :api, format: false do
 
         post :translate, to: 'translations#create'
 
-        resource :sticky, to: 'stickies#create', only: :create
-        post :unsticky, to: 'sticky#destroy'
+        post :sticky, to: 'stickies#create'
+        post :unsticky, to: 'stickies#destroy'
       end
 
       member do
