@@ -16,6 +16,7 @@ class Sticky < ApplicationRecord
 
   scope :stickied_statuses, lambda {
     Status.local
+      .distributable_visibility
       .joins(:sticky)
       .reorder('stickies.created_at DESC')
   }
