@@ -35,12 +35,23 @@ class PublicFeed
 
     scope.merge!(without_duplicate_reblogs) if with_reblogs?
 
-    scope.to_a_paginated_by_id(limit, max_id: max_id, since_id: since_id, min_id: min_id)
+    results = scope.to_a_paginated_by_id(limit, max_id: max_id, since_id: since_id, min_id: min_id)
+    return results if max_id.present? || min_id.present?
+
+    prepend_stickies(results)
   end
 
   private
 
   attr_reader :account, :options
+
+  def prepend_stickies(results)
+    return results unless allow_local_only?
+
+    stickies = Sticky.recent_statuses_for_feed.to_a
+    sticky_ids = stickies.to_set(&:id)
+    stickies + results.to_a.reject { |s| sticky_ids.include?(s.id) }
+  end
 
   def allow_local_only?
     local_account? && (local_only? || options[:allow_local_only])
