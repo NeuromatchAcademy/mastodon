@@ -6,6 +6,13 @@ class HomeFeed < Feed
     super(:home, account.id)
   end
 
+  def get(limit, max_id = nil, since_id = nil, min_id = nil)
+    results = super
+    return results if max_id.present? || min_id.present?
+
+    prepend_stickies(results, Sticky.stickied_statuses)
+  end
+
   def async_refresh
     @async_refresh ||= AsyncRefresh.new(redis_regeneration_key)
   end
@@ -29,6 +36,12 @@ class HomeFeed < Feed
   end
 
   private
+
+  def prepend_stickies(results, stickies)
+    stickies = stickies.to_a
+    sticky_ids = stickies.to_set(&:id)
+    stickies + results.to_a.reject { |s| sticky_ids.include?(s.id) }
+  end
 
   def redis_regeneration_key
     @redis_regeneration_key = "account:#{@account.id}:regeneration"

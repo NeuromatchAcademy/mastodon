@@ -719,4 +719,34 @@ RSpec.describe PublicFeed do
       end
     end
   end
+
+  describe '#get with stickies' do
+    subject { described_class.new(local_account) }
+
+    let!(:local_account) { Fabricate(:account, domain: nil) }
+    let!(:older_sticky_status) { Fabricate(:status, id: 1, created_at: 3.hours.ago, visibility: :public, account: local_account) }
+    let!(:newer_sticky_status) { Fabricate(:status, id: 3, created_at: 1.hour.ago, visibility: :public, account: local_account) }
+    let!(:normal_status) { Fabricate(:status, id: 2, created_at: 2.hours.ago, visibility: :public, account: local_account) }
+
+    before do
+      Sticky.create!(status: older_sticky_status, created_at: 2.hours.ago)
+      Sticky.create!(status: newer_sticky_status, created_at: 1.hour.ago)
+    end
+
+    it 'prepends stickies at the top of the first page, newest first' do
+      ids = subject.get(20).map(&:id)
+      expect(ids.first(2)).to eq [newer_sticky_status.id, older_sticky_status.id]
+      expect(ids).to include(normal_status.id)
+    end
+
+    it 'deduplicates a sticky that would also appear naturally in the feed' do
+      ids = subject.get(20).map(&:id)
+      expect(ids.count(newer_sticky_status.id)).to eq 1
+    end
+
+    it 'does not pin stickies on paginated requests with max_id' do
+      ids = subject.get(20, normal_status.id).map(&:id)
+      expect(ids).to eq [older_sticky_status.id]
+    end
+  end
 end

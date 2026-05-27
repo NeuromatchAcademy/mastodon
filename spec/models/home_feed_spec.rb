@@ -122,4 +122,39 @@ RSpec.describe HomeFeed do
       expect(redis.hget("account:#{account.id}:regeneration", 'status')).to eq 'finished'
     end
   end
+
+  describe '#get with stickies' do
+    let!(:older_sticky_status) { Fabricate(:status, visibility: :public) }
+    let!(:newer_sticky_status) { Fabricate(:status, visibility: :public) }
+    let!(:normal_status_in_feed) { Fabricate(:status, account: account) }
+
+    before do
+      Sticky.create!(status: older_sticky_status, created_at: 2.hours.ago)
+      Sticky.create!(status: newer_sticky_status, created_at: 1.hour.ago)
+      redis.zadd(
+        FeedManager.instance.key(:home, account.id),
+        [[normal_status_in_feed.id, normal_status_in_feed.id]]
+      )
+    end
+
+    it 'prepends stickies at the top of the first page, newest first' do
+      ids = subject.get(20).map(&:id)
+      expect(ids.first(2)).to eq [newer_sticky_status.id, older_sticky_status.id]
+      expect(ids).to include(normal_status_in_feed.id)
+    end
+
+    it 'does not prepend stickies on paginated requests with max_id' do
+      ids = subject.get(20, normal_status_in_feed.id).map(&:id)
+      expect(ids).to_not include(newer_sticky_status.id, older_sticky_status.id)
+    end
+
+    it 'deduplicates a sticky that would appear naturally in the feed' do
+      redis.zadd(
+        FeedManager.instance.key(:home, account.id),
+        [[newer_sticky_status.id, newer_sticky_status.id]]
+      )
+      ids = subject.get(20).map(&:id)
+      expect(ids.count(newer_sticky_status.id)).to eq 1
+    end
+  end
 end

@@ -55,6 +55,9 @@ namespace :api, format: false do
         resource :interaction_policy, only: :update
 
         post :translate, to: 'translations#create'
+
+        post :sticky, to: 'stickies#create'
+        post :unsticky, to: 'stickies#destroy'
       end
 
       member do
