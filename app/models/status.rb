@@ -471,7 +471,7 @@ class Status < ApplicationRecord
   end
 
   def sticky?
-    Sticky.exists?(status_id: id)
+    Sticky.stickies.include? id
   end
 
   private
