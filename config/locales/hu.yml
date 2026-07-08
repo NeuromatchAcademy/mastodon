@@ -1388,7 +1388,6 @@ hu:
       preamble_html: Jelentkezz be a <strong>%{domain}</strong> hitelesítéső adataiddal. Ha másik kiszolgálón található a fiókod, akkor itt nem fogsz tudni belépni.
       title: 'Bejelentkezés ide: %{domain}'
     sign_up:
-      manual_review: A(z) %{domain} regisztrációi a moderátorok kézi felülvizsgálatán mennek át. Hogy segítsd a regisztráció feldolgozását, írj röviden magadról, és hogy miért szeretnél fiókot a(z) %{domain} oldalon.
       preamble: Egy fiókkal ezen a Mastodon kiszolgálón követhetsz bárkit a födiverzumban, függetlenül attól, hogy az illető fiókja melyik kiszolgálón található.
       title: Állítsuk be a fiókod a %{domain} kiszolgálón.
     status:

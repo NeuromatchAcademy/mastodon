@@ -1374,7 +1374,6 @@ sq:
       preamble_html: Hyni me kredencialet tuaja për te <strong>%{domain}</strong>. Nëse llogaria juaj strehohet në një tjetër shërbyes, s’do të jeni në gjendje të bëni hyrjen këtu.
       title: Bëni hyrjen te %{domain}
     sign_up:
-      manual_review: Regjistrimet te %{domain} kalojnë një shqyrtim dorazi nga moderatorët tanë. Që të na ndihmoni të përfundojmë regjistrimin tuaj, na shkruani pakëz mbi veten dhe pse doni një llogari në %{domain}.
       preamble: Me një llogari te ky shërbyes Mastodon do të jeni në gjendje të ndiqni cilindo person në fedivers, pavarësisht se ku strehohet llogaria e tij.
       title: Le të ujdisim llogarinë tuaj në %{domain}.
     status:

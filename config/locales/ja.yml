@@ -1262,7 +1262,6 @@ ja:
       preamble_html: "<strong>%{domain}</strong> の資格情報でサインインします。 あなたのアカウントが別のサーバーでホストされている場合は、ここでログインすることはできません。"
       title: "%{domain}にログイン"
     sign_up:
-      manual_review: "%{domain} への登録にはモデレーターによる承認が必要です。審査の参考になるように、簡単な自己紹介や %{domain} に登録したい理由などを記入してください。"
       preamble: この Mastodon サーバーのアカウントがあれば、fediverse上の他の人のアカウントがどこでホストされているかに関係なく、その人をフォローすることができます。
       title: さあ %{domain} でセットアップしましょう.
     status:

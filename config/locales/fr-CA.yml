@@ -1388,7 +1388,6 @@ fr-CA:
       preamble_html: Connectez-vous avec vos identifiants sur <strong>%{domain}</strong>. Si votre compte est hébergé sur un autre serveur, vous ne pourrez pas vous connecter ici.
       title: Se connecter à %{domain}
     sign_up:
-      manual_review: Les inscriptions sur %{domain} passent par une revue manuelle de nos modérateurs. Pour les aider, écrivez un peu plus sur vous et pourquoi vous souhaitez créer un compte sur %{domain}.
       preamble: Avec un compte sur ce serveur Mastodon, vous pourrez suivre n'importe quelle autre personne du fediverse, quel que soit l'endroit où son compte est hébergé.
       title: Mettons les choses en place pour %{domain}.
     status:

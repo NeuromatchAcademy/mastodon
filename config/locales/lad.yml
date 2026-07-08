@@ -1212,8 +1212,6 @@ lad:
       preamble_html: Konektate kon tus kredensiales de <strong>%{domain}</strong>. Si tu kuento esta balabayado en otruno servidor, no puedras konektarte aki.
       title: Konektate kon %{domain}
     sign_up:
-      manual_review: Las enrejistrasyones en %{domain} pasan por la revizyon manuala de muestros moderadores. Para ayudarmos a prosesar tu enrejistrasyon, eskrive un poko sovre ti i por ke keres un kuento en %{domain}.
-      preamble: Kon un kuento en este sirvidor de Mastodon, podras segir a kualkier otra persona en el fediverso, endependientemente del sirvidor en el ke se tope.
       title: Kriya kuento de Mastodon en %{domain}.
     status:
       account_status: Estado del kuento

@@ -1313,7 +1313,6 @@ pt-PT:
       preamble_html: Iniciar sessão com as suas credenciais de <strong>%{domain}</strong>. Se a sua conta estiver hospedada noutro servidor, não poderá iniciar sessão aqui.
       title: Iniciar sessão em %{domain}
     sign_up:
-      manual_review: As inscrições em %{domain} passam por uma revisão manual pelos nossos moderadores. Para nos ajudar a processar o teu pedido de inscrição, escreve um pouco sobre ti e o motivo para quereres uma conta em %{domain}.
       preamble: Com uma conta neste servidor Mastodon, poderás seguir qualquer outra pessoa no fediverso, independentemente do local onde a tua conta está alojada.
       title: Vamos lá inscrever-te em %{domain}.
     status:

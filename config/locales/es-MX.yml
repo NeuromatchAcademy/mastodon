@@ -1388,7 +1388,6 @@ es-MX:
       preamble_html: Registrate con tus credenciales de <strong>%{domain}</strong>. Si tu cuenta está alojada en un servidor diferente, no podrás iniciar sesión aquí.
       title: Registrate en %{domain}
     sign_up:
-      manual_review: Los registros en %{domain} pasan por la revisión manual de nuestros moderadores. Para ayudarnos a procesar tu registro, escribe un poco sobre ti mismo y por qué quieres una cuenta en %{domain}.
       preamble: Al tener una cuenta en este servidor de Mastodon, tendrás la oportunidad de seguir a cualquier persona en el fediverso, sin importar en qué plataforma esté alojada su cuenta.
       title: Crear cuenta de Mastodon en %{domain}.
     status:

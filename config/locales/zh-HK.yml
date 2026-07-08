@@ -1079,7 +1079,6 @@ zh-HK:
       preamble_html: 請使用 <strong>%{domain}</strong> 的資料登入。如果您的帳戶託管在其他的伺服器，您將無法在此登入。
       title: 登入 %{domain}
     sign_up:
-      manual_review: "%{domain} 的註冊均需要我們的管理員手動審核。為了幫助我們處理你的註冊，請填寫一些關於你的資訊，以及為何想在 %{domain} 上開設帳號。"
       title: 讓我為你在 %{domain} 上設定好。
     status:
       account_status: 帳戶文章

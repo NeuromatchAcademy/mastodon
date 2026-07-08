@@ -1248,7 +1248,6 @@ eu:
       preamble_html: Zure <strong>%{domain}-(e)ko</strong> egiaztagiriekin saioa hasi. Zure kontua beste zerbitzari batean badago, ezin izango duzu hemen saioa hasi.
       title: "%{domain}-(e)an saioa hasi"
     sign_up:
-      manual_review: "%{domain}-(e)n eginiko izen-emateak gure moderatzaileek eskuz aztertzen dituzte. Zure izen-ematea prozesatzen lagun gaitzazun, idatz ezazu zertxobait zuri buruz eta azaldu zergatik nahi duzun %{domain}-(e)n kontu bat."
       preamble: Mastodon zerbitzari honetako kontu batekin, aukera izango duzu fedibertsoko edozein pertsona jarraitzeko, ez dio axola kontua non ostatatua dagoen.
       title: "%{domain} zerbitzariko kontua prestatuko dizugu."
     status:

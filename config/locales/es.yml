@@ -1388,7 +1388,6 @@ es:
       preamble_html: Inicia sesión con tus credenciales de <strong>%{domain}</strong>. Si tu cuenta está alojada en un servidor diferente, no podrás iniciar sesión aquí.
       title: Iniciar sesión en %{domain}
     sign_up:
-      manual_review: Los registros en %{domain} pasan por la revisión manual de nuestros moderadores. Para ayudarnos a procesar tu registro, escribe un poco sobre ti mismo y por qué quieres una cuenta en %{domain}.
       preamble: Con una cuenta en este servidor de Mastodon, podrás seguir a cualquier otra persona en el fediverso, independientemente de dónde esté alojada su cuenta.
       title: Crear cuenta de Mastodon en %{domain}.
     status:

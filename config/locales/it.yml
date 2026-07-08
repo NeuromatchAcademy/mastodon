@@ -1388,7 +1388,6 @@ it:
       preamble_html: Accedi con le tue credenziali <strong>%{domain}</strong>. Se il tuo account si trova su un server diverso, non potrai accedere qui.
       title: Accedi a %{domain}
     sign_up:
-      manual_review: Le registrazioni su %{domain} vengono sottoposte a revisione manuale da parte dei nostri moderatori. Per aiutarci a elaborare la tua registrazione, scrivi qualcosa su di te e sul motivo per cui desideri un account su %{domain}.
       preamble: Con un account su questo server Mastodon, potrai seguire qualsiasi altra persona sul fediverso, indipendentemente da dove sia ospitato il suo account.
       title: Lascia che ti configuriamo su %{domain}.
     status:

@@ -1355,7 +1355,6 @@ gd:
       preamble_html: Clàraich a-steach le do theisteas <strong>%{domain}</strong>. Ma tha an cunntas agad ’ga òstadh air frithealaiche eile, chan urrainn dhut clàradh a-steach an-seo.
       title: Clàraich a-steach gu %{domain}
     sign_up:
-      manual_review: Nì na maoir againn lèirmheas a làimh air clàraidhean air %{domain}. Airson ar cuideachadh le làimhseachadh do chlàraidh, sgrìobh beagan mu do dhèidhinn agus carson a tha thu ag iarraidh cunntas air %{domain}.
       preamble: Le cunntas air an fhrithealaiche Mastodon seo, ’s urrainn dhut neach sam bith a leantainn air a’ cho-shaoghal, ge b’ e càit a bheil an cunntas aca-san ’ga òstadh.
       title: Suidhicheamaid %{domain} dhut.
     status:

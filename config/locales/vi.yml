@@ -1360,7 +1360,6 @@ vi:
       preamble_html: Đăng nhập bằng tài khoản <strong>%{domain}</strong>. Nếu đăng ký trên một máy chủ khác, bạn sẽ không thể đăng nhập tại đây.
       title: Đăng nhập %{domain}
     sign_up:
-      manual_review: "%{domain} sẽ duyệt đăng ký thủ công. Để giúp chúng tôi duyệt nhanh, hãy viết một chút về bản thân và lý do bạn muốn có một tài khoản trên %{domain}."
       preamble: Với tài khoản trên máy chủ Mastodon này, bạn sẽ có thể theo dõi bất kỳ người nào trên các máy chủ khác, bất kể tài khoản của họ ở đâu.
       title: Đang đăng ký trên %{domain}.
     status:

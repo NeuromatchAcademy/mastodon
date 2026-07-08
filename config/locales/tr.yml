@@ -1381,7 +1381,6 @@ tr:
       preamble_html: "<strong>%{domain}</strong> kimlik bilgilerinizi kullanarak giriş yapın. Eğer hesabınız başka bir sunucuda barındırılıyorsa, burada giriş yapamazsınız."
       title: "%{domain} giriş yapın"
     sign_up:
-      manual_review: "%{domain} kayıtları moderatörler tarafından manuel olarak inceleniyor. Kaydınızı işlememizi kolaylaştırmak için kendiniz ve %{domain} sunucusundan neden hesap istediğiniz hakkında biraz bilgi verin."
       preamble: Bu Mastodon sunucusu üzerinden bir hesap ile fediverseteki herhangi bir kişiyi, hangi sunucuda olursa olsun, takip edebilirsiniz.
       title: "%{domain} için kurulumunuzu yapalım."
     status:

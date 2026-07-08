@@ -1446,7 +1446,6 @@ ga:
       preamble_html: Logáil isteach le do dhintiúir <strong>%{domain}</strong>. Má tá do chuntas á óstáil ar fhreastalaí eile, ní bheidh tú in ann logáil isteach anseo.
       title: Logáil isteach go %{domain}
     sign_up:
-      manual_review: Téann clárúcháin ar %{domain} trí athbhreithniú láimhe ag ár modhnóirí. Chun cabhrú linn do chlárúchán a phróiseáil, scríobh beagán fút féin agus cén fáth a bhfuil cuntas uait ar %{domain}.
       preamble: Agus cuntas agat ar an bhfreastalaí Mastodon seo, beidh tú in ann aon duine eile ar an bhfealsúnacht a leanúint, is cuma cá bhfuil a gcuntas á óstáil.
       title: Déanaimis tú a shocrú ar %{domain}.
     status:

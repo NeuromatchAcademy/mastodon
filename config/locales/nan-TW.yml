@@ -1292,7 +1292,6 @@ nan-TW:
       preamble_html: 請用lí佇 <strong>%{domain}</strong> ê口座kap密碼登入。若是lí ê口座tī別ê服侍器，lí bē當tī tsia登入。
       title: 登入 %{domain}
     sign_up:
-      manual_review: 佇 %{domain} ê註冊ē經過guán ê管理員人工審查。為著tsān guán 進行lí ê註冊，寫tsi̍t點á關係lí家己kap想beh tī %{domain}註冊ê理由。
       preamble: Nā是lí tī tsit ê服侍器有口座，lí ē當tuè別ê佇聯邦宇宙ê lâng，無論伊ê口座tī tó-tsi̍t站。
       title: Lán做伙設定 %{domain}。
     status:

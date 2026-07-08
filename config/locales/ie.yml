@@ -1060,7 +1060,6 @@ ie:
       preamble_html: Aperter session med tui <strong>%{domain}</strong> detallies. Si tui conto logia che un diferent servitor, tu ne va posser intrar ci.
       title: Aperter session che %{domain}
     sign_up:
-      manual_review: Adhesiones a %{domain} es tractat manualmen de nor moderatores. Por auxiliar nos tractar tui aplication, scri un poc pri te e pro quo tu vole un conto che %{domain}.
       title: Crear un conto che %{domain}.
     status:
       account_status: Statu del conto
