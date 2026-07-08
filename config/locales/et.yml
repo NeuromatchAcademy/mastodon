@@ -1381,7 +1381,6 @@ et:
       preamble_html: Logi sisse oma kasutajakontoga serverisse <strong>%{domain}</strong>. Kui konto asub teises serveris, siis sa ei saa siin sisse logida.
       title: Logi sisse serverisse %{domain}
     sign_up:
-      manual_review: Liitumised kohas %{domain} vaadatakse meie moderaatorite poolt käsitsi läbi. Aitamaks meil sinu taotlust läbi vaadata, kirjuta palun natuke endast ja miks soovid kontot kohas %{domain}.
       preamble: Selle Mastodoni serveri kontoga saad jälgida mistahes teist isikut fediversumis, sõltumata sellest, kus ta konto on majutatud.
       title: Loo konto serverisse  %{domain}.
     status:

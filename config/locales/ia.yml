@@ -1285,7 +1285,6 @@ ia:
       preamble_html: Aperi session con tu credentiales de <strong>%{domain}</strong>. Si tu conto es albergate sur un altere servitor, tu non potera aperir session hic.
       title: Aperir session sur %{domain}
     sign_up:
-      manual_review: Le inscriptiones sur %{domain} passa per un revision manual de nostre moderatores. Pro adjutar nos a processar tu inscription, per favor scribe un poco sur te e explica proque tu vole un conto sur %{domain}.
       preamble: Con un conto sur iste servitor de Mastodon, tu potera sequer qualcunque altere persona sur le Fediverso, independentemente de ubi su conto es albergate.
       title: Lassa nos installar tu conto sur %{domain}.
     status:

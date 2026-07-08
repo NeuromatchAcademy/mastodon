@@ -1367,7 +1367,6 @@ zh-CN:
       preamble_html: 使用你在 <strong>%{domain}</strong> 的账号和密码登录。如果你的账号是在其他站点上注册的，你将无法在此登录。
       title: 登录到 %{domain}
     sign_up:
-      manual_review: 你在 %{domain} 上的注册需要经由管理人员手动审核。 为了帮助我们处理你的注册，请简要说明你为什么想在 %{domain} 上注册。
       preamble: 在这个 Mastodon 站点上注册一个账号，你就可以关注联邦宇宙中的任何人，无论他们的账号在哪里。
       title: 让我们在 %{domain} 上开始。
     status:

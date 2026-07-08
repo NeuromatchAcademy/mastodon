@@ -1027,7 +1027,6 @@ ms:
       preamble_html: Log masuk dengan bukti kelayakan <strong>%{domain}</strong> anda. Jika akaun anda dihoskan pada server lain, anda tidak akan dapat log masuk di sini.
       title: Log masuk ke %{domain}
     sign_up:
-      manual_review: Pendaftaran pada %{domain} melalui semakan manual oleh penyederhana kami. Untuk membantu kami memproses pendaftaran anda, tulis sedikit tentang diri anda dan sebab anda mahukan akaun di %{domain}.
       title: Mari sediakan anda pada %{domain}.
     status:
       account_status: Status akaun

@@ -1260,7 +1260,6 @@ eo:
       preamble_html: Ensalutu per via detaloj de <strong>%{domain}</strong>. Se via konto gastigantigas sur malsama servilo, vi ne povas ensaluti ĉi tie.
       title: Saluti en %{domain}
     sign_up:
-      manual_review: Enskriboj en %{domain} havas manan superrigardon, farita de niaj moderistoj. Por helpi nin por procezi vian enskribon, skribu ion pri vi mem, kaj kial vi volas konton en %{domain}.
       preamble: Per konto ĉe ĉi tiu Mastodon-servilo, vi povos sekvi ajnan alian personon ĉe la fediverso, sendepende de kie ilia konto estas gastigita.
       title: Ni pretigu vin ĉe %{domain}.
     status:

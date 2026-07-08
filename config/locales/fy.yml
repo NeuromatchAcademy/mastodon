@@ -1267,7 +1267,6 @@ fy:
       preamble_html: Meld jo oan mei de oanmeldgegevens fan <strong>%{domain}</strong>. As jo account op in oare server stiet, kinne jo hjir net oanmelde.
       title: Oanmelde op %{domain}
     sign_up:
-      manual_review: Ynskriuwingen op %{domain} wurde hânmjittich troch de moderator beoardiele. Skriuw wat oer josels en wêrom jo in account wolle op %{domain} om ús te helpen jo registraasje te ferwurkjen.
       preamble: Mei in account op dizze Mastodon-server kinne jo elkenien folgje op de fediverse, nettsjinsteande wêr’t dizze persoan in account hat.
       title: Litte wy jo account op %{domain} ynstelle.
     status:

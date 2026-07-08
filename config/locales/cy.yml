@@ -1465,7 +1465,6 @@ cy:
       preamble_html: Mewngofnodwch gyda'ch manylion <strong>%{domain}</strong>. Os yw eich cyfrif yn cael ei gynnal ar weinydd gwahanol, ni fydd modd i chi fewngofnodi yma.
       title: Mewngofnodi i %{domain}
     sign_up:
-      manual_review: Mae cofrestriadau ar %{domain} yn cael eu hadolygu â llaw gan ein cymedrolwyr. Er mwyn ein helpu i brosesu eich cofrestriad, ysgrifennwch ychydig amdanoch chi'ch hun a pham rydych chi eisiau cyfrif ar %{domain}.
       preamble: Gyda chyfrif ar y gweinydd Mastodon hwn, byddwch chi'n gallu dilyn unrhyw berson arall ar y ffedysawd, waeth ble mae eu cyfrif yn cael ei gynnal.
       title: Gadewch i ni eich gosod ar %{domain}.
     status:

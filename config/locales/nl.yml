@@ -1382,7 +1382,6 @@ nl:
       preamble_html: Log in met de inloggegevens van <strong>%{domain}</strong>. Als jouw account zich op een andere server bevindt, kun je hier niet inloggen.
       title: Inloggen op %{domain}
     sign_up:
-      manual_review: Inschrijvingen op %{domain} worden handmatig door onze moderatoren beoordeeld. Schrijf wat over jezelf en waarom je een account op %{domain} wilt. Hiermee help je ons om de aanvraag van jouw account goed te kunnen verwerken.
       preamble: Met een account op deze Mastodon-server kun je iedereen in de fediverse volgen, ongeacht waar deze persoon een account heeft.
       title: Laten we je account op %{domain} instellen.
     status:

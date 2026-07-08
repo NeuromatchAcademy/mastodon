@@ -1081,7 +1081,6 @@ sr-Latn:
       preamble_html: Prijavite se sa svojim podacima za <strong>%{domain}</strong>. Ako se Vaš nalog nalazi na drugom serveru, nećete moći da se prijavite ovde.
       title: Prijavite se na %{domain}
     sign_up:
-      manual_review: Naši moderatori ručno pregledaju registracije na %{domain}. Da biste nam pomogli da obradimo vašu registraciju, napišite nešto o sebi i zašto želite nalog na %{domain}.
       title: Hajde da Vam namestimo nalog na %{domain}.
     status:
       account_status: Status naloga
