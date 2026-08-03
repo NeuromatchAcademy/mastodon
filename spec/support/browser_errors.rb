@@ -31,9 +31,13 @@ RSpec.configure do |config|
       /Manifest: Line: 1, column: 1, Syntax error/, # Similar parsing/interruption issue as above
       /tex-chtml.js/,
     ].concat(@ignored_js_errors_for_spec)
+    ignored_urls = [
+      %r{original/missing\.png}, # avatars and stuff in non-avatar testing tests
+    ]
 
     errors = example.metadata[:js_console_messages].reject do |msg|
-      ignored_errors.any? { |pattern| pattern.match(msg[:text]) }
+      ignored_errors.any? { |pattern| pattern.match(msg[:text]) } ||
+        ignored_urls.any? { |pattern| pattern.match(msg[:location]['url']) }
     end
 
     if errors.present?

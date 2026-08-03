@@ -17,6 +17,8 @@ RSpec.describe 'Profile' do
       .to have_title("alice (@alice@#{local_domain_uri.host})")
   end
 
+  # These profile stories tests got moved somewhere else at some point,
+  # but i don't know exactly where, so this is pretty fragile -jls
   describe 'with JS', :js, :streaming do
     before do
       with_chupacabras_fancy_profile
