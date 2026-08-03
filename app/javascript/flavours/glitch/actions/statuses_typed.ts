@@ -1,11 +1,16 @@
 import { createAction } from '@reduxjs/toolkit';
 
-import { apiGetContext, apiSetQuotePolicy } from 'flavours/glitch/api/statuses';
+import {
+  apiGetContext,
+  apiSetQuotePolicy,
+  apiSticky,
+  apiUnsticky,
+} from 'flavours/glitch/api/statuses';
 import { createDataLoadingThunk } from 'flavours/glitch/store/typed_functions';
 
 import type { ApiQuotePolicy } from '../api_types/quotes';
 
-import { importFetchedStatuses } from './importer';
+import { importFetchedStatus, importFetchedStatuses } from './importer';
 
 export const fetchContext = createDataLoadingThunk(
   'status/context',
@@ -40,5 +45,20 @@ export const setStatusQuotePolicy = createDataLoadingThunk(
   'status/setQuotePolicy',
   ({ statusId, policy }: { statusId: string; policy: ApiQuotePolicy }) => {
     return apiSetQuotePolicy(statusId, policy);
+  },
+);
+
+export const sticky = createDataLoadingThunk(
+  'status/sticky',
+  ({ statusId }: { statusId: string }) => apiSticky(statusId),
+  (status, { dispatch }) => {
+    dispatch(importFetchedStatus(status));
+  },
+);
+export const unsticky = createDataLoadingThunk(
+  'status/unsticky',
+  ({ statusId }: { statusId: string }) => apiUnsticky(statusId),
+  (status, { dispatch }) => {
+    dispatch(importFetchedStatus(status));
   },
 );
