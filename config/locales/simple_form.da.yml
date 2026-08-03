@@ -66,7 +66,6 @@ da:
         setting_display_media_show_all: Vis alle medier uden advarsel, inklusive medier markeret som følsomme
         setting_emoji_style: Hvordan emojis skal vises. "Auto" vil forsøge at bruge indbyggede emojis, men skifter tilbage til Twemoji i ældre webbrowsere.
         setting_quick_boosting_html: Når aktiveret, vil klik på %{boost_icon} fremhæv-ikonet straks fremhæve i stedet for at åbne fremhæv/citér-foldudmenuen. Flytter citeringshandlingen til %{options_icon} menuen (Indstillinger).
-        setting_system_scrollbars_ui: Gælder kun for desktop-browsere baseret på Safari og Chrome
         setting_use_blurhash: Gradienter er baseret på de skjulte grafikelementers farver, men slører alle detaljer
         setting_use_pending_items: Skjul tidslinjeopdateringer bag et klik i stedet for brug af auto-feedrulning
         username: Bogstaver, cifre og understregningstegn kan benyttes
@@ -346,6 +345,7 @@ da:
       notification_emails:
         appeal: En moderatorafgørelse er appelleret
         digest: Send resumé e-mails
+        end_of_support: Understøttelsen af den nuværende version af Mastodon ophører snart
         favourite: Nogen favoritmarkerede dit indlæg
         follow: Nogen begyndte at følge dig
         follow_request: Nogen anmodede om at følge dig

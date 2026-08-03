@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useCallback, useId, useMemo, useState } from 'react';
 
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -27,7 +28,6 @@ import {
 import {
   Article,
   ItemList,
-  Scrollable,
 } from 'flavours/glitch/components/scrollable_list/components';
 import { useAccount } from 'flavours/glitch/hooks/useAccount';
 import { useSearchAccounts } from 'flavours/glitch/hooks/useSearchAccounts';
@@ -42,11 +42,12 @@ import {
 import { useAppDispatch, useAppSelector } from 'flavours/glitch/store';
 
 import { PendingNote } from '../detail';
+import { canAccountBeAdded, canAccountBeAddedByFollowers } from '../utils';
 
 import classes from './styles.module.scss';
 import { WizardStepTitle } from './wizard_step_title';
 
-const MAX_ACCOUNT_COUNT = 25;
+export const MAX_COLLECTION_ACCOUNT_COUNT = 25;
 
 const AddedAccountItem: React.FC<{
   accountId: string;
@@ -102,9 +103,6 @@ const renderAccountItem = (account: ApiMutedAccountJSON) => (
 
 type GroupKey = 'available' | 'mustFollow' | 'disabled';
 
-const canAccountBeAdded = (account: ApiMutedAccountJSON) =>
-  ['automatic', 'manual'].includes(account.feature_approval.current_user);
-
 function groupSuggestions(
   accounts: ApiMutedAccountJSON[],
   relationships: ImmutableMap<string, Relationship>,
@@ -116,12 +114,8 @@ function groupSuggestions(
         return 'available';
       }
 
-      const canAccountBeAddedByFollowers =
-        account.feature_approval.automatic.includes('followers') ||
-        account.feature_approval.manual.includes('followers');
-
       if (
-        canAccountBeAddedByFollowers &&
+        canAccountBeAddedByFollowers(account) &&
         !relationships.get(account.id)?.following
       ) {
         return 'mustFollow';
@@ -215,7 +209,13 @@ export const CollectionAccounts: React.FC<{
   const [searchValue, setSearchValue] = useState('');
 
   const hasItems = editorItems.length > 0;
-  const hasMaxItems = editorItems.length === MAX_ACCOUNT_COUNT;
+  const hasMaxItems = editorItems.length === MAX_COLLECTION_ACCOUNT_COUNT;
+
+  const wasAccountAdded = useCallback(
+    (account: ApiMutedAccountJSON) =>
+      !!editorItems.find((item) => item.account_id === account.id),
+    [editorItems],
+  );
 
   const {
     accounts: suggestedAccounts,
@@ -224,9 +224,9 @@ export const CollectionAccounts: React.FC<{
     resetAccounts,
   } = useSearchAccounts({
     withRelationships: true,
+    withDefaultFollows: searchValue === '',
     // Don't suggest accounts that were already added
-    filterResults: (account) =>
-      !editorItems.find((item) => item.account_id === account.id),
+    filterResults: (account) => !wasAccountAdded(account),
   });
 
   const relationships = useAppSelector((state) => state.relationships);
@@ -264,23 +264,25 @@ export const CollectionAccounts: React.FC<{
 
   const addAccountItem = useCallback(
     (item: ApiMutedAccountJSON) => {
-      dispatch(
-        updateCollectionEditorField({
-          field: 'items',
-          value: [
-            ...editorItems,
-            {
-              account_id: item.id,
-              state:
-                item.feature_approval.current_user === 'manual'
-                  ? 'pending'
-                  : 'accepted',
-            },
-          ],
-        }),
-      );
+      if (!wasAccountAdded(item)) {
+        dispatch(
+          updateCollectionEditorField({
+            field: 'items',
+            value: [
+              ...editorItems,
+              {
+                account_id: item.id,
+                state:
+                  item.feature_approval.current_user === 'manual'
+                    ? 'pending'
+                    : 'accepted',
+              },
+            ],
+          }),
+        );
+      }
     },
-    [editorItems, dispatch],
+    [editorItems, wasAccountAdded, dispatch],
   );
 
   const instantRemoveAccountItem = useCallback(
@@ -307,13 +309,13 @@ export const CollectionAccounts: React.FC<{
 
   const instantAddAccountItem = useCallback(
     (item: ApiMutedAccountJSON) => {
-      if (id) {
+      if (id && !wasAccountAdded(item)) {
         void dispatch(
           addCollectionItem({ collectionId: id, accountId: item.id }),
         );
       }
     },
-    [dispatch, id],
+    [dispatch, id, wasAccountAdded],
   );
 
   const handleRemoveAccountItem = useCallback(
@@ -341,8 +343,8 @@ export const CollectionAccounts: React.FC<{
     [addAccountItem, instantAddAccountItem, isEditMode, resetAccounts],
   );
 
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+  const handleSubmit: React.SubmitEventHandler = useCallback(
+    (e) => {
       e.preventDefault();
 
       if (!id) {
@@ -372,6 +374,7 @@ export const CollectionAccounts: React.FC<{
           )}
           {hasPendingItems && <PendingNote />}
           <ComboboxField
+            openOnFocus
             id={inputId}
             label={intl.formatMessage({
               id: 'collections.search_accounts_label',
@@ -409,48 +412,50 @@ export const CollectionAccounts: React.FC<{
               <FormattedMessage
                 id='collections.hints.accounts_counter'
                 defaultMessage='{count}/{max} accounts'
-                values={{ count: editorItems.length, max: MAX_ACCOUNT_COUNT }}
+                values={{
+                  count: editorItems.length,
+                  max: MAX_COLLECTION_ACCOUNT_COUNT,
+                }}
               />
             </AccountsHeadingElement>
           )}
 
-          <Scrollable className={classes.scrollableWrapper}>
-            <ItemList
-              emptyMessage={
-                <EmptyState
-                  title={
-                    <FormattedMessage
-                      id='collections.accounts.empty_editor_title'
-                      defaultMessage='No one is in this collection yet'
-                    />
-                  }
-                  message={
-                    <FormattedMessage
-                      id='collections.accounts.empty_description'
-                      defaultMessage='Add up to {count} accounts'
-                      values={{
-                        count: MAX_ACCOUNT_COUNT,
-                      }}
-                    />
-                  }
-                />
-              }
-            >
-              {editorItems.map(({ account_id, state }, index) => (
-                <Article
-                  key={account_id}
-                  aria-posinset={index}
-                  aria-setsize={editorItems.length}
-                >
-                  <AddedAccountItem
-                    accountId={account_id}
-                    pending={state === 'pending'}
-                    onRemove={handleRemoveAccountItem}
+          <ItemList
+            className={classes.accountList}
+            emptyMessage={
+              <EmptyState
+                title={
+                  <FormattedMessage
+                    id='collections.accounts.empty_editor_title'
+                    defaultMessage='No one is in this collection yet'
                   />
-                </Article>
-              ))}
-            </ItemList>
-          </Scrollable>
+                }
+                message={
+                  <FormattedMessage
+                    id='collections.accounts.empty_description'
+                    defaultMessage='Add up to {count} accounts'
+                    values={{
+                      count: MAX_COLLECTION_ACCOUNT_COUNT,
+                    }}
+                  />
+                }
+              />
+            }
+          >
+            {editorItems.map(({ account_id, state }, index) => (
+              <Article
+                key={account_id}
+                aria-posinset={index}
+                aria-setsize={editorItems.length}
+              >
+                <AddedAccountItem
+                  accountId={account_id}
+                  pending={state === 'pending'}
+                  onRemove={handleRemoveAccountItem}
+                />
+              </Article>
+            ))}
+          </ItemList>
         </div>
       </FormStack>
       {!isEditMode && hasItems && (

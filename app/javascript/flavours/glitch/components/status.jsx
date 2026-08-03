@@ -32,6 +32,7 @@ import StatusIcons from './status_icons';
 import StatusPrepend from './status_prepend';
 import { CollectionPreviewCard } from '../features/collections/components/collection_preview_card';
 import { compareUrls } from '../utils/compare_urls';
+import { FOCUS_TARGET } from './navigation_focus_target';
 
 const domParser = new DOMParser();
 
@@ -393,9 +394,9 @@ class Status extends ImmutablePureComponent {
       window.open(path, '_blank', 'noopener');
     } else {
       if (history.location.pathname.replace('/deck/', '/') === path) {
-        history.replace(path);
+        history.replace(path, {focusTarget: FOCUS_TARGET.POST});
       } else {
-        history.push(path);
+        history.push(path, {focusTarget: FOCUS_TARGET.POST});
       }
     }
   };
@@ -651,7 +652,7 @@ class Status extends ImmutablePureComponent {
         status.get('tagged_collections')
       ).find((item) => compareUrls(item.get('url'), cardUrl));
       if (taggedCollection) {
-        media.push(<CollectionPreviewCard collection={taggedCollection.toJS()} />);
+        media.push(<CollectionPreviewCard collection={taggedCollection.toJS()} headingLevel='h2' />);
       } else {
         media.push(
           <Card
@@ -662,11 +663,11 @@ class Status extends ImmutablePureComponent {
         );
       }
       mediaIcons.push('link');
-    } else if (status.get('tagged_collections').size && settings.get('inline_preview_cards') && !this.props.muted) {
+    } else if (status.get('tagged_collections').size && !status.get('quote') && settings.get('inline_preview_cards') && !this.props.muted) {
       const firstLinkedCollection = status.get('tagged_collections').first();
       if (firstLinkedCollection) {
         media = (
-          <CollectionPreviewCard collection={firstLinkedCollection.toJS()} />
+          <CollectionPreviewCard collection={firstLinkedCollection.toJS()} headingLevel='h2' />
         );
       }
     }
@@ -707,26 +708,27 @@ class Status extends ImmutablePureComponent {
     const {statusContentProps, hashtagBar} = getHashtagBarForStatus(status);
 
     const header = this.props.headerRenderFn
-      ? this.props.headerRenderFn({ status, account, avatarSize, messages, onHeaderClick: this.handleHeaderClick, featured })
+      ? this.props.headerRenderFn({ statusId: status.get('id'), account, avatarSize, messages, onHeaderClick: this.handleHeaderClick, featured })
       : (
         <StatusHeader
-          status={status}
+          statusId={status.get('id')}
           account={account}
           avatarSize={avatarSize}
           onHeaderClick={this.handleHeaderClick}
-        >
-          <StatusIcons
-            status={status}
-            mediaIcons={mediaIcons}
-            settings={settings.get('status_icons')}
-          />
-        </StatusHeader>
+          contentBeforeDate={
+            <StatusIcons
+              status={status}
+              mediaIcons={mediaIcons}
+              settings={settings.get('status_icons')}
+            />
+          }
+        />
       );
 
     return (
       <Hotkeys handlers={handlers} focusable={!unfocusable}>
         <div
-          className={classNames('status__wrapper', 'focusable', `status__wrapper-${status.get('visibility')}`, { 'status__wrapper-reply': !!status.get('in_reply_to_id'), unread })}
+          className={classNames('status__wrapper', 'focusable', `status__wrapper-${status.get('visibility')}`, { 'status__wrapper-reply': !!status.get('in_reply_to_id'), 'status__wrapper--in-thread': !!rootId, unread })}
           {...selectorAttribs}
           tabIndex={unfocusable ? null : 0}
           data-featured={featured ? 'true' : null}
@@ -756,7 +758,7 @@ class Status extends ImmutablePureComponent {
 
             {(!muted) && header}
 
-            <ContentWarning status={status} expanded={expanded} onClick={this.handleExpandedToggle} icons={mediaIcons} />
+            <ContentWarning statusId={status.get('id')} expanded={expanded} onClick={this.handleExpandedToggle} icons={mediaIcons} />
 
             {expanded && (
               <>

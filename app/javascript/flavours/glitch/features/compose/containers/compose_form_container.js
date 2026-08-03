@@ -11,9 +11,8 @@ import {
   uploadCompose,
   startLaTeXCompose,
 } from 'flavours/glitch/actions/compose';
-import { pasteLinkCompose } from 'flavours/glitch/actions/compose_typed';
+import { pasteLinkCompose, PRIVATE_QUOTE_MODAL_ID } from 'flavours/glitch/actions/compose_typed';
 import { openModal } from 'flavours/glitch/actions/modal';
-import { PRIVATE_QUOTE_MODAL_ID } from 'flavours/glitch/features/ui/components/confirmation_modals/private_quote_notify';
 import { me } from 'flavours/glitch/initial_state';
 import { privacyPreference } from 'flavours/glitch/utils/privacy_preference';
 
@@ -81,7 +80,7 @@ const mapStateToProps = state => ({
   lang: state.getIn(['compose', 'language']),
   sideArm: sideArmPrivacy(state),
   media: state.getIn(['compose', 'media_attachments']),
-  maxChars: state.getIn(['server', 'server', 'configuration', 'statuses', 'max_characters'], 500),
+  maxChars: state.getIn(['server', 'server', 'item', 'configuration', 'statuses', 'max_characters'], 500),
 });
 
 const mapDispatchToProps = (dispatch, props) => ({
@@ -90,7 +89,7 @@ const mapDispatchToProps = (dispatch, props) => ({
     dispatch(changeCompose(text));
   },
 
-  onSubmit ({ missingAltText, quoteToPrivate, overridePrivacy = null }) {
+  onSubmit ({ missingAltText, quoteToPrivate, overridePrivacy }) {
     if (missingAltText) {
       dispatch(openModal({
         modalType: 'CONFIRM_MISSING_ALT_TEXT',
@@ -102,11 +101,11 @@ const mapDispatchToProps = (dispatch, props) => ({
         modalProps: {},
       }));
     } else {
-      dispatch(submitCompose(overridePrivacy, (status) => {
+      dispatch(submitCompose((status) => {
         if (props.redirectOnSuccess) {
           window.location.assign(status.url);
         }
-      }));
+      }, overridePrivacy));
     }
   },
 

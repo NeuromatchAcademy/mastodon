@@ -6,12 +6,12 @@ import { defineMessages } from 'react-intl';
 import classNames from 'classnames';
 
 import { supportsPassiveEvents } from 'detect-passive-events';
-import Overlay from 'react-overlays/Overlay';
 
 import { Icon } from 'flavours/glitch/components/icon';
 import FunctionsIcon from '@/material-icons/400-24px/functions.svg?react';
 import { assetHost } from 'flavours/glitch/utils/config';
 import { injectIntl } from '@/flavours/glitch/components/intl';
+import { Popover } from '@/mastodon/components/popover';
 
 const messages = defineMessages({
   inline_short:  { id: 'latex.inline.short', defaultMessage: 'Inline' },
@@ -28,7 +28,6 @@ class LaTeXDropdownMenu extends React.PureComponent {
   static propTypes = {
     style: PropTypes.object,
     items: PropTypes.array.isRequired,
-    placement: PropTypes.string.isRequired,
     onClose: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired,
     value: PropTypes.any
@@ -119,13 +118,13 @@ class LaTeXDropdownMenu extends React.PureComponent {
 
   render () {
     const { mounted } = this.state;
-    const { style, items, placement, value } = this.props;
+    const { style, items, value } = this.props;
 
     return (
       // It should not be transformed when mounting because the resulting
       // size will be used to determine the coordinate of the menu by
       // react-overlays
-      <div className={`latex-dropdown__dropdown ${placement}`} style={{
+      <div className={`latex-dropdown__dropdown`} style={{
         ...style,
         visibility: mounted ? 'visible' : 'hidden',
       }} role='listbox' ref={this.setRef}>
@@ -167,7 +166,7 @@ class LaTeXDropdown extends React.PureComponent {
   };
 
   state = {
-    open: false,
+    active: false,
     placement: 'bottom',
   };
 
@@ -186,7 +185,7 @@ class LaTeXDropdown extends React.PureComponent {
 
   handleToggle = ({ target }) => {
     if (this.props.isUserTouching && this.props.isUserTouching()) {
-      if (this.state.open) {
+      if (this.state.active) {
         this.props.onModalClose();
       } else {
         this.props.onModalOpen({
@@ -196,11 +195,11 @@ class LaTeXDropdown extends React.PureComponent {
       }
     } else {
       const { top } = target.getBoundingClientRect();
-      if (this.state.open && this.activeElement) {
+      if (this.state.active && this.activeElement) {
         this.activeElement.focus({ preventScroll: true });
       }
       this.setState({ placement: top * 2 < innerHeight ? 'bottom' : 'top' });
-      this.setState({ open: !this.state.open });
+      this.setState({ active: !this.state.active });
     }
   };
 
@@ -222,7 +221,7 @@ class LaTeXDropdown extends React.PureComponent {
   };
 
   handleMouseDown = () => {
-    if (!this.state.open) {
+    if (!this.state.active) {
       this.activeElement = document.activeElement;
     }
   };
@@ -237,10 +236,10 @@ class LaTeXDropdown extends React.PureComponent {
   };
 
   handleClose = () => {
-    if (this.state.open && this.activeElement) {
+    if (this.state.active && this.activeElement) {
       this.activeElement.focus({ preventScroll: true });
     }
-    this.setState({ open: false });
+    this.setState({ active: false });
   };
 
   handleChange = value => {
@@ -257,13 +256,13 @@ class LaTeXDropdown extends React.PureComponent {
 
   render () {
     const { container, intl, button } = this.props;
-    const { open, placement } = this.state;
+    const { active, placement } = this.state;
 
     const title = intl.formatMessage(messages.start_latex);
 
     return (
-      <div className={classNames('latex-dropdown', placement, { active: open })} onKeyDown={this.handleKeyDown}>
-        <div ref={this.setTargetRef} className='latex-button' title={title} aria-label={title} aria-expanded={open} role='button' onClick={this.handleToggle} onKeyDown={this.handleButtonKeyDown} onMouseDown={this.handleMouseDown} tabIndex={0}>
+      <div className={classNames('latex-dropdown', placement, { active: active })} onKeyDown={this.handleKeyDown}>
+        <div ref={this.setTargetRef} className='latex-button' title={title} aria-label={title} aria-expanded={active} role='button' onClick={this.handleToggle} onKeyDown={this.handleButtonKeyDown} onMouseDown={this.handleMouseDown} tabIndex={0}>
           {button || <img
             className={classNames('latex-icon')}
             alt='𝑥'
@@ -271,7 +270,11 @@ class LaTeXDropdown extends React.PureComponent {
           />}
         </div>
 
-        <Overlay show={open} placement={placement} target={this.findTarget} container={container}>
+        <Popover
+          isOpen={active}
+          reference={this.findTarget()}
+          onClose={this.handleClose}
+        >
           {({ props, placement })=> (
             <div {...props} style={{ ...props.style, width:299}}>
               <div className={`dropdown-animation ${placement}`}>
@@ -279,12 +282,11 @@ class LaTeXDropdown extends React.PureComponent {
                   items={this.options}
                   onClose={this.handleClose}
                   onChange={this.handleChange}
-                  placement={placement}
                 />
               </div>
             </div>
           )}
-        </Overlay>
+        </Popover>
       </div>
     );
   }

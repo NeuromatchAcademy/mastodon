@@ -48,15 +48,31 @@ az:
       export: Xaricə köçür
     domain_blocks:
       export: Xaricə köçür
+    email_subscriptions:
+      additional_footer_texts:
+        show:
+          title: Əlavə alt məlumat mətni
+      compliance_settings:
+        additional_footer_text:
+          hint: Yalnız bülleten e-poçtlarının alt məlumatlarında görünən ixtiyari mətn
+          title: Əlavə alt məlumat mətni
+        title: Riayətlilik ayarları
+      danger_zone:
+        erase_all_data:
+          action: Veriləri sil
+          title: Bütün veriləri sil
+      purged_msg: Bütün e-poçt abunəlik veriləri silinir.
     export_domain_blocks:
       import:
         title: Əngəllənən domenləri daxilə köçür
       new:
         title: Əngəllənən domenləri daxilə köçür
     instances:
+      confirm_purge: Bu domendən veriləri həmişəlik silmək istədiyinizə əminsiniz?
       dashboard:
         instance_followers_measure: oradakı izləyicilərimiz
         instance_follows_measure: buradakı izləyiciləri
+      destroyed_msg: "%{domain} domenindən verilər artıq silinmək üçün növbədədir."
       moderation:
         title: Moderasiya
       moderation_notes:
@@ -102,6 +118,8 @@ az:
       application: Tətbiq
       metadata: Meta veri
     system_checks:
+      elasticsearch_running_check:
+        message_html: Elasticsearch-a bağlana bilmədi. Lütfən çalışdığına əmin olun və ya tam mətn axtarışını sıradan çıxardın
       elasticsearch_version_check:
         message_html: 'Uyumlu olmayan Elasticsearch versiyası: %{value}'
     tags:
@@ -119,6 +137,7 @@ az:
       next_steps: Moderasiya qərarını geri almaq üçün etirazı təsdiqləyə, ya da etirazı yox saya bilərsiniz.
       subject: "%{username}, %{instance} üzərindəki bir moderasiya qərarına etiraz edir"
   appearance:
+    advanced_settings: Qabaqcıl ayarlar
     animations_and_accessibility: Animasiyalar və erişiləbilənlik
     discovery: Kəşf et
     localization:
@@ -164,6 +183,8 @@ az:
       account_status: Hesab statusu
       functional: Hesabınız tamamilə işləkdir.
       self_destruct: "%{domain} bağlandığı üçün, hesabınıza yalnız məhdud erişiminiz olacaq."
+  author_attribution:
+    example_title: Nümunə mətn
   challenge:
     hint_html: "<strong>İpucu:</strong> Sonrakı bir saat ərzində sizdən parolu soruşmayacağıq."
     invalid_password: Yararsız parol
@@ -188,6 +209,8 @@ az:
       public: Ümumi zaman xətləri
     edit:
       statuses_hint_html: Bu filtr, aşağıdakı açar sözləri ilə uyuşmasından asılı olmayaraq fərdi göndərişləri seçmək üçün tətbiq olunur. <a href="%{path}">Göndərişləri incələyin və ya filtrdən silin</a>.
+    errors:
+      invalid_context: Heç bir kontekts yoxdur və ya yararsız kontekts təqdim olunub
     index:
       contexts: "%{contexts} üzrə filtrlər"
       empty: Filtriniz yoxdur.
