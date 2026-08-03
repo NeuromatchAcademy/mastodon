@@ -6,12 +6,12 @@ import { defineMessages } from 'react-intl';
 import classNames from 'classnames';
 
 import { supportsPassiveEvents } from 'detect-passive-events';
-import Overlay from 'react-overlays/Overlay';
 
 import { Icon } from 'flavours/glitch/components/icon';
 import FunctionsIcon from '@/material-icons/400-24px/functions.svg?react';
 import { assetHost } from 'flavours/glitch/utils/config';
 import { injectIntl } from '@/flavours/glitch/components/intl';
+import { Popover } from '@/mastodon/components/popover';
 
 const messages = defineMessages({
   inline_short:  { id: 'latex.inline.short', defaultMessage: 'Inline' },
@@ -28,7 +28,6 @@ class LaTeXDropdownMenu extends React.PureComponent {
   static propTypes = {
     style: PropTypes.object,
     items: PropTypes.array.isRequired,
-    placement: PropTypes.string.isRequired,
     onClose: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired,
     value: PropTypes.any
@@ -119,13 +118,13 @@ class LaTeXDropdownMenu extends React.PureComponent {
 
   render () {
     const { mounted } = this.state;
-    const { style, items, placement, value } = this.props;
+    const { style, items, value } = this.props;
 
     return (
       // It should not be transformed when mounting because the resulting
       // size will be used to determine the coordinate of the menu by
       // react-overlays
-      <div className={`latex-dropdown__dropdown ${placement}`} style={{
+      <div className={`latex-dropdown__dropdown`} style={{
         ...style,
         visibility: mounted ? 'visible' : 'hidden',
       }} role='listbox' ref={this.setRef}>
@@ -271,7 +270,11 @@ class LaTeXDropdown extends React.PureComponent {
           />}
         </div>
 
-        <Overlay show={open} placement={placement} target={this.findTarget} container={container}>
+        <Popover
+          isOpen={active}
+          reference={target}
+          onClose={this.onHideDropdown}
+        >
           {({ props, placement })=> (
             <div {...props} style={{ ...props.style, width:299}}>
               <div className={`dropdown-animation ${placement}`}>
@@ -279,12 +282,11 @@ class LaTeXDropdown extends React.PureComponent {
                   items={this.options}
                   onClose={this.handleClose}
                   onChange={this.handleChange}
-                  placement={placement}
                 />
               </div>
             </div>
           )}
-        </Overlay>
+        </Popover>
       </div>
     );
   }
