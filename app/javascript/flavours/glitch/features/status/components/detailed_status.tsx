@@ -84,7 +84,7 @@ export const DetailedStatus: React.FC<{
   const properStatus = status?.get('reblog') ?? status;
   const [height, setHeight] = useState(0);
   const [showDespiteFilter, setShowDespiteFilter] = useState(false);
-  const nodeRef = useRef<HTMLDivElement>();
+  const nodeRef = useRef<HTMLDivElement>(null);
 
   const letterboxMedia = useAppSelector(
     (state) =>
@@ -304,7 +304,12 @@ export const DetailedStatus: React.FC<{
       );
 
     if (taggedCollection) {
-      media = <CollectionPreviewCard collection={taggedCollection.toJS()} />;
+      media = (
+        <CollectionPreviewCard
+          collection={taggedCollection.toJS()}
+          headingLevel='h2'
+        />
+      );
     } else {
       media = (
         <Card
@@ -320,7 +325,10 @@ export const DetailedStatus: React.FC<{
     const firstLinkedCollection = status.get('tagged_collections').first();
     if (firstLinkedCollection) {
       media = (
-        <CollectionPreviewCard collection={firstLinkedCollection.toJS()} />
+        <CollectionPreviewCard
+          collection={firstLinkedCollection.toJS()}
+          headingLevel='h2'
+        />
       );
     }
   }
@@ -491,7 +499,7 @@ export const DetailedStatus: React.FC<{
 
         {(!matchedFilters || showDespiteFilter) && (
           <ContentWarning
-            status={status}
+            statusId={status.get('id')}
             expanded={expanded}
             onClick={handleExpandedToggle}
           />

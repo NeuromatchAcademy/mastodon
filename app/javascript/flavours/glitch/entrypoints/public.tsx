@@ -15,6 +15,7 @@ import { throttle } from 'lodash';
 
 import { determineEmojiMode } from '@/flavours/glitch/features/emoji/mode';
 import { updateHtmlWithEmoji } from '@/flavours/glitch/features/emoji/render';
+import type { InitialState } from '@/flavours/glitch/initial_state';
 import loadKeyboardExtensions from '@/flavours/glitch/load_keyboard_extensions';
 import { loadLocale, getLocale } from '@/flavours/glitch/locales';
 import { loadPolyfills } from '@/flavours/glitch/polyfills';
@@ -83,7 +84,7 @@ async function loaded() {
     document.getElementById('initial-state')?.textContent;
   if (initialStateText) {
     const stateEmojiStyle = getNestedProperty(
-      JSON.parse(initialStateText) as unknown,
+      JSON.parse(initialStateText) as InitialState,
       'meta',
       'emoji_style',
     );
@@ -180,6 +181,8 @@ async function loaded() {
   );
 
   truncateRuleHints();
+
+  applyRailsA11yPatches();
 
   const reactComponents = document.querySelectorAll('[data-component]');
 
@@ -514,6 +517,80 @@ on('click', '.rules-list button', ({ target }) => {
     toggleRuleHint(listItem);
   }
 });
+
+/**
+ * Patch accessibility issues caused by Ruby Gems that
+ * don't produce accessible markup (simple-forms & simple-navigation)
+ */
+function applyRailsA11yPatches() {
+  /**
+   * Hides the asterisk added to labels of required form fields
+   * from assistive tech. (Those fields already have the `required` attribute)
+   */
+  document
+    .querySelectorAll<HTMLElement>('.simple_form label.required abbr')
+    .forEach((element) => {
+      element.setAttribute('aria-hidden', 'true');
+    });
+
+  /**
+   * Associate form field hints with their inputs via aria-describedby
+   */
+  document
+    .querySelectorAll<HTMLDivElement>('.simple_form .field_with_hint')
+    .forEach((field) => {
+      const inputs = field.querySelectorAll<
+        HTMLInputElement | HTMLTextAreaElement
+      >("input[type='text'], input[type='checkbox'], textarea");
+
+      const hint = field.querySelector<HTMLDivElement>('.hint');
+
+      // Bail out if there are more than one input as
+      // the association can't be safely made.
+      if (inputs.length !== 1 || !inputs[0] || !hint) {
+        return;
+      }
+
+      const input = inputs[0];
+      const inputId = input.getAttribute('id');
+      const hintId = `${inputId}_hint`;
+
+      input.setAttribute('aria-describedby', hintId);
+      hint.setAttribute('id', hintId);
+    });
+
+  /**
+   * Add fieldset-like group labels ("legends") to the date-of-birth selector
+   * and groups of radio buttons
+   */
+  const groups = document.querySelectorAll<HTMLDivElement>(
+    '.simple_form .date_of_birth, .simple_form .input.with_label.radio_buttons',
+  );
+  groups.forEach((groupWrapper) => {
+    // This is the element serving as the label of the group.
+    const groupLabel = groupWrapper.querySelector<HTMLLabelElement>('label');
+    const labelWithId =
+      groupWrapper.querySelector<HTMLLabelElement>('label[for]');
+    const groupHint = groupWrapper.querySelector<HTMLDivElement>('.hint');
+
+    // We need a unique ID to generate the aria associations. If `groupLabel`
+    // doesn't have one, we just take the first label with a `for` attribute
+    // that we can find, which is fine because we'll modify it before use.
+    const inputId =
+      groupLabel?.getAttribute('for') ?? labelWithId?.getAttribute('for');
+    const labelId = `${inputId}_label`;
+    const hintId = `${inputId}_hint`;
+
+    groupLabel?.setAttribute('id', labelId);
+    groupHint?.setAttribute('id', hintId);
+
+    groupWrapper.setAttribute('role', 'group');
+    groupWrapper.setAttribute('aria-labelledby', labelId);
+    if (groupHint) {
+      groupWrapper.setAttribute('aria-describedby', hintId);
+    }
+  });
+}
 
 function main() {
   ready(loaded).catch((error: unknown) => {

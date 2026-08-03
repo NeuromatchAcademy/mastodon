@@ -65,10 +65,7 @@ const Compose: React.FC<{ multiColumn: boolean }> = ({ multiColumn }) => {
   const intl = useIntl();
   const dispatch = useAppDispatch();
   const columns = useAppSelector(
-    (state) =>
-      (state.settings as ImmutableMap<string, unknown>).get(
-        'columns',
-      ) as ImmutableList<ColumnMap>,
+    (state) => state.settings.get('columns') as ImmutableList<ColumnMap>,
   );
   const unreadNotifications = useAppSelector(
     (state) => state.notifications.get('unread', 0) as number,
@@ -133,12 +130,11 @@ const Compose: React.FC<{ multiColumn: boolean }> = ({ multiColumn }) => {
 
   if (multiColumn) {
     return (
-      <div
-        className='drawer'
-        role='region'
-        aria-label={intl.formatMessage(navbarMessages.publish)}
-      >
-        <nav className='drawer__header'>
+      <div className='drawer'>
+        <nav
+          className='drawer__header'
+          aria-label={intl.formatMessage(navbarMessages.advancedUiQuickLinks)}
+        >
           <Link
             to='/getting-started'
             className='drawer__tab'
@@ -215,7 +211,11 @@ const Compose: React.FC<{ multiColumn: boolean }> = ({ multiColumn }) => {
 
         <Search singleColumn={false} />
 
-        <div className='drawer__pager'>
+        <div
+          className='drawer__pager'
+          role='region'
+          aria-label={intl.formatMessage(navbarMessages.publish)}
+        >
           <div className='drawer__inner'>
             <ComposeFormContainer />
 
@@ -246,7 +246,11 @@ const Compose: React.FC<{ multiColumn: boolean }> = ({ multiColumn }) => {
       />
 
       <div className='scrollable'>
-        <ComposeFormContainer />
+        <ComposeFormContainer
+          // This is fine on this single-purpose view
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus
+        />
       </div>
 
       <Helmet>

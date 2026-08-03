@@ -42,6 +42,7 @@ const initialState = ImmutableMap({
       poll: false,
       status: false,
       update: false,
+      collections: false,
       'admin.sign_up': false,
       'admin.report': false,
     }),
@@ -66,6 +67,7 @@ const initialState = ImmutableMap({
       poll: true,
       status: true,
       update: true,
+      collections: true,
       'admin.sign_up': true,
       'admin.report': true,
     }),
@@ -80,6 +82,7 @@ const initialState = ImmutableMap({
       poll: true,
       status: true,
       update: true,
+      collections: true,
       'admin.sign_up': true,
       'admin.report': true,
     }),
@@ -169,6 +172,7 @@ const updateFrequentLanguages = (state, language) => state.update('frequentlyUse
 
 const filterDeadListColumns = (state, listId) => state.update('columns', columns => columns.filterNot(column => column.get('id') === 'LIST' && column.get('params').get('id') === listId));
 
+/** @type {import('@reduxjs/toolkit').Reducer<ImmutableMap<string, unknown>>} */
 export default function settings(state = initialState, action) {
   switch(action.type) {
   case STORE_HYDRATE:

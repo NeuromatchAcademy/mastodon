@@ -17,29 +17,6 @@ RSpec.describe 'Profile' do
       .to have_title("alice (@alice@#{local_domain_uri.host})")
   end
 
-  def submit_form
-    first('button[type=submit]').click
-  end
-
-  def account_fields_labels
-    page.all('.account_fields_name input')
-  end
-
-  def account_fields_values
-    page.all('.account_fields_value input')
-  end
-
-  def change_account_fields
-    change { bob.account.reload.fields }
-      .from([])
-      .to(
-        contain_exactly(
-          be_a(Account::Field),
-          be_a(Account::Field)
-        )
-      )
-  end
-
   describe 'with JS', :js, :streaming do
     before do
       with_chupacabras_fancy_profile

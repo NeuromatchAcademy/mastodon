@@ -21,7 +21,7 @@
     height: 160px;
   }
 
-  :global(.inactive) & {
+  .moved & {
     filter: grayscale(100%);
   }
 }
@@ -109,6 +109,9 @@
   transition: color 0.2s ease-in-out;
   word-break: break-all;
   text-align: left;
+
+  /* Allow the handle text to be selected */
+  user-select: text;
 
   > svg {
     width: 16px;
@@ -271,23 +274,6 @@ $button-fallback-breakpoint: $button-breakpoint + 55px;
   }
 }
 
-.bio {
-  font-size: 15px;
-  color: var(--color-text-primary);
-  unicode-bidi: plaintext;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-
-  :any-link {
-    color: var(--color-text-status-links);
-
-    &:hover {
-      text-decoration: none;
-    }
-  }
-}
-
 .familiarFollowers {
   margin-top: 16px;
 }
@@ -370,7 +356,7 @@ $button-fallback-breakpoint: $button-breakpoint + 55px;
 
   &.fieldItem {
     border-color: var(--color-border-success-soft);
-    padding-right: 32px; // 8px padding + 16px for the icon + 8px gap
+    padding-right: 30px; // 8px padding + 16px for the icon + 8px gap - 2px tolerance
   }
 }
 
@@ -475,6 +461,7 @@ $button-fallback-breakpoint: $button-breakpoint + 55px;
   justify-content: center;
   align-items: flex-start;
   margin: 16px 0;
+  padding: 16px;
 }
 
 .bannerBaseCentered {

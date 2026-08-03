@@ -220,7 +220,7 @@ const FieldHTML: FC<FieldHTMLProps> = ({
 };
 
 function useColumnWrap() {
-  const listRef = useRef<HTMLDListElement | null>(null);
+  const listRef = useRef<HTMLDListElement>(null);
 
   const handleRecalculate = useCallback(() => {
     const listEle = listRef.current;
@@ -317,9 +317,10 @@ function useColumnWrap() {
       if (element) {
         listRef.current = element;
         observer.observe(element);
+        handleRecalculate();
       }
     },
-    [observer],
+    [handleRecalculate, observer],
   );
 
   return { wrapperRef: wrapperRefCallback };
@@ -329,17 +330,19 @@ function useFieldOverflow() {
   const [isLabelOverflowing, setIsLabelOverflowing] = useState(false);
   const [isValueOverflowing, setIsValueOverflowing] = useState(false);
 
-  const wrapperRef = useRef<HTMLElement | null>(null);
+  const wrapperRef = useRef<HTMLElement>(null);
 
   const handleRecalculate = useCallback(() => {
     const wrapperEle = wrapperRef.current;
     if (!wrapperEle) return;
 
     const wrapperStyles = getComputedStyle(wrapperEle);
-    const maxWidth =
-      wrapperEle.offsetWidth -
-      (parseFloat(wrapperStyles.paddingLeft) +
-        parseFloat(wrapperStyles.paddingRight));
+    const nonContentWidth =
+      parseFloat(wrapperStyles.paddingLeft) +
+      parseFloat(wrapperStyles.paddingRight) +
+      parseFloat(wrapperStyles.borderLeftWidth) +
+      parseFloat(wrapperStyles.borderRightWidth);
+    const availableContentWidth = wrapperEle.offsetWidth - nonContentWidth;
 
     const label = wrapperEle.querySelector<HTMLSpanElement>(
       'dt > [data-contents]',
@@ -348,8 +351,12 @@ function useFieldOverflow() {
       'dd > [data-contents]',
     );
 
-    setIsLabelOverflowing(label ? label.scrollWidth > maxWidth : false);
-    setIsValueOverflowing(value ? value.scrollWidth > maxWidth : false);
+    setIsLabelOverflowing(
+      label ? label.scrollWidth > availableContentWidth : false,
+    );
+    setIsValueOverflowing(
+      value ? value.scrollWidth > availableContentWidth : false,
+    );
   }, []);
 
   const observer = useResizeObserver(handleRecalculate);
