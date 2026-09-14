@@ -14,6 +14,7 @@ class Form::AdminSettings
     site_terms
     registrations_mode
     closed_registrations_message
+    registration_reason_message
     bootstrap_timeline_accounts
     flavour
     skin

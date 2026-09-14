@@ -36,6 +36,27 @@ RSpec.describe 'Auth Registration' do
     end
   end
 
+  context 'when sign-ups require approval' do
+    before { Setting.registrations_mode = 'approved' }
+
+    it 'shows the default reason message when no custom one is set' do
+      visit new_user_registration_path
+
+      expect(page)
+        .to have_text(I18n.t('auth.sign_up.manual_review', domain: Rails.configuration.x.local_domain))
+    end
+
+    it 'shows the custom reason message set by the admin' do
+      Setting.registration_reason_message = 'Tell us which lab you work in'
+
+      visit new_user_registration_path
+
+      expect(page)
+        .to have_text('Tell us which lab you work in')
+        .and have_no_text(I18n.t('auth.sign_up.manual_review', domain: Rails.configuration.x.local_domain))
+    end
+  end
+
   context 'when age verification is enabled' do
     before { Setting.min_age = 16 }
 

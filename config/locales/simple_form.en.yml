@@ -100,6 +100,7 @@ en:
         min_age: Users will be asked to confirm their date of birth during sign-up
         peers_api_enabled: A list of domain names this server has encountered in the fediverse. No data is included here about whether you federate with a given server, just that your server knows about it. This is used by services that collect statistics on federation in a general sense.
         profile_directory: The profile directory lists all users who have opted-in to be discoverable.
+        registration_reason_message: Displayed above the “Why do you want to join?” text input when sign-ups require manual approval. Leave blank to use the default message.
         require_invite_text: When sign-ups require manual approval, make the “Why do you want to join?” text input mandatory rather than optional
         site_contact_email: How people can reach you for legal or support inquiries.
         site_contact_username: How people can reach you on Mastodon.
@@ -306,6 +307,7 @@ en:
         min_age: Minimum age requirement
         peers_api_enabled: Publish list of discovered servers in the API
         profile_directory: Enable profile directory
+        registration_reason_message: Custom message when asking for a reason to join
         registrations_mode: Who can sign-up
         remote_live_feed_access: Access to live feeds featuring remote posts
         remote_topic_feed_access: Access to hashtag and link feeds featuring remote posts
