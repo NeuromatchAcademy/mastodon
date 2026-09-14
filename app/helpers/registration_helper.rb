@@ -19,6 +19,10 @@ module RegistrationHelper
     IpBlock.severity_sign_up_block.containing(remote_ip.to_s).exists?
   end
 
+  def registration_reason_message
+    Setting.registration_reason_message.presence || t('auth.sign_up.manual_review', domain: site_hostname)
+  end
+
   def terms_agreement_label
     if TermsOfService.live.exists?
       t('auth.user_agreement_html', privacy_policy_path: privacy_policy_path, terms_of_service_path: terms_of_service_path)

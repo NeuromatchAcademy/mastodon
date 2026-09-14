@@ -39,6 +39,12 @@
                 wrapper: :with_label
 
   .fields-group
+    = f.input :registration_reason_message,
+              as: :text,
+              input_html: { rows: 4, placeholder: t('auth.sign_up.manual_review', domain: site_hostname) },
+              wrapper: :with_block_label
+
+  .fields-group
     = f.input :closed_registrations_message,
               as: :text,
               input_html: { rows: 2 },

@@ -12,6 +12,7 @@ defaults: &defaults
   registrations_mode: 'none'
   profile_directory: true
   closed_registrations_message: ''
+  registration_reason_message: ''
   local_live_feed_access: 'authenticated'
   remote_live_feed_access: 'authenticated'
   local_topic_feed_access: 'authenticated'
