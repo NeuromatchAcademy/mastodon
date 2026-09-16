@@ -294,8 +294,8 @@ class Status extends ImmutablePureComponent {
   };
 
   _openStatus = (newTab = false) => {
-    if (this.props.onClick) {
-      this.props.onClick();
+    if (this.props.onOpen) {
+      this.props.onOpen();
       return;
     }
 
@@ -432,6 +432,7 @@ class Status extends ImmutablePureComponent {
             variant: 'simple'
           }}
           className='status__display-name muted'
+          reference='status'
         />
       )
 
