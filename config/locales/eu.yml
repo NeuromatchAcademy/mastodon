@@ -298,6 +298,7 @@ eu:
         update_report_html: "%{name}-k %{target} txostena eguneratu du"
         update_status_html: "%{name} erabiltzaileak %{target} erabiltzailearen bidalketa eguneratu du"
         update_user_role_html: "%{name} erabiltzaileak %{target} rola aldatu du"
+        usable_tag_html: erabili daiteke;
       deleted_account: ezabatu kontua
       empty: Ez da egunkaririk aurkitu.
       filter_by_action: Iragazi ekintzen arabera
@@ -326,6 +327,18 @@ eu:
       unpublish: Desargitaratu
       unpublished_msg: Iragarpena ongi desargitaratu da!
       updated_msg: Iragarpena ongi eguneratu da!
+    collections:
+      accounts: Kontuak
+      back_to_account: Atzera kontuaren orrira
+      back_to_report: Atzera txostenaren orrira
+      batch:
+        remove_from_report: Kendu txostenetik
+        report: Salatu
+      collection_title: "%{name}-(r)en bildumak"
+      contents: Edukiak
+      no_collection_selected: Ez da bildumarik aldatu ez delako bat ere hautatu
+      open: Ireki
+      view_publicly: Publikoki ikusi
     critical_update_pending: Eguneraketa kritikoa egiteke
     custom_emojis:
       assign_category: Esleitu kategoria
@@ -460,9 +473,14 @@ eu:
         title: Posta domeinu berria blokeatu
       no_email_domain_block_selected: Ez da eposta domeinu blokeorik aldatu ez delako bat ere hautatu
       not_permitted: Baimendu gabea
+      reset: Berrezarri
       resolved_dns_records_hint_html: Domeinu-izena ondorengo MX domeinuetara ebazten da, zeinek eposta onartzeko ardura duten. MX domeinu bat blokeatzeak MX domeinu hori erabiltzen duen edozein helbide elektronikotatik izena-ematea blokeatzen du, baita ikusgai dagoen domeinu-izena beste bat bada ere. <strong>Kontuz ibili eposta hornitzaile nagusiak blokeatu gabe.</strong>
       resolved_through_html: "%{domain} domeinuaren bidez ebatzia"
+      search: Bilatu
       title: Email domeinua blokeatuta
+    email_subscriptions:
+      accounts:
+        account: Kontua
     export_domain_allows:
       new:
         title: Baimendutako domeinuak inportatu
@@ -1020,7 +1038,6 @@ eu:
           one: Pertsona batek partekatua azken astean
           other: "%{count} pertsonak partekatua azken astean"
         title: Esteken joerak
-        usage_comparison: "%{today} aldiz partekatua gaur, atzo %{yesterday} aldiz"
       not_allowed_to_trend: Joeretan agertzeko baimenik gabe
       only_allowed: Soilik onartutakoak
       pending_review: Berrikusketaren zain
@@ -1061,7 +1078,6 @@ eu:
         trendable: Joeretan agertuko da
         trending_rank: "%{rank}. joera"
         usable: Erabili daiteke
-        usage_comparison: "%{today} aldiz erabili da gaur, atzo %{yesterday} aldiz"
         used_by_over_week:
           one: Pertsona batek erabilia azken astean
           other: "%{count} pertsonak erabilia azken astean"
@@ -1441,7 +1457,6 @@ eu:
       empty: CSV fitxategi hutsa
       incompatible_type: Ez da bateragarria aukeratutako inportatze-motarekin
       invalid_csv_file: 'CSV fitxategi baliogabea. Errorea: %{error}'
-      over_rows_processing_limit: "%{count} lerro baina gehiago ditu"
       too_large: Fitxategia handiegia da
     failures: Akatsak
     imported: Inportatuta
@@ -1545,7 +1560,6 @@ eu:
     incoming_migrations_html: Beste kontu batetik hona migratzeko, aurretik <a href="%{path}">kontuaren ezizen bat sortu</a> behar duzu.
     moved_msg: Zure kontuak orain %{acct} kontura birbideratzen du, eta zure jarraitzaileak hara migratuak izaten ari dira.
     not_redirecting: Zure kontuak ez du orain beste konturen batera birbideratzen.
-    on_cooldown: Duela gutxi migratu duzu. Funtzio hau %{count} egun barru egongo da berriro eskuragarri.
     past_migrations: Aurreko migrazioak
     proceed_with_move: Mugitu jarraitzaileak
     redirected_msg: 'Zure kontuak hona birbideratzen du orain: %{acct}.'
@@ -1708,8 +1722,6 @@ eu:
       account: "@%{acct} kontuaren bidalketa publikoak"
       tag: "#%{hashtag} traola duten bidalketa publikoak"
   scheduled_statuses:
-    over_daily_limit: 'Egun horretarako programatutako bidalketa kopuruaren muga gainditu duzu: %{limit}'
-    over_total_limit: 'Programatutako bidalketa kopuruaren muga gainditu duzu: %{limit}'
     too_soon: datak etorkizunekoa izan behar du
   self_destruct:
     lead_html: Zoritxarrez, <strong>%{domain}</strong> betirako itxiko da. Kontu bat baduzu bertan, ezin izango duzu erabiltzen jarraitu, baina, oraindik zure datuen babeskopia bat eska dezakezu.

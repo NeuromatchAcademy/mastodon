@@ -113,13 +113,21 @@ class ActivityPub::ProcessAccountService < BaseService
       @account.update!(username: @username, domain: @domain)
     rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
       # This account (identified by ActivityPub `id`) is being renamed to a handle that was
-      # previously known by this Mastodon server as a different account… ignore the renaming for now
+      # previously known by this Mastodon server as a different account…
 
-      # TODO: better handle this scenario, by e.g. renaming the user to something unique
-      # and scheduling re-discovery
+      rename_conflicting_account!
 
-      @account.restore_attributes([:username, :domain])
+      retry
     end
+  end
+
+  def rename_conflicting_account!
+    conflicting_account = Account.find_remote(@username, @domain)
+    return if conflicting_account.nil? || conflicting_account.local? || conflicting_account.uri == @account.uri
+
+    conflicting_account.invalidate_username!
+
+    AccountRefreshWorker.perform_async(conflicting_account.id, { 'request_id' => @request_id })
   end
 
   def extract_username_and_domain!
@@ -398,6 +406,8 @@ class ActivityPub::ProcessAccountService < BaseService
       next unless value['owner'] == @account.uri
 
       key = value['publicKeyPem']
+      next if key.nil?
+
       { type: :rsa, public_key: key, uri: key_id }
     end
   end
@@ -425,7 +435,7 @@ class ActivityPub::ProcessAccountService < BaseService
       next unless value['type'] == 'Multikey' && value['controller'] == @account.uri
 
       key_type, key = key_from_multikey(value['publicKeyMultibase'])
-      next if key_type.nil?
+      next if key_type.nil? || key.nil?
 
       { type: key_type, public_key: key, uri: key_id }
     end

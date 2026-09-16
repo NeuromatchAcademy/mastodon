@@ -71,6 +71,7 @@ export interface BaseApiAccountJSON {
   memorial?: boolean;
   hide_collections: boolean;
   email_subscriptions?: boolean;
+  invalid_handle?: boolean;
   account_css?: string;
 }
 
